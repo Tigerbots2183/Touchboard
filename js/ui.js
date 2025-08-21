@@ -369,12 +369,12 @@ function onConnectCb() {
         for (let i = 0; i < $uiElements.length; i++) {
             if ($uiElements.eq(i).hasClass("actionButton")) {
                 $($uiElements.eq(i)).on("touchstart mousedown", (event) => {
-                    nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), !(JSON.parse($uiElements.eq(i).attr("data-value"))))
-                    $uiElements.eq(i).attr("data-value", !(JSON.parse($uiElements.eq(i).attr("data-value"))))
+                    nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), true)
+                    $uiElements.eq(i).attr("data-value", "true")
                     event.preventDefault()
-                }).on("mouseup touchend", (event) => {
-                    nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), !(JSON.parse($uiElements.eq(i).attr("data-value"))))
-                    $uiElements.eq(i).attr("data-value", !(JSON.parse($uiElements.eq(i).attr("data-value"))))
+                }).on("mouseup touchend mouseleave touchcancel", (event) => {
+                    nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), false)
+                    $uiElements.eq(i).attr("data-value", "false");
                     event.preventDefault()
                 })
             } else if ($uiElements.eq(i).hasClass("toggleButton")) {
