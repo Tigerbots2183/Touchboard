@@ -24,11 +24,11 @@ import { NT4_Client } from "../lib/nt4.js";
 import { goToNextSong } from "./jukebox.js";
 import { setFromString } from "./autoBuilder.js";
 
-let paths
+let paths = {}
 
 if (localStorage.getItem("paths") == null) {
-    localStorage.setItem("paths", JSON.stringify())
-
+    localStorage.setItem("paths", JSON.stringify("{}"))
+    
 } else {
     paths = JSON.parse(localStorage.getItem("paths"))
 }
