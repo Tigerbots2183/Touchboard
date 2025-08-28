@@ -73,7 +73,7 @@ public class posePlotterUtil {
                 String pairKey = pair.getKey();
                 Supplier<Command> pairCommand = pair.getValue();
 
-                if (currentValue.equals(pairKey)) {
+                if (currentValue.equals(pairKey) || currentValue.equals(pairKey + "+")) {
 
                     nextCommand = pairCommand.get();
                     break;
