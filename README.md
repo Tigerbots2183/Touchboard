@@ -93,7 +93,8 @@ Here is a template of a **Toggle Button**
 - The data-value sets the initial value for the toggle button. If the data-value is set to true, in order for the button to look as if its toggled on you must add the `toggledOn` class. Should be a string of "true" or "false"
 - Toggle buttons must have both the *toggleButton* class and the *animatedButton* class.
 - The display name is put in the element.
-
+- The buttons background color needs to have a 0 alpha to start and the toggle opacity is automatically handled.
+- The border-color style can be set to change the border color, the style is automatically handeled.
 
 **This is the robot side code** (Ours is in `robotContainer`)
 ```java
@@ -196,7 +197,7 @@ Here is a template of a **DropDown**
 - The data-topic attribute is what topic the value will be published to on network tables. (Each component must have a unique topic).
 - The data-type for dropdown should be string
 - You can add as many options as you'd like.
-- The data-value of the options is the string value that will be send
+- The data-value of the options is the string value that will be sent
 - The option name is what will be displayed on screen.
 
 
@@ -253,6 +254,28 @@ private final NumberComponent *name = new NumberComponent("*topic");
 //update.
 ```
 
+### Option Group
+
+Here is a template for an **OptGroup**
+
+```html
+        <div class="buttonOptGroup" data-type="string" data-topic="testBOG">
+            <button class="animatedButton optGroupButton toggledOn" style="background-color: rgba(0, 81, 255, 0); border-color: rgb(0, 47, 255)" data-value="*optionValue">*OptionName</button>
+            <button class="animatedButton optGroupButton" style="background-color: rgba(255, 0, 0, 0); border-color: rgb(255, 0, 0)" data-value="*optionValue">*OptionName</button>
+            <button class="animatedButton optGroupButton" style="background-color: rgba(247, 0, 255, 0); border-color: rgb(255, 0, 225) " data-value="*optionValue">*OptionName</button>
+            ...
+        </div>
+```
+
+- **The inital button must have the toggledOn class**
+- The OptGroup element lets the user switch between premade string values with a button interface.
+- The data-topic attribute is what topic the value will be published to on network tables. (Each component must have a unique topic).
+- The data-type for OptGroup should be string
+- You can add as many optGroupButtons as you'd like.
+- The data-value of the options is the string value that will be sent.
+- The option name is what will be displayed on screen.
+- The buttons background color needs to have a 0 alpha to start and the toggle opacity is automatically handled.
+- The border-color style can be set to change the border color, the style is automatically handeled.
 
 ### Basic Subscription
 

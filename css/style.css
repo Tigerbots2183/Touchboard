@@ -139,9 +139,27 @@ body {
     touch-action: none;
 }
 
+.optGroupButton {
+    width: 20vmin;
+    height: 20vmin;
+    background-color: rgba(255, 115, 0, 0);
+    border: rgb(255, 115, 0) dashed 0.5vmin;
+    border-radius: 3vh;
+    color: white;
+    font-size: 4vmin;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    touch-action: none;
+}
+
 .toggledOn {
-    background-color: rgba(255, 115, 0, 0.628);
-    border: white dashed 0.5vmin;
+    background-color: rgba(255, 115, 0, 0.6);
+    border-width:0.5vmin;
+    border-style: solid;
 }
 
 .oneShotButton {
@@ -188,6 +206,12 @@ body {
     animation-iteration-count: 1;
     animation-fill-mode: backwards;
     transform: scaleY(1);
+    pointer-events: none;
+}
+
+.funkyHolder{
+    pointer-events: none;
+
 }
 
 .freakyLetter {
@@ -195,6 +219,8 @@ body {
     animation-timing-function: cubic-bezier(0.165, 0.84, 0.44, 1);
     animation-iteration-count: infinite;
     transform: scaleY(1);
+    pointer-events: none;
+
 
 }
 
@@ -534,6 +560,20 @@ input[type=range]::-webkit-slider-thumb {
     grid-area: A
 }
 
+.buttonOptGroup{
+    border-radius: 2vmin;
+    margin-top: 2vmin;
+    margin-bottom: 2vmin;
+
+    background-color: rgb(24, 24, 24);
+}
+
+.buttonOptGroup .optGroupButton {
+    margin: 2vmin;
+    height: 16vmin;
+    width: 16vmin;
+}
+
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
     /* display: none; <- Crashes Chrome on hover */
@@ -567,101 +607,6 @@ input[type=number] {
     height: 14vmin;
 }
 
-.reefPFHolder {
-    grid-area: rPH;
-    background-color: rgba(0, 0, 0, 0.171);
-    padding: 1vmin;
-    width: 85vmin;
-    height: 93vmin;
-
-    display: grid;
-    grid-template-areas:
-        ". . PH PG . ."
-        ". PI . . PF ."
-        "PJ . . . . PE"
-        ". . SL SR . ."
-        "PK . . . . PD"
-        ". PL . . PC ."
-        ". . PA PB . .";
-    justify-self: center
-}
-
-.SLbtn {
-    margin-top: -7vmin;
-    margin-bottom: -7vmin;
-
-}
-
-.SRbtn {
-    margin-top: -7vmin;
-    margin-bottom: -7vmin;
-
-}
-
-.reefPFHolder button:nth-child(-n+2) {
-
-    margin-top: -7.5vmin;
-}
-
-.reefPFHolder button:nth-child(n+4):nth-child(-n+5) {
-    margin-left: -7.5vmin;
-
-}
-
-.reefPFHolder button:nth-child(n+7):nth-child(-n+8) {
-    margin-bottom: -7.5vmin;
-
-
-}
-
-.reefPFHolder button:nth-child(n+10):nth-child(-n+11) {
-    margin-right: -7.5vmin;
-
-}
-
-.reefDrive {
-    display: none;
-    grid-template-areas:
-        "rPH rPH rPH . A L4"
-        "rPH rPH rPH . A L3"
-        "rPH rPH rPH R . L2"
-        "rPH rPH rPH S I L1";
-}
-
-.reefDrive .intake {
-    margin-right: 2vmax;
-}
-
-.reefMap {
-    background-color: rgb(24, 24, 24);
-    height: 83vmin;
-    width: 83vmin;
-}
-
-.driverTarget {
-    display: none;
-    align-items: center;
-    grid-template-areas:
-        " LT . rPH rPH rPH rPH . RT"
-        " LM . rPH rPH rPH rPH . RM"
-        " LB . rPH rPH rPH rPH . RB"
-}
-
-.rightHumanPlay {
-    background-color: rgba(0, 255, 85, 0.247);
-    border-color: rgb(0, 179, 60);
-    justify-self: center;
-    margin-inline: 5vmax;
-}
-
-.autoDrive {
-    display: none;
-}
-
-.leftHumanPlay {
-    margin-inline: 5vmax;
-    justify-self: center;
-}
 
 .autonomus {
     display: grid;

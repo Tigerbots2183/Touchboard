@@ -24,28 +24,11 @@ import { NT4_Client } from "../lib/nt4.js";
 import { goToNextSong } from "./jukebox.js";
 import { setFromString } from "./autoBuilder.js";
 
-let paths = {}
-
-if (localStorage.getItem("paths") == null) {
-    localStorage.setItem("paths", JSON.stringify("{}"))
-    
-} else {
-    paths = JSON.parse(localStorage.getItem("paths"))
-}
-
-
-
 if (localStorage.getItem("currentPath") == null) {
     localStorage.setItem("currentPath", "")
 }
 
-for (let i in paths) {
-    $("<div>").addClass("selectOption").insertBefore('.saveManager').text(i).val(paths[i]).on("mousedown touchstart", (event) => {
-        setFromString($(event.currentTarget).val())
-        $(".poseSelectorTitle").text(i)
 
-    })
-}
 
 $(".fullScreen").on("click", () => {
     document.querySelector("html").requestFullscreen();
@@ -53,7 +36,7 @@ $(".fullScreen").on("click", () => {
 
 })
 $("html").on("click", (event) => {
-    if (!$(event.target).hasClass("selectTitle") && !$(event.target).hasClass("textInput") && !$(event.target).hasClass("delete") && !$(event.target).hasClass("saveManager")) {
+    if (!$(event.target).hasClass("selectTitle") && !$(event.target).hasClass("textInput") && !$(event.target).hasClass("delete") && !$(event.target).hasClass("save") && !$(event.target).hasClass("saveManager")) {
         $(".select").removeClass("selectOpen").scrollTop(0)
     }
 })
@@ -67,7 +50,7 @@ for (let i = 0; i < $ab.length; i++) {
     if (typeof text === "string") {
         text = text.split(" ")
         for (let j = 0; j < text.length; j++) {
-            let $word = $("<div>").appendTo($ab.eq(i)).css('display', 'flex');
+            let $word = $("<div>").appendTo($ab.eq(i)).css('display', 'flex').addClass("funkyHolder");
             for (let I = 0; I < text[j].length; I++) {
                 $("<p>").text(text[j][I]).addClass('funkyLetter').appendTo($word)
             }
@@ -221,10 +204,12 @@ function oneShotAnimation(elemClass) {
 }
 
 $(".select").on("touchdown mousedown", (event) => {
-    if (!$(event.target).hasClass("textInput") && !$(event.target).hasClass("delete") && !$(event.target).hasClass("saveManager")) {
+    console.log(event.target)
+    if (!$(event.target).hasClass("textInput") && !$(event.target).hasClass("delete") && !$(event.target).hasClass("save") && !$(event.target).hasClass("saveManager")) {
         $(event.currentTarget).toggleClass("selectOpen")
     }
 })
+
 
 export var nt4Client = new NT4_Client(localStorage.getItem("teamNumber"),
     "Touchboard",
@@ -381,6 +366,15 @@ function onConnectCb() {
                 $uiElements.eq(i).on("touchstart mousedown", (event) => {
                     nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), !(JSON.parse($uiElements.eq(i).attr("data-value"))))
                     $uiElements.eq(i).toggleClass("toggledOn")
+                    let oldBG = $uiElements.eq(i).css("background-color").replace(/^([^,]*,[^,]*,[^,]*),.*$/, '$1')
+
+                    if($uiElements.eq(i).hasClass("toggledOn")){
+                        $uiElements.eq(i).css("background-color", oldBG + ", 0.6)")
+                    }else{
+                        $uiElements.eq(i).css("background-color", oldBG + ", 0)")
+
+                    }
+
                     $uiElements.eq(i).attr("data-value", !(JSON.parse($uiElements.eq(i).attr("data-value"))))
                     event.preventDefault()
                 })
@@ -481,6 +475,28 @@ function onConnectCb() {
                 nt4Client.subscribe([$uiElements.eq(i).attr('data-topic')])
 
                 $uiElements.eq(i).addClass($uiElements.eq(i).attr('data-topic').replaceAll("/", "Sl-Sl-Sl-"))
+            } else if ($uiElements.eq(i).hasClass("buttonOptGroup")) {
+                $uiElements.eq(i).children(".optGroupButton").on("mousedown", (event) => {
+                    
+                    let cI = $uiElements.eq(i).children(".optGroupButton")
+                    for(let j = 0; j < cI.length; j++){
+                        cI.eq(j).css("background-color",  cI.eq(j).css("background-color").replace(/^([^,]*,[^,]*,[^,]*),.*$/, '$1') + ", 0)").removeClass("toggledOn")
+                    }
+                    let oldBG = $(event.target).css("background-color").replace(/^([^,]*,[^,]*,[^,]*),.*$/, '$1')
+                    let $ct = $(event.target).addClass("toggledOn").css("background-color", oldBG + ", 0.6)")
+
+                    $uiElements.eq(i).attr("data-value", $ct.attr("data-value"))
+                    nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), $uiElements.eq(i).attr("data-value"))
+
+                })
+
+                let cH = $uiElements.eq(i).children(".optGroupButton")
+                for(let j = 0; j < cH.length; j++){
+                    if(cH.eq(j).hasClass("toggledOn")){
+                        cH.eq(j).css("background-color",  cH.eq(j).css("background-color").replace(/^([^,]*,[^,]*,[^,]*),.*$/, '$1') + ", 0.6)");
+                        $uiElements.eq(i).attr("data-value", cH.eq(j).attr("data-value"))
+                    }
+                }
             }
         }
 

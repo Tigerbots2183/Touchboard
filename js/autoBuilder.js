@@ -35,8 +35,22 @@ let commandList = [
 ]
 
 import { nt4Client } from "./ui.js"
+let paths = {}
 
+if (localStorage.getItem("paths") == null) {
+    localStorage.setItem("paths", JSON.stringify("{}"))
+    
+} else {
+    paths = JSON.parse(localStorage.getItem("paths"))
+}
 
+for (let i in paths) {
+    $("<div>").addClass("selectOption").insertBefore('.saveManager').text(i).val(paths[i]).on("mousedown touchstart", (event) => {
+        setFromString($(event.currentTarget).val())
+        $(".poseSelectorTitle").text(i)
+
+    })
+}
 function alongPath(angle, radius, xposLocal = 750, yposLocal = 750,) {
     //stolen from 3dNgyn.js from 3dsnake that i made
     angle -= 90
@@ -525,7 +539,10 @@ $('.save').on("mousedown touchstart", () => {
             })
         }
     }
-    $(".saveName").val("")
+    setTimeout(() => {
+     $(".saveName").val("")
+     $(".poseSelector").removeClass("selectOpen")
+    }, 1000);
 })
 
 $(".delete").off().on("click", () => {

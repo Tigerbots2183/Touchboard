@@ -39,6 +39,7 @@ SOFTWARE. -->
     <div class="tabNav">
         <!-- Insert tab buttons after this or between existing buttons after here -->
         <div class="tab currentTab" data-page=".autonomus"><i>Pose-Plotter</i></div>
+
         <div class="tab tabConnection" data-page=".jukeBox">Jukebox</div>
 
         <div class="tab tabConnection" data-page=".uiTestTab" data-displaytype="flex">Ui Test</div> <!-- Comment out when done testing-->
@@ -63,7 +64,7 @@ SOFTWARE. -->
     </div>
     <!-- Insert tabs after this or between existing tabs after here -->
 
-    <!-- I recommend minimizing existing tabs -->
+    <!-- I recommend minimizing existing tabs in vscode-->
     <div class="autonomus pageF">
         <div class="order">
             <div class="orderHolder" id="orderHolder">
@@ -226,6 +227,7 @@ SOFTWARE. -->
     </div>
    
 
+
     <div class="jukeBox pageF">
         <div class="songSelector"></div>
         <div class="playbackBar">
@@ -264,8 +266,8 @@ SOFTWARE. -->
         <button class="oneShotButton OneShotTest" data-type="boolean" data-topic="OneShotTest" data-value="false">One
             Shot Button</button>
         <!-- Toggles also work in if you want in reverse, set data-value to true and add toggledOn to the classes -->
-        <button class="toggleButton animatedButton toggledOn" data-type="boolean" data-topic="TestToggleButton"
-            data-value="true">Toggle Button</button>
+        <button class="toggleButton animatedButton" data-type="boolean" data-topic="TestToggleButton"
+            data-value="false">Toggle Button</button>
 
         <!--Set max, min, step, and initial value for the axis, it will snap back after released to inital value-->
         <div class="axis" data-topic="TestAxis" data-value="0" data-type="double">
@@ -286,6 +288,13 @@ SOFTWARE. -->
             <h1 class="selectOption" data-value="opt3">Option 3</h1>
             <h1 class="selectOption" data-value="opt4">Option 4</h1>
             <h1 class="selectOption" data-value="opt5">Option 5</h1>
+
+        </div>
+
+        <div class="buttonOptGroup" data-type="string" data-topic="testBOG" data-value="L2">
+            <button class="animatedButton optGroupButton toggledOn" style="background-color: rgba(0, 81, 255, 0); border-color: rgb(0, 47, 255)" data-value="Val1">Value 1</button>
+            <button class="animatedButton optGroupButton" style="background-color: rgba(255, 0, 0, 0); border-color: rgb(255, 0, 0)" data-value="Val2">Value 2</button>
+            <button class="animatedButton optGroupButton" style="background-color: rgba(247, 0, 255, 0); border-color: rgb(255, 0, 225) " data-value="Val3">Value 3</button>
 
         </div>
 
