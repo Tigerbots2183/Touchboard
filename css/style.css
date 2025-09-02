@@ -158,8 +158,8 @@ body {
 
 .toggledOn {
     background-color: rgba(255, 115, 0, 0.6);
-    border-width:0.5vmin;
-    border-style: solid;
+    border: white dashed 0.5vmin;
+
 }
 
 .oneShotButton {
