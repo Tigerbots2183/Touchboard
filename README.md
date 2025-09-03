@@ -337,17 +337,13 @@ Simply replace your `getAutonomousCommand()` with the below code.
 ## Adding commands
 
 
-To add a command to the list, go to `./js/autoBuilder.js` and add to the command list array. The template is below
+To add a command to the list, look for the `commandHolder` div in the html, and add one of these for every command pair you want to use in auto: 
 
 
-```js
-    let commandList = [
-      {
-        name: '*name',
-        value: '*value',
-      },
-    ]
+```html
+  <div class="autoCommand" data-value="*value" data-displayName="*DisplayName"></div>
 ```
+
 To set the command to execute when the value is made, you must add a command pair for each command you add, and for the position buttons as well. We have ours in `robotContainer()`
 The value should match what's in the command list, and the command must have `()->` since it is a command supplier. Ensure that the commands you add finish, otherwise they will be either stuck on the command or it will instantly finish.
 
@@ -363,22 +359,14 @@ The value should match what's in the command list, and the command must have `()
 # Jukebox
 
 
-An optional chrp player ui that lets you select from chrp files on your robot. To add them, put the cover art in the `coverArt` folder. Then add it to the `tracks` array in `jukebox.js`. Then make sure the file name matches the chrp in the deploy folder.
+An optional chrp player ui that lets you select from chrp files on your robot. To add them, put the cover art in the `coverArt` folder. Then add a songsetter element in the `songSelector` div. Then make sure the file name matches the chrp in the deploy folder.
 
 
-This is a template for a track in the tracks array:
+This is a template for a songSetter:
 
 
-```js
-let tracks = [
-    {
-        name: "*displayedName",
-        coverArtSRC: "./coverArt/*coverArtName",
-        //Note that src is relative to the html file, NOT THIS FILE!!
-        robotFileName: "*chrpOnRobot.chrp",
-        played: false //This is for shuffle to work, must be included.
-    },
-]
+```html
+ <div class='songSetter' data-displayName='*name' data-coverSrc='*coverArtSrc' data-robotFileName='*filename.chrp'></div>
 ```
 
 
