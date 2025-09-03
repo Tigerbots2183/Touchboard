@@ -21,20 +21,9 @@
 // SOFTWARE. 
 
 const svgNS = "http://www.w3.org/2000/svg";
-
-let commandList = [
-    // {
-    //     name: 'Command', // name whatever
-    //     value: 'Z', //Values a=l are taken for field poses, LT LM LB RT RM RB are also taken
-    // },
-    // {
-    //     name: '*command',
-    //     value: '*value',
-    // }, ... 
-
-]
-
+ 
 import { nt4Client } from "./ui.js"
+
 let paths = {}
 
 if (localStorage.getItem("paths") == null) {
@@ -51,6 +40,7 @@ for (let i in paths) {
 
     })
 }
+
 function alongPath(angle, radius, xposLocal = 750, yposLocal = 750,) {
     //stolen from 3dNgyn.js from 3dsnake that i made
     angle -= 90
@@ -86,13 +76,18 @@ let initalLeft
 
 populateCommands()
 function populateCommands() {
-    $(".commandHolder").empty()
-    for (let i = 0; i < commandList.length; i++) {
+    // $(".commandHolder").empty()
+    let commands = $(".autoCommand")
+    for (let i = 0; i < commands.length; i++) {
+        let currentCommand = {
+            name:commands.eq(i).attr("data-displayName"),
+            value:commands.eq(i).attr("data-value")
+        }
 
-        let newElem = $("<h2>").addClass("commandOptionNamed").text(commandList[i].name).appendTo('.commandHolder').on('click', () => {
+        let newElem = $("<h2>").addClass("commandOptionNamed").text(currentCommand.name).appendTo('.commandHolder').on('click', () => {
             $(".poseSelectorTitle").text("Saved")
 
-            let $cr = $("<div>").addClass("ordered").text(commandList[i].value).appendTo(".orderHolder").on("mousedown touchstart", (event) => {
+            let $cr = $("<div>").addClass("ordered").text(currentCommand.value).appendTo(".orderHolder").on("mousedown touchstart", (event) => {
                 let $ct = event.currentTarget
                 currentTimeout = setTimeout(() => {
                     currentDragFrom = $ct
@@ -147,16 +142,18 @@ function populateCommands() {
             })
             $(".orderHolder").scrollLeft($(".orderHolder")[0].scrollWidth)
             if ($(".multiSwitch").attr("data-value") == "Sync") {
-                $cr.text(commandList[i].value + "+")
+                $cr.text(currentCommand.value + "+")
             }
 
 
         })
 
         if (!$(".commands").hasClass("commandName")) {
-            newElem.text(commandList[i].value).removeClass("commandOptionNamed").addClass("commandOption")
+            newElem.text(currentCommand.value).removeClass("commandOptionNamed").addClass("commandOption")
         }
+        commands.eq(i).remove()
     }
+
 }
 
 $(".commandTitle").on("click", () => {
@@ -420,10 +417,10 @@ $(".send").on("click", () => {
 
 export function setFromString(string) {
     $(".orderHolder").empty()
-    if (string == null) {
+    if (string == null){
         return
 
-    } else if (string.length < 1) {
+    }else if(string.length < 1){
         return
     }
     let stringArr = string.split("-")
@@ -539,10 +536,11 @@ $('.save').on("mousedown touchstart", () => {
             })
         }
     }
+
     setTimeout(() => {
-     $(".saveName").val("")
-     $(".poseSelector").removeClass("selectOpen")
-    }, 1000);
+        $(".saveName").val("")
+        $(".poseSelector").removeClass("selectOpen")
+       }, 1000);
 })
 
 $(".delete").off().on("click", () => {

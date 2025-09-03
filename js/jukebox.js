@@ -22,25 +22,19 @@
 
 import { nt4Client } from "./ui.js"
 
+let tracks = []
 
-let tracks = [
-    // {
-    //     name: "Best song evr",
-    //     coverArtSRC: "./coverArt/bestArtever.png",
-    //     //Note that src is relative to the html file, NOT THIS FILE!!
-    //     robotFileName: "THESONGGGG.chrp",
-    //     played: false
-    // },
+let songGetter = $(".songSetter")
+for(let i = 0; i < songGetter.length; i++){
+    let currentSong = songGetter.eq(i)
+    tracks[tracks.length] = {
+        name: currentSong.attr("data-displayName"),
+        coverArtSRC: currentSong.attr("data-coverSrc"),
+        robotFileName: currentSong.attr("data-robotFileName"),
+        played:false
+    }
+}  
 
-    // {
-    //     name: "*name",
-    //     coverArtSRC: "src",
-    //     robotFileName: "chrp name (goes in deploy btw).chrp",
-    //     played: false // Required for shuffle to work include this 
-    // },
-    //     //Note that src is relative to the html file, NOT THIS FILE!!
-
-]
 
 let currentPlaybackArr = tracks
 
@@ -99,6 +93,8 @@ function trackPress(track) {
 }
 
 $(".stopPlayback").on('click', () => {
+    nt4Client.publishTopic("/touchboard/goToNextSong", "boolean")
+    nt4Client.addSample("/touchboard/goToNextSong", false);
     $(".hideableBar").css("display", "none")
     nt4Client.publishTopic("/touchboard/stopMusic", "boolean")
     nt4Client.addSample("/touchboard/stopMusic", true);
@@ -153,7 +149,7 @@ $(".shuffleButton").on("click", (event) => {
         $ct.attr("data-state", 'once')
 
         nt4Client.addSample("/touchboard/goToNextSong", false);
-    }
+        }
 })
 
 $(".restartPlayback").on("click", () => {
@@ -180,19 +176,19 @@ function shuffleArray(array, firstName) {
     return array;
 }
 
-$(".nextSong").on("click", () => {
+$(".nextSong").on("click", ()=>{
     goToNextSong()
 })
 
-$(".prevSong").on("click", () => {
+$(".prevSong").on("click",()=>{
     goToPrevSong()
 
 })
 
-export function goToNextSong() {
-    for (let i = 0; i < currentPlaybackArr.length - 1; i++) {
+export function goToNextSong(){
+    for(let i = 0; i < currentPlaybackArr.length-1; i++){
         if (currentPlaybackArr[i].name === $(".currentTrack").text()) {
-            trackPress(currentPlaybackArr[(i + 1)])
+            trackPress(currentPlaybackArr[(i+1)])
             return
         }
     }
@@ -201,10 +197,10 @@ export function goToNextSong() {
     nt4Client.addSample("/touchboard/stopMusic", true);
 }
 
-function goToPrevSong() {
-    for (let i = 1; i < currentPlaybackArr.length; i++) {
+function goToPrevSong(){
+    for(let i = 1; i < currentPlaybackArr.length; i++){
         if (currentPlaybackArr[i].name === $(".currentTrack").text()) {
-            trackPress(currentPlaybackArr[(i - 1)])
+            trackPress(currentPlaybackArr[(i-1)])
             return
         }
     }
@@ -213,7 +209,7 @@ function goToPrevSong() {
     nt4Client.addSample("/touchboard/stopMusic", true);
 }
 
-$(".teamNumber").on("click", () => {
+$(".teamNumber").on("click", ()=>{
     $(".setTeamNumberOrIp").toggleClass("showTeamSet")
-
+    
 })
