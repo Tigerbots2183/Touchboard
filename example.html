@@ -38,21 +38,34 @@
     </div>
 
     <div class="autonomus pageF">
+        <div class="commands commandName">
+            <div class="commandNav">
+                <h1 class="commandTitle">Commands</h1>
+                <div class="multiSwitch" data-value="Await">
+                    <div class="multiSlider">
+                        <div class="multiSliding" style="width:50%;"></div>
+                    </div>
+
+                    <input type="button" class="multiSwitchButton" value="Await">
+                    <input type="button" class="multiSwitchButton" value="Sync">
+                    <!-- <button class="multiSwitchButton stringMultiButton">String</button> -->
+                </div>
+            </div>
+            <div class="commandHolder">
+                <!-- Insert Commands After here-->
+                <div class="autoCommand" data-value="4S" data-displayName="Auto Shoot L4"></div>
+                <div class="autoCommand" data-value="3" data-displayName="Elevator 3"></div>
+                <div class="autoCommand" data-value="2" data-displayName="Elevator 2"></div>
+                <div class="autoCommand" data-value="0" data-displayName="Elevator Down"></div>
+                <div class="autoCommand" data-value="S" data-displayName="Shoot"></div>
+                <div class="autoCommand" data-value="T" data-displayName="Intake"></div>
+
+                <!-- Insert Commands Before here-->
+            </div>
+        </div>
+
         <div class="order">
             <div class="orderHolder" id="orderHolder">
-                <!-- <div class="ordered">3s</div>
-                <div class="ordered">I</div>
-                <div class="ordered">4</div>
-                <div class="ordered">F</div>
-                <div class="ordered">0S</div>
-                <div class="ordered">M</div>
-                <div class="ordered">T</div>
-                <div class="ordered">3S</div>
-                <div class="ordered">K</div>
-                <div class="ordered">4</div>
-                <div class="ordered">F</div>
-                <div class="ordered">0S</div> -->
-
 
 
             </div>
@@ -172,24 +185,7 @@
                 <input type="range" class="startPos" min="100" max="1446.5998">
             </foreignObject>
         </svg>
-        <div class="commands commandName">
-            <div class="commandNav">
-                <h1 class="commandTitle">Commands</h1>
-                <div class="multiSwitch" data-value="Await">
-                    <div class="multiSlider">
-                        <div class="multiSliding" style="width:50%;"></div>
-                    </div>
 
-                    <input type="button" class="multiSwitchButton" value="Await">
-                    <input type="button" class="multiSwitchButton" value="Sync">
-                    <!-- <button class="multiSwitchButton stringMultiButton">String</button> -->
-                </div>
-            </div>
-            <div class="commandHolder">
-
-
-            </div>
-        </div>
         <div class="waitSwitcher">
             <input type="button" class="clear" value="❌">
 
@@ -314,7 +310,43 @@
     </div>
 
     <div class="jukeBox pageF">
-        <div class="songSelector"></div>
+        <div class="songSelector">
+            <div class='songSetter' data-displayName='Space Junk Galaxy' data-coverSrc='./coverArt/SuperMarioGalaxy.jpg'
+                data-robotFileName='spj.chrp'> </div>
+            <div class='songSetter' data-displayName='Another Medium' data-coverSrc='./coverArt/Undertale.png'
+                data-robotFileName='AnotherMedium.chrp'> </div>
+            <div class='songSetter' data-displayName='Hopes And Dreams' data-coverSrc='./coverArt/Undertale.png'
+                data-robotFileName='HopesAndDreams.chrp'> </div>
+            <div class='songSetter' data-displayName='Ruins' data-coverSrc='./coverArt/Undertale.png'
+                data-robotFileName='Ruins.chrp'> </div>
+            <div class='songSetter' data-displayName='Otherside' data-coverSrc='./coverArt/LenaReine.jpg'
+                data-robotFileName='Otherside.chrp'> </div>
+            <div class='songSetter' data-displayName='Athletic Theme' data-coverSrc='./coverArt/NewSuperMarioBros.jpg'
+                data-robotFileName='Athletic.chrp'> </div>
+            <div class='songSetter' data-displayName='Super Mario Land' data-coverSrc='./coverArt/MarioLand.jpg'
+                data-robotFileName='SuperMarioLand.chrp'> </div>
+            <div class='songSetter' data-displayName='Staff Roll' data-coverSrc='./coverArt/MarioWorld.png'
+                data-robotFileName='SuperMarioWorldEnding.chrp'> </div>
+            <div class='songSetter' data-displayName='Megalovania' data-coverSrc='./coverArt/Undertale.png'
+                data-robotFileName='Megalovania.chrp'> </div>
+            <div class='songSetter' data-displayName='The Moon' data-coverSrc='./coverArt/Ducktales.png'
+                data-robotFileName='Moon.chrp'> </div>
+            <div class='songSetter' data-displayName='Sanctuary Guardian' data-coverSrc='./coverArt/EarthBound.jpg'
+                data-robotFileName='Sg.chrp'> </div>
+            <div class='songSetter' data-displayName='Fallen Down' data-coverSrc='./coverArt/Undertale.png'
+                data-robotFileName='FallenDown.chrp'> </div>
+            <div class='songSetter' data-displayName='Gusty Garden Galaxy'
+                data-coverSrc='./coverArt/SuperMarioGalaxy.jpg' data-robotFileName='GustyGardenGalaxy.chrp'> </div>
+            <div class='songSetter' data-displayName='Working For Nook' data-coverSrc='./coverArt/AnimalCrossing.jpg'
+                data-robotFileName='WorkingForNook.chrp'> </div>
+            <div class='songSetter' data-displayName='5:00pm' data-coverSrc='./coverArt/AnimalCrossing.jpg'
+                data-robotFileName='AnimalCrossing500.chrp'> </div>
+            <div class='songSetter' data-displayName='The Roost' data-coverSrc='./coverArt/AnimalCrossingWW.jpg'
+                data-robotFileName='AnimalCrossingWWRoost.chrp'> </div>
+            <div class='songSetter' data-displayName='Winter Nights' data-coverSrc='./coverArt/LogoSquareBig.png'
+                data-robotFileName='WinterNights.chrp'> </div>
+
+        </div>
         <div class="playbackBar">
             <div class="hideableBar">
                 <div class="half" style="justify-content: start; padding-left: 2vw; width: 48vw;">
@@ -384,7 +416,7 @@
             <button class="numberPlus animatedButton">+</button>
         </div>
 
-        <div class="basicSubscription" data-topic="" ><!-- must be the full path -->
+        <div class="basicSubscription" data-topic=""><!-- must be the full path -->
             <h1 class="bSTopic">Topic:</h1>
             <h1 class="bSValue">Value</h1>
         </div>

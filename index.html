@@ -42,7 +42,8 @@ SOFTWARE. -->
 
         <div class="tab tabConnection" data-page=".jukeBox">Jukebox</div>
 
-        <div class="tab tabConnection" data-page=".uiTestTab" data-displaytype="flex">Ui Test</div> <!-- Comment out when done testing-->
+        <div class="tab tabConnection" data-page=".uiTestTab" data-displaytype="flex">Ui Test</div>
+        <!-- Comment out when done testing-->
 
         <!-- Insert tab buttons before this or between existing buttons before here -->
 
@@ -66,6 +67,30 @@ SOFTWARE. -->
 
     <!-- I recommend minimizing existing tabs in vscode-->
     <div class="autonomus pageF">
+
+        <div class="commands commandName">
+            <div class="commandNav">
+                <h1 class="commandTitle">Commands</h1>
+                <div class="multiSwitch" data-value="Await">
+                    <div class="multiSlider">
+                        <div class="multiSliding" style="width:50%;"></div>
+                    </div>
+
+                    <input type="button" class="multiSwitchButton" value="Await">
+                    <input type="button" class="multiSwitchButton" value="Sync">
+                    <!-- <button class="multiSwitchButton stringMultiButton">String</button> -->
+                </div>
+            </div>
+            <div class="commandHolder">
+                <!-- <div class="autoCommand" data-value="*value" data-displayName="*displayName"></div> -->
+                <!-- Insert Commands After here-->
+
+                
+
+                <!-- Insert Commands Before here-->
+            </div>
+        </div>
+
         <div class="order">
             <div class="orderHolder" id="orderHolder">
 
@@ -187,24 +212,7 @@ SOFTWARE. -->
                 <input type="range" class="startPos" min="100" max="1446.5998">
             </foreignObject>
         </svg>
-        <div class="commands commandName">
-            <div class="commandNav">
-                <h1 class="commandTitle">Commands</h1>
-                <div class="multiSwitch" data-value="Await">
-                    <div class="multiSlider">
-                        <div class="multiSliding" style="width:50%;"></div>
-                    </div>
 
-                    <input type="button" class="multiSwitchButton" value="Await">
-                    <input type="button" class="multiSwitchButton" value="Sync">
-                    <!-- <button class="multiSwitchButton stringMultiButton">String</button> -->
-                </div>
-            </div>
-            <div class="commandHolder">
-
-
-            </div>
-        </div>
         <div class="waitSwitcher">
             <input type="button" class="clear" value="❌">
 
@@ -225,11 +233,18 @@ SOFTWARE. -->
             <input type="button" class="send" value="➦">
         </div>
     </div>
-   
+
 
 
     <div class="jukeBox pageF">
-        <div class="songSelector"></div>
+        <div class="songSelector">
+            <!-- <div class='songSetter' data-displayName='*name' data-coverSrc='*coverArtSrc' data-robotFileName='*filename.chrp'></div> -->
+            <!-- Insert Songs After here-->
+
+
+
+            <!-- Insert Songs Before here-->
+        </div>
         <div class="playbackBar">
             <div class="hideableBar">
                 <div class="half" style="justify-content: start; padding-left: 2vw; width: 48vw;">
@@ -292,9 +307,15 @@ SOFTWARE. -->
         </div>
 
         <div class="buttonOptGroup" data-type="string" data-topic="testBOG" data-value="L2">
-            <button class="animatedButton optGroupButton toggledOn" style="background-color: rgba(0, 81, 255, 0); border-color: rgb(0, 47, 255)" data-value="Val1">Value 1</button>
-            <button class="animatedButton optGroupButton" style="background-color: rgba(255, 0, 0, 0); border-color: rgb(255, 0, 0)" data-value="Val2">Value 2</button>
-            <button class="animatedButton optGroupButton" style="background-color: rgba(247, 0, 255, 0); border-color: rgb(255, 0, 225) " data-value="Val3">Value 3</button>
+            <button class="animatedButton optGroupButton toggledOn"
+                style="background-color: rgba(0, 81, 255, 0); border-color: rgb(0, 47, 255)" data-value="Val1">Value
+                1</button>
+            <button class="animatedButton optGroupButton"
+                style="background-color: rgba(255, 0, 0, 0); border-color: rgb(255, 0, 0)" data-value="Val2">Value
+                2</button>
+            <button class="animatedButton optGroupButton"
+                style="background-color: rgba(247, 0, 255, 0); border-color: rgb(255, 0, 225) " data-value="Val3">Value
+                3</button>
 
         </div>
 
@@ -307,7 +328,7 @@ SOFTWARE. -->
             <button class="numberPlus animatedButton">+</button>
         </div>
 
-        <div class="basicSubscription" data-topic="" ><!-- must be the full path -->
+        <div class="basicSubscription" data-topic=""><!-- must be the full path -->
             <h1 class="bSTopic">Topic:</h1>
             <h1 class="bSValue">Value</h1>
         </div>

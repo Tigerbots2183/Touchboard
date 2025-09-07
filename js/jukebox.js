@@ -34,13 +34,6 @@ for(let i = 0; i < songGetter.length; i++){
         played:false
     }
 }  
-console.log(tracks)
-
-
-
-for(let i = 0; i < tracks.length; i++){
-    console.log("<div class='songSetter' data-displayName= '" + tracks[i].name + "' data-coverSrc = '" + tracks[i].coverArtSRC +"' data-robotFileName='" + tracks[i].robotFileName + "'> </div>")
-}
 
 let currentPlaybackArr = tracks
 
