@@ -376,6 +376,8 @@ body {
 
 .numberComponent {
     display: grid;
+        height: min-content;
+    width: min-content  ;
     grid-template-areas:
         "H H H"
         "M T P";
@@ -564,7 +566,8 @@ input[type=range]::-webkit-slider-thumb {
     border-radius: 2vmin;
     margin-top: 2vmin;
     margin-bottom: 2vmin;
-
+    height: min-content;
+    width: min-content  ;
     background-color: rgb(24, 24, 24);
 }
 
@@ -592,6 +595,8 @@ input[type=number] {
     color: white;
     border-radius: 2vh;
     display: flex;
+        height: min-content;
+    width: min-content  ;
     flex-wrap: wrap;
     font-size: 3.5vmin;
     padding: 1vmin;
