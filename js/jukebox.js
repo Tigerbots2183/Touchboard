@@ -35,7 +35,6 @@ for(let i = 0; i < songGetter.length; i++){
     }
 }  
 
-
 let currentPlaybackArr = tracks
 
 makeTracks(0, tracks)

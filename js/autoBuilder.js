@@ -19,18 +19,20 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE. 
-
 const svgNS = "http://www.w3.org/2000/svg";
  
 import { nt4Client } from "./ui.js"
 
+import { getHtmlFileName } from "./ui.js";
+
+
 let paths = {}
 
-if (localStorage.getItem("paths") == null) {
-    localStorage.setItem("paths", JSON.stringify("{}"))
+if (localStorage.getItem(getHtmlFileName() + "paths") == null) {
+    localStorage.setItem(getHtmlFileName() + "paths", JSON.stringify({}))
     
 } else {
-    paths = JSON.parse(localStorage.getItem("paths"))
+    paths = JSON.parse(localStorage.getItem(getHtmlFileName() + "paths"))
 }
 
 for (let i in paths) {
@@ -393,7 +395,7 @@ $(".send").on("click", () => {
         finalString = finalString + $eq.text() + "-"
     }
     finalString = finalString.slice(0, -1)
-    localStorage.setItem("currentPath", finalString)
+    localStorage.setItem(getHtmlFileName() + "currentPath", finalString)
 
     console.log(finalString)
     if ($("#connect")[0].checked) {
@@ -505,7 +507,7 @@ $(".clear").on("click", () => {
 
 })
 
-setFromString(localStorage.getItem("currentPath"))
+setFromString(localStorage.getItem(getHtmlFileName() + "currentPath"))
 
 $('.save').on("mousedown touchstart", () => {
     let saveName = $(".saveName").val()
@@ -519,11 +521,11 @@ $('.save').on("mousedown touchstart", () => {
         }
         finalString = finalString.slice(0, -1)
 
-        paths = JSON.parse(localStorage.getItem("paths"))
+        paths = JSON.parse(localStorage.getItem(getHtmlFileName() + "paths"))
 
         paths[saveName] = finalString;
 
-        localStorage.setItem("paths", JSON.stringify(paths));
+        localStorage.setItem(getHtmlFileName() + "paths", JSON.stringify(paths));
 
         $(".poseSelector").children('.selectOption').remove()
 
@@ -545,11 +547,11 @@ $('.save').on("mousedown touchstart", () => {
 
 $(".delete").off().on("click", () => {
     $(".selectOption").off().on("mousedown touchstart", (event) => {
-        paths = JSON.parse(localStorage.getItem("paths"))
+        paths = JSON.parse(localStorage.getItem(getHtmlFileName() + "paths"))
 
         delete paths[$(event.currentTarget).text()]
 
-        localStorage.setItem("paths", JSON.stringify(paths));
+        localStorage.setItem(getHtmlFileName() + "paths", JSON.stringify(paths));
 
         $(".poseSelector").children('.selectOption').remove()
 
