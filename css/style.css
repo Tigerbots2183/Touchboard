@@ -15,6 +15,18 @@ body {
     padding: 0px;
     overflow: hidden;
     border-radius: 0 0 3vh 3vh;
+    display: grid;
+    grid-template-columns: 100%;
+    transition: all 300ms ease;
+    grid-template-rows: 100%;
+    grid-template-areas:
+        "D S"
+        "B S";
+}
+
+.bodyEdit {
+    grid-template-rows: 80%;
+    grid-template-columns: 80%;
 
 }
 
@@ -24,161 +36,62 @@ body {
     padding: 0px;
 }
 
-.tabNav {
-    height: 7vh;
-    background-color: rgb(64, 12, 12);
-    display: flex;
-
-}
-
-.teamNumber {
-    margin-left: auto;
-    color: white;
-    border: none;
-    background-color: transparent;
-    font-size: 6vh;
-    line-height: 7vh;
-    font-weight: 900;
-    font-family: monospace;
-    width: 9vh;
-    border-radius: 2vh 2vh 0 0;
-    height: 7vh;
-}
-
-.fullScreen {
-    /* margin-left: auto; */
-    background-color: rgb(128, 32, 32);
-    color: white;
-    border: none;
-    font-size: 6vh;
-    line-height: 7vh;
-    width: 9vh;
-    border-radius: 2vh 2vh 0 0;
-    height: 7vh;
-}
-
-.tab {
-    background-color: rgb(64, 12, 12);
-    color: white;
-    padding-inline: 2vw;
-    border: none;
-    font-size: 5vh;
-    line-height: 7vh;
-    border-radius: 3vh 3vh 0 0;
-    height: 7vh;
-    overflow: hidden;
-
-}
-
-.currentTab {
-    background-color: rgb(128, 32, 32);
-    color: white;
-    padding-inline: 2vw;
-    border: none;
-    font-size: 5vh;
-    line-height: 7vh;
-    border-radius: 3vh 3vh 0 0;
-    height: 7vh;
-    overflow: hidden;
-
-}
 
 .uiTestTab {
     display: none;
-    align-content: space-evenly;
-    justify-content: space-evenly;
-    align-items: center;
-    flex-direction: column;
-    flex-wrap: wrap;
-}
+} 
 
 
 
 
-.page {
+
+
+.dashboardHolder {
     width: 100%;
-    height: 93vh;
+    grid-area: D;
+    height: 100%;
+    container-name: dashboardHolder;
+    container-type: size;
+    overflow: hidden;
 }
 
-.pageF {
+
+.sideBar {
     width: 100%;
-    height: 93vh;
-}
-
-.actionButton {
-    width: 20vmin;
-    height: 20vmin;
-    background-color: rgba(43, 0, 255, 0.247);
-    border: none;
-    border-radius: 3vh;
-    color: white;
-    font-size: 4vmin;
+    border-left: 0.5vw rgb(5, 5, 5) solid;
+    /* border-style: */
     display: flex;
     flex-direction: column;
-    flex-wrap: wrap;
     align-items: center;
-    justify-content: center;
-    user-select: none;
-    touch-action: none;
+    background-color: rgb(18, 18, 18);
+    height: 100%;
+    grid-area: S;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    flex-wrap: nowrap;
 }
 
-.toggleButton {
-    width: 20vmin;
-    height: 20vmin;
-    background-color: rgba(255, 115, 0, 0);
-    border: rgb(255, 115, 0) dashed 0.5vmin;
-    border-radius: 3vh;
-    color: white;
-    font-size: 4vmin;
-    display: flex;
-    flex-direction: column;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    user-select: none;
-    touch-action: none;
+.sideBar>div{
+    flex-shrink: 0;
+    margin-top: 2.5vh;
+    margin-bottom: 2.5vh;
 }
 
-.optGroupButton {
-    width: 20vmin;
-    height: 20vmin;
-    background-color: rgba(255, 115, 0, 0);
-    border: rgb(255, 115, 0) dashed 0.5vmin;
-    border-radius: 3vh;
-    color: white;
-    font-size: 4vmin;
-    display: flex;
-    flex-direction: column;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    user-select: none;
-    touch-action: none;
+.sideBar>button{
+    flex-shrink: 0;
+    margin-top: 2.5vh;
+    margin-bottom: 2.5vh;
 }
 
-.toggledOn {
-    background-color: rgba(255, 115, 0, 0.6);
-    border: white dashed 0.5vmin;
 
+.bottomBar {
+    border-top: rgb(5, 5, 5) solid 0.5vw;
+    background-color: rgb(18, 18, 18);
+    width: 100%;
+    height: 20cqh;
+    grid-area: B;
 }
 
-.oneShotButton {
-    width: 20vmin;
-    height: 20vmin;
-    background-color: rgba(255, 242, 0, 0.247);
-    border: rgba(255, 242, 0, 1) solid 0.5vmin;
-
-    border-radius: 3vh;
-    color: white;
-    font-size: 4vmin;
-    display: flex;
-    flex-direction: column;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    user-select: none;
-    touch-action: none;
-}
 
 .spawnedCircle {
     position: absolute;
@@ -209,7 +122,7 @@ body {
     pointer-events: none;
 }
 
-.funkyHolder{
+.funkyHolder {
     pointer-events: none;
 
 }
@@ -333,572 +246,15 @@ body {
 
 }
 
-.select {
-    margin-top: 10vmin;
-    background-color: #7300ff6b;
-    width: 25vmax;
-    height: 44.5vmin;
-    overflow: hidden;
-    clip-path: circle(0vmax at 0% 0%);
-    clip-path: xywh(0% 0% 100% 9vmin);
-    transition: clip-path 300ms ease;
-    will-change: clip-path;
-    display: flex;
-    flex-direction: column;
-}
 
-.selectOpen {
-    clip-path: circle(200vmax at 0% 0%);
-    overflow-y: scroll;
-    clip-path: xywh(0% -44.5vh 100% 89vh)
-}
 
-.selectOption {
-    background-color: #7300ff;
-    font-size: 7vmin;
-    /* padding:0.4vh; */
-    border: rgba(255, 255, 255, 0.123) 0.5vmin solid;
-    color: white;
-    text-align: start;
-    padding-left: 0.4vh;
-}
 
-.selectTitle {
-    /* background-color: rgba(0, 255, 85, 0.247); */
-    font-size: 7vmin;
-    /* padding:0.4vh; */
-    border: rgba(255, 255, 255, 0.123) 0.5vmin solid;
-    color: white;
-    text-align: start;
-    touch-action: scroll;
-    padding-left: 0.4vh;
-}
 
-.numberComponent {
-    display: grid;
-        height: min-content;
-    width: min-content  ;
-    grid-template-areas:
-        "H H H"
-        "M T P";
-    background-color: rgb(24, 24, 24);
-    border-radius: 3vmin;
-}
 
-.numberTitle {
-    color: white;
-    grid-area: H;
-    text-align: center;
-    line-height: 6vh;
-    font-size: 4vh;
-}
 
-.numberTextInput {
-    grid-area: T;
-    border: black solid 0.5vmin;
-    height: 9vmin;
-    color: white;
-    line-height: 9vmin;
-    font-size: 8vmin;
-    width: 20vmin;
-    background-color: rgb(24, 24, 24);
-    text-align: center;
-    text-overflow: clip;
-}
 
-.numberPlus {
-    grid-area: P;
 
-    height: 10vmin;
-    border: rgb(47, 0, 255) solid 0.5vmin;
-    width: 10vmin;
-    line-height: 8vmin;
-    border-radius: 0 3vmin 3vmin 0;
-    font-size: 8vmin;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 900;
-    background-color: rgba(47, 0, 255, 0.552);
-}
 
-.numberMinus {
-    grid-area: M;
-
-    height: 10vmin;
-    border: rgb(255, 0, 0) solid 0.5vmin;
-    width: 10vmin;
-    line-height: 0vmin;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 3vmin 0 0 3vmin;
-    font-size: 8vmin;
-    font-weight: 900;
-    background-color: rgba(255, 0, 0, 0.552);
-}
-
-.numberPlus p {
-    color: white !important;
-}
-
-.numberMinus p {
-    color: white !important;
-}
-
-.axis {
-    height: 20vmin;
-    width: 40vmin;
-    background-color: rgb(24, 24, 24);
-    border-radius: 3vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-evenly;
-}
-
-.axisLabel {
-    color: white;
-    font-size: 4.8vh;
-    text-align: center;
-
-}
-
-.axisKnob {
-    width: 32vmin;
-    /* background: transparent; */
-    height: 3vmin;
-    margin-top: 1vmin;
-    margin-bottom: 1vmin;
-    border-radius: 1vmin;
-    appearance: none;
-
-}
-
-.verticalAxis {
-    height: 40vmin;
-    width: 20vmin;
-    background-color: rgb(24, 24, 24);
-    border-radius: 3vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-evenly;
-}
-
-.verticalAxisKnob {
-    width: 3vmin;
-    /* background: transparent; */
-    height: 26vmin;
-    margin-top: 1vmin;
-    margin-bottom: 1vmin;
-    border-radius: 1vmin;
-    appearance: none;
-    writing-mode: vertical-lr;
-    direction: rtl;
-}
-
-input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    height: 10vmin;
-    width: 10vmin;
-    border-radius: 10vmin;
-    background-color: blueviolet;
-}
-
-
-
-.teleop {
-    display: none;
-    padding: 1.75vh;
-    grid-template-areas:
-        ". L4 . . . . . ."
-        ". L3 . A . . . ."
-        ". L2 . A . . D R"
-        ". L1 . . . . S I";
-}
-
-.L4 {
-    background-color: rgba(43, 0, 255, 0.247);
-    grid-area: L4
-}
-
-.L3 {
-    background-color: rgba(0, 255, 8, 0.247);
-    grid-area: L3
-}
-
-.L2 {
-    background-color: rgba(255, 247, 0, 0.247);
-    grid-area: L2
-}
-
-.L1 {
-    background-color: rgba(255, 0, 0, 0.247);
-    grid-area: L1
-}
-
-.intake {
-    background-color: rgba(144, 0, 255, 0.247);
-    grid-area: I
-}
-
-.revIntake {
-    background-color: rgba(255, 0, 123, 0.247);
-    grid-area: R
-}
-
-.shoot {
-    background-color: rgba(255, 102, 0, 0.247);
-    grid-area: S
-}
-
-.shoot2 {
-    background-color: rgba(174, 255, 0, 0.247);
-    grid-area: D
-}
-
-.actuatorAxis {
-    grid-area: A
-}
-
-.buttonOptGroup{
-    border-radius: 2vmin;
-    margin-top: 2vmin;
-    margin-bottom: 2vmin;
-    height: min-content;
-    width: min-content  ;
-    background-color: rgb(24, 24, 24);
-}
-
-.buttonOptGroup .optGroupButton {
-    margin: 2vmin;
-    height: 16vmin;
-    width: 16vmin;
-}
-
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-    /* display: none; <- Crashes Chrome on hover */
-    -webkit-appearance: none;
-    margin: 0;
-    /* <-- Apparently some margin are still there even though it's hidden */
-}
-
-input[type=number] {
-    -moz-appearance: textfield;
-    /* Firefox */
-}
-
-
-.basicSubscription {
-    color: white;
-    border-radius: 2vh;
-    display: flex;
-        height: min-content;
-    width: min-content  ;
-    flex-wrap: wrap;
-    font-size: 3.5vmin;
-    padding: 1vmin;
-    background-color: rgba(157, 0, 255, 0.258);
-}
-
-.bSTopic {
-    padding-right: 1vmin;
-}
-
-.reefPFHolder button {
-    width: 14vmin;
-    height: 14vmin;
-}
-
-
-.autonomus {
-    display: grid;
-    grid-template-areas:
-        "o o o o "
-        "m w w w"
-        "m c c c";
-    /* css grid my beloved */
-    grid-auto-columns: min-content auto
-}
-
-.autoMap {
-    height: 71dvh;
-    width: auto;
-    grid-area: m;
-    margin: 1vh;
-}
-
-.order {
-    grid-area: o;
-    background-color: rgb(24, 24, 24);
-    height: 18vh;
-    margin: 1vh;
-    border-radius: 2vh;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.commands {
-    margin: 1vh;
-    height: 56.25vh;
-    border-radius: 2vh;
-    grid-area: c;
-    width: auto;
-    color: white;
-    background-color: rgb(24, 24, 24);
-
-
-}
-
-::-webkit-scrollbar {
-    width: 1vmin;
-    height: 1vmin;
-
-}
-
-::-webkit-scrollbar-track {
-    background-color: rgba(0, 0, 0, 0.568);
-}
-
-::-webkit-scrollbar-thumb {
-    background: #9a9a9a;
-    border-radius: 10em;
-
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #ffffff;
-}
-
-.commandHolder {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    overflow-y: scroll;
-    height: 47.25vh;
-    width: 100%;
-}
-
-.commandNav {
-    background-color: rgb(15, 15, 15);
-    align-items: center;
-    justify-content: space-evenly;
-    display: flex;
-    border-radius: 2vh 2vh 0 0;
-
-}
-
-.commandTitle {
-    color: white;
-    font-size: 8vh;
-    text-align: center;
-}
-
-.waitSwitcher {
-    grid-area: w;
-    width: auto;
-    background-color: rgb(24, 24, 24);
-    display: flex;
-    margin: 1vh;
-    border-radius: 2vh;
-    flex-direction: row;
-    align-content: center;
-    align-items: center;
-    /* flex-wrap: wrap; */
-    justify-content: space-evenly;
-    height: 12vh;
-}
-
-.commandOption {
-    font-size: 8vh;
-    border: black solid 1vh;
-    height: 12vh;
-    margin: 2vh;
-    text-align: center;
-    line-height: 12vh;
-    width: 12vh;
-    background-color: rgb(14, 14, 14);
-}
-
-.commandOptionNamed {
-    font-size: 6vh;
-    border: black solid 1vh;
-    height: 8vh;
-    margin: 1vh;
-    text-align: start;
-    padding-left: 1vh;
-    line-height: 8vh;
-    width: 45%;
-    background-color: rgb(14, 14, 14);
-}
-
-.multiSwitch {
-    width: 40%;
-    height: 8vh;
-    outline: rgb(255, 255, 255) 0.2vh solid;
-    border-radius: 999em;
-    background-color: rgb(14, 14, 14);
-    display: flex;
-    flex-wrap: wrap;
-    /* overflow: hidden; */
-    flex-direction: row;
-
-}
-
-.multiSwitchButton {
-    flex: 1;
-    font-size: 6vh;
-    line-height: 8vh;
-    background-color: rgb(0, 0, 0, 0);
-    border: none;
-    color: white;
-
-    appearance: none;
-}
-
-.multiSlider {
-    pointer-events: none;
-    width: 100%;
-    height: 8vh;
-    margin-bottom: -8vh;
-    overflow: hidden;
-}
-
-.multiSliding {
-    height: 8vh;
-    pointer-events: none;
-    background-color: #7300ff;
-    border-radius: 999em;
-    /* margin-left: -100%; */
-    transition: margin-left 300ms ease-in-out;
-}
-
-.orderHolder {
-    display: flex;
-    flex-direction: row;
-    overflow: hidden;
-    overflow-x: scroll;
-    /* border-right: 0.5vw rgb(12, 12, 12) solid; */
-    width: 98vw;
-    margin: auto;
-    height: 18vh;
-    scroll-behavior: smooth;
-}
-
-.order ::-webkit-scrollbar:horizontal {
-    height: 4vh;
-    /* Or a different height for horizontal scrollbar */
-}
-
-.saveManager {
-    display: flex;
-    align-items: center;
-    /* padding:0.4vh; */
-    border: #7300ff 0.5vh solid;
-    padding-left: 0.4vh;
-    background-color: #7300ff;
-    border: rgba(255, 255, 255, 0.123) 0.5vmin solid;
-
-}
-
-.textInput {
-    outline: 0vh;
-    appearance: none;
-    background-color: black;
-    border: white 0.2vh solid;
-    height: 5vh;
-    color: white;
-    font-size: 4vh;
-    width: 60%;
-    margin-top: 1.25%;
-    margin-bottom: 1.25%;
-    padding: 0px;
-}
-
-.send {
-    height: 10vh;
-    width: 24vh;
-    line-height: 8vh;
-    margin-right: 2vh;
-    text-align: center;
-    font-size: 8vh;
-    color: white;
-    background-color: rgb(34, 34, 34);
-    border: #7300ff solid 0.5vh;
-    border-radius: 2vh;
-}
-
-.clear {
-    height: 10vh;
-    width: 24vh;
-    line-height: 8vh;
-    margin-right: 2vh;
-    text-align: center;
-    font-size: 8vh;
-    color: white;
-    background-color: rgb(34, 34, 34);
-    border: #f94c4c solid 0.5vh;
-    border-radius: 2vh;
-}
-
-.emojiButton {
-    background-color: rgba(0, 0, 0, 0.299);
-    border: none;
-    outline: none;
-    height: 6.5vh;
-    border-radius: 1vh;
-    font-size: 5vh;
-    line-height: 5vh;
-    color: white;
-    min-width: 7.5vh;
-    margin-inline: 1vh;
-}
-
-.ordered {
-    /* transition: margin-left 500ms ease; */
-    background-color: rgb(12, 12, 12);
-    margin: 1vh;
-    margin-bottom: 0vh;
-    width: 10vh;
-    user-select: none;
-    flex-shrink: 0;
-    touch-action: none;
-    font-size: 8vh;
-    line-height: 10vh;
-    height: 10vh;
-    text-align: center;
-    color: white;
-    border: 1vh black solid;
-}
-
-.orderedGap {
-    margin-left: 14.5vh;
-}
-
-.orderedTransition {
-    transition: margin-left 500ms ease;
-}
-
-.orderedPhase {
-    position: absolute;
-    background-color: rgb(12, 12, 12);
-    margin: 1vh;
-    margin-bottom: 0vh;
-    width: 10vh;
-    user-select: none;
-    flex-shrink: 0;
-    touch-action: cross-slide-x;
-    font-size: 8vh;
-    line-height: 10vh;
-    height: 10vh;
-    text-align: center;
-    color: white;
-    border: 1vh black solid;
-}
 
 #path100 {
     user-select: none;
@@ -930,242 +286,9 @@ foreignObject input[type=range]::-webkit-slider-thumb {
 
 }
 
-/* The switch - the box around the slider */
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 14vh;
-    margin-top: 0.5vh;
-    height: 6vh;
-}
-
-/* Hide default HTML checkbox */
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-/* The slider */
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0px;
-    background-color: rgb(32, 32, 32);
-    -webkit-transition: .4s;
-    transition: .4s;
-}
-
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 5vh;
-    width: 5vh;
-    left: 0.5vh;
-    bottom: 0.5vh;
-    background-color: white;
-    -webkit-transition: .4s;
-    transition: .4s;
-}
-
-input:checked+.slider {
-    background-color: #a053ff;
-}
-
-input:focus+.slider {
-    box-shadow: 0 0 1px #a053ff;
-}
-
-input:checked+.slider:before {
-
-    transform: translateX(7.75vh);
-}
-
-/* Rounded sliders */
-.slider.round {
-    border-radius: 34px;
-}
-
-.slider.round:before {
-    border-radius: 50%;
-}
-
-.connectionText {
-    margin-left: auto;
-
-    color: white;
-    padding-inline: 2vw;
-    border: none;
-    font-size: 5vh;
-    line-height: 7vh;
-    border-radius: 3vh 3vh 0 0;
-    height: 7vh;
-    overflow: hidden;
-
-}
-
-.tabConnection {
-    opacity: 0.25;
-}
-
-.songSelector {
-    display: grid;
-    grid-template-areas:
-        "1E 4E"
-        "2E 5E"
-        "3E 6E";
-    /* background-color: green; */
-    align-content: space-evenly;
-    justify-content: space-evenly;
-    height: 80vh;
-}
-
-.track {
-    height: 15vh;
-    justify-content: center;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-}
-
-.nameHolder {
-    padding-left: 2vh;
-    background-color: rgb(14, 14, 14);
-    height: 10vh;
-    width: 30vw;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    border-radius: 0 10vh 10vh 0;
-    align-items: center;
-}
-
-.name {
-    color: white;
-    font-size: 5vh;
-
-}
-
-.coverArt {
-    height: 15vh;
-    width: auto;
-    border-radius: 3vh;
-}
-
-.nextSongList {
-    position: absolute;
-    right: 1vh;
-    top: 41vh;
-    /* Half of SongSelector (40) + Height of tabnav (7) - This width/2 */
-    background-color: rgba(255, 255, 255, 0.308);
-    height: 12vh;
-    width: 12vh;
-    text-align: center;
-    line-height: 12vh;
-    border-radius: 9vh;
-    color: white;
-    font-size: 8vh;
-    font-weight: bold;
-    display: none;
-    font-family: 'Franklin Gothic Medium';
-
-}
-
-.prevSongList {
-    position: absolute;
-    left: 1vh;
-    top: 41vh;
-    display: none;
-
-    /* Half of SongSelector (40) + Height of tabnav (7) - This width/2 */
-    background-color: rgba(255, 255, 255, 0.308);
-    height: 12vh;
-    width: 12vh;
-    text-align: center;
-    line-height: 12vh;
-    border-radius: 9vh;
-    color: white;
-    font-size: 8vh;
-    font-weight: bold;
-    font-family: 'Franklin Gothic Medium';
-
-}
-
-.playbackBar {
-    background-color: rgb(24, 24, 24);
-    height: 13vh;
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-    align-content: space-evenly;
-    justify-content: space-evenly;
-}
-
-.hideableBar {
-    width: 100%;
-    height: 13vh;
-    display: none;
-    flex-wrap: wrap;
-    flex-direction: row;
-    align-content: space-evenly;
-    justify-content: space-evenly;
-}
-
-.currentTrack {
-    color: white;
-    font-size: 7vh;
-    padding-left: 2vw;
-    line-height: 13vh;
-    text-overflow: ellipsis;
-
-}
-
-.playBackButton {
-    color: white;
-    font-size: 8vh;
-    line-height: 13vh;
-    font-variant-emoji: text;
-    width: 5vw;
-    user-select: none;
-    cursor: pointer;
-    text-align: center;
-}
 
 
 
-.playBackHolder {
-    background-color: rgb(12, 12, 12);
-    border-radius: 6vh;
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-    width: 35vw;
-    align-content: space-evenly;
-    justify-content: space-evenly;
-}
-
-.discArt {
-    /* bottom: 0; */
-    margin-top: -3vh;
-    height: 15vh;
-    width: auto;
-    border-radius: 15vh;
-    animation: spinDisc 3s linear infinite forwards;
-    mask-image: radial-gradient(circle at center, transparent 0%, transparent 1.5vh, rgb(255, 255, 255) 1.5vh);
-}
-
-.half {
-    width: 50%;
-    height: 13vh;
-    display: flex;
-    flex-wrap: nowrap;
-    flex-direction: row;
-    align-content: space-evenly;
-    justify-content: space-evenly;
-}
 
 @keyframes spinDisc {
     0% {
@@ -1211,12 +334,7 @@ input:checked+.slider:before {
     color: white;
 }
 
-.teamNumberInput {
-    border-radius: 1vh;
-    height: 8vh;
-    font-size: 7vh;
-    text-align: center;
-}
+
 
 .simHint {
     color: white;
@@ -1234,4 +352,1328 @@ input:checked+.slider:before {
     background-color: rgb(34, 34, 34);
     border: #7300ff solid 0.5vh;
     border-radius: 2vh;
+}
+
+
+
+.numberComponent {
+    display: grid;
+    height: min-content;
+    width: min-content;
+    grid-template-areas:
+        "H H H"
+        "M T P";
+    background-color: rgb(24, 24, 24);
+    border-radius: 1.5vmin;
+}
+
+.numberTitle {
+    color: white;
+    grid-area: H;
+    text-align: center;
+    line-height: 3vh;
+    font-size: 2vh;
+}
+
+.numberTextInput {
+    grid-area: T;
+    border: black solid 0.25vmin;
+    height: 4.5vmin;
+    color: white;
+    line-height: 4.5vmin;
+    font-size: 4vmin;
+    width: 10vmin;
+    background-color: rgb(24, 24, 24);
+    text-align: center;
+    text-overflow: clip;
+}
+
+.numberPlus {
+    grid-area: P;
+
+    height: 5vmin;
+    border: rgb(47, 0, 255) solid 0.25vmin;
+    width: 5vmin;
+    line-height: 4vmin;
+    border-radius: 0 2vmin 2vmin 0;
+    font-size: 4vmin;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    background-color: rgba(47, 0, 255, 0.552);
+}
+
+.numberMinus {
+    grid-area: M;
+
+    height: 5vmin;
+    border: rgb(255, 0, 0) solid 0.25vmin;
+    width: 5vmin;
+    line-height: 0vmin;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 1.5vmin 0 0 1.5vmin;
+    font-size: 4vmin;
+    font-weight: 900;
+    background-color: rgba(255, 0, 0, 0.552);
+}
+
+.numberPlus p {
+    color: white !important;
+}
+
+.numberMinus p {
+    color: white !important;
+}
+
+.actionButton {
+    width: 10vmin;
+    height: 10vmin;
+    background-color: rgba(43, 0, 255, 0.247);
+    border: none;
+    border-radius: 1.5vh;
+    color: white;
+    font-size: 2vmin;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    touch-action: none;
+}
+
+.toggleButton {
+    width: 10vmin;
+    height: 10vmin;
+    background-color: rgba(255, 115, 0, 0);
+    border: rgb(255, 115, 0) dashed 0.25vmin;
+    border-radius: 1.5vh;
+    color: white;
+    font-size: 2vmin;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    touch-action: none;
+}
+
+.optGroupButton {
+    width: 10vmin;
+    height: 10vmin;
+    background-color: rgba(255, 115, 0, 0);
+    border: rgb(255, 115, 0) dashed 0.25vmin;
+    border-radius: 1.5vh;
+    color: white;
+    font-size: 2vmin;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    touch-action: none;
+}
+
+.toggledOn {
+    background-color: rgba(255, 115, 0, 0.6);
+    border: white dashed 0.25vmin;
+
+}
+
+.oneShotButton {
+    width: 10vmin;
+    height: 10vmin;
+    background-color: rgba(255, 242, 0, 0.247);
+    border: rgba(255, 242, 0, 1) solid 0.25vmin;
+
+    border-radius: 1.5vh;
+    color: white;
+    font-size: 2vmin;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    touch-action: none;
+}
+
+.axis {
+    height: 10vmin;
+    width: 20vmin;
+    background-color: rgb(24, 24, 24);
+    border-radius: 1.5vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+.axisLabel {
+    color: white;
+    font-size: 2.4vh;
+    text-align: center;
+
+}
+
+.axisKnob {
+    width: 16vmin;
+    /* background: transparent; */
+    height: 1.5vmin;
+    margin-top: 0.5vmin;
+    margin-bottom: 0.5vmin;
+    border-radius: 0.5vmin;
+    appearance: none;
+
+}
+
+.verticalAxis {
+    height: 20vmin;
+    width: 10vmin;
+    background-color: rgb(24, 24, 24);
+    border-radius: 1.5vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+.verticalAxisKnob {
+    width: 1.5vmin;
+    /* background: transparent; */
+    height: 13vmin;
+    margin-top: 0.5vmin;
+    margin-bottom: 0.5vmin;
+    border-radius: 0.5vmin;
+    appearance: none;
+    writing-mode: vertical-lr;
+    direction: rtl;
+}
+
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 5vmin;
+    width: 5vmin;
+    border-radius: 5vmin;
+    background-color: blueviolet;
+}
+
+
+.buttonOptGroup {
+    border-radius: 1vmin;
+    margin-top: 1vmin;
+    margin-bottom: 1vmin;
+    height: min-content;
+    width: min-content;
+    background-color: rgb(24, 24, 24);
+}
+
+.buttonOptGroup .optGroupButton {
+    margin: 1vmin;
+    height: 8vmin;
+    width: 8vmin;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    /* display: none; <- Crashes Chrome on hover */
+    -webkit-appearance: none;
+    margin: 0;
+    /* <-- Apparently some margin are still there even though it's hidden */
+}
+
+input[type=number] {
+    -moz-appearance: textfield;
+    /* Firefox */
+}
+
+
+.basicSubscription {
+    color: white;
+    border-radius: 1vh;
+    display: flex;
+    height: min-content;
+    width: min-content;
+    flex-wrap: wrap;
+    min-width: 15cqh;
+    justify-content: center;
+    font-size: 1.25vmin;
+    padding: 0.5vmin;
+    background-color: rgba(157, 0, 255, 0.258);
+}
+
+.select {
+    background-color: #7300ff6b;
+    width: 12.5vmax;
+    height: 4.5vmin;
+    overflow: hidden;
+    clip-path: circle(0vmax at 0% 0%);
+    clip-path: xywh(0% 0% 100% 4.5vmin);
+    transition: clip-path 300ms ease;
+    will-change: clip-path;
+    display: flex;
+    flex-direction: column;
+}
+
+.selectOpen {
+    clip-path: circle(200vmax at 0% 0%);
+    overflow-y: scroll;
+    clip-path: xywh(0% -22.25vh 100% 44.5vh)
+}
+
+.selectOption {
+    background-color: #7300ff;
+    font-size: 3.5vmin;
+    /* padding:0.4vh; */
+    border: rgba(255, 255, 255, 0.123) 0.25vmin solid;
+    color: white;
+    text-align: start;
+    padding-left: 0.2vh;
+}
+
+.selectTitle {
+    /* background-color: rgba(0, 255, 85, 0.247); */
+    font-size: 3.5vmin;
+    /* padding:0.4vh; */
+    border: rgba(255, 255, 255, 0.123) 0.25vmin solid;
+    color: white;
+    text-align: start;
+    user-select: none;
+    touch-action: scroll;
+    padding-left: 0.2vh;
+}
+
+
+@container dashboardHolder (width > 0px) {
+    .tabNav {
+        position: absolute;
+        z-index: 2;
+        height: 7cqh;
+        width: 100cqw;
+        background-color: rgb(64, 12, 12);
+        display: flex;
+
+    }
+
+    .teamNumber {
+        color: white;
+        border: none;
+        background-color: transparent;
+        font-size: 6cqh;
+        line-height: 7cqh;
+        font-weight: 900;
+        font-family: monospace;
+        width: 9cqh;
+        border-radius: 2cqh 2cqh 0 0;
+        height: 7cqh;
+    }
+
+    .editTabs {
+        touch-action: none;
+        margin-left: auto;
+        color: white;
+        border: none;
+        background-color: transparent;
+        font-size: 6cqh;
+        line-height: 7cqh;
+        font-weight: 900;
+        font-family: monospace;
+        width: 9cqh;
+        border-radius: 2cqh 2cqh 0 0;
+        height: 7cqh;
+    }
+
+    .editingTabs {
+        color: chartreuse;
+    }
+
+    .fullScreen {
+        /* margin-left: auto; */
+        background-color: rgb(128, 32, 32);
+        color: white;
+        border: none;
+        font-size: 6cqh;
+        line-height: 7cqh;
+        width: 9cqh;
+        border-radius: 2cqh 2cqh 0 0;
+        height: 7cqh;
+    }
+
+    .tab {
+        background-color: rgb(64, 12, 12);
+        color: white;
+        padding-inline: 2cqw;
+        border: none;
+        font-size: 5cqh;
+        line-height: 7cqh;
+        border-radius: 3cqh 3cqh 0 0;
+        height: 7cqh;
+        overflow: hidden;
+     
+    }
+
+    .currentTab {
+        background-color: rgb(128, 32, 32);
+        color: white;
+        padding-inline: 2cqw;
+        border: none;
+        font-size: 5cqh;
+        line-height: 7cqh;
+        border-radius: 3cqh 3cqh 0 0;
+        height: 7cqh;
+        overflow: hidden;
+
+    }
+
+
+    .connectionText {
+        margin-left: auto;
+
+        color: white;
+        padding-inline: 2cqw;
+        border: none;
+        font-size: 5cqh;
+        line-height: 7cqh;
+        border-radius: 3cqh 3cqh 0 0;
+        height: 7cqh;
+        overflow: hidden;
+
+    }
+
+    /* The switch - the box around the slider */
+    .switch {
+        user-select: none;
+        position: relative;
+        display: inline-block;
+        width: 14cqh;
+        margin-top: 0.5cqh;
+        height: 6cqh;
+    }
+
+    /* Hide default HTML checkbox */
+    .switch input {
+        user-select: none;
+
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    /* The slider */
+    .slider {
+        user-select: none;
+
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0px;
+        transition-property: left;
+
+        background-color: rgb(32, 32, 32);
+        -webkit-transition: .4s;
+        transition: .4s;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 5cqh;
+        width: 5cqh;
+        left: 0.5cqh;
+        bottom: 0.5cqh;
+        background-color: white;
+        transition-property: left;
+        -webkit-transition: .4s;
+        transition: .4s;
+    }
+
+    input:checked+.slider {
+        background-color: #a053ff;
+    }
+
+    input:focus+.slider {
+        box-shadow: 0 0 1px #a053ff;
+    }
+
+    input:checked+.slider:before {
+
+        transform: translateX(7.75cqh);
+    }
+
+    /* Rounded sliders */
+    .slider.round {
+        transition-property: transform;
+
+        border-radius: 34px;
+    }
+
+    .slider.round:before {
+        transition-property: transform;
+
+        border-radius: 50%;
+    }
+
+
+    .tabConnection {
+        opacity: 0.25;
+    }
+
+    .orderHolder {
+        display: flex;
+        flex-direction: row;
+        overflow: hidden;
+        overflow-x: scroll;
+        /* border-right: 0.5vw rgb(12, 12, 12) solid; */
+        width: 98cqw;
+        margin: auto;
+        height: 18cqh;
+        scroll-behavior: smooth;
+    }
+
+    .autoMap {
+        height: 71cqh;
+        width: auto;
+        grid-area: m;
+        margin: 1cqh;
+    }
+
+    .order {
+        grid-area: o;
+        background-color: rgb(24, 24, 24);
+        height: 18cqh;
+        margin: 1cqh;
+        width: calc(100cqw - 2cqh);
+        border-radius: 2cqh;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .commands {
+        margin: 1cqh;
+        height: 56.25cqh;
+        border-radius: 2cqh;
+        grid-area: c;
+        width: auto;
+        color: white;
+        background-color: rgb(24, 24, 24);
+
+
+    }
+
+
+
+    ::-webkit-scrollbar {
+        width: 1cqmin;
+        height: 1cqmin;
+
+
+    }
+
+    ::-webkit-scrollbar-track {
+        background-color: rgba(0, 0, 0, 0.568);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #9a9a9a;
+        border-radius: 10em;
+
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #ffffff;
+    }
+
+    .commandHolder {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        overflow-y: scroll;
+        height: 47.25cqh;
+        width: 100%;
+    }
+
+    .commandNav {
+        background-color: rgb(15, 15, 15);
+        align-items: center;
+        justify-content: space-evenly;
+        display: flex;
+        border-radius: 2cqh 2cqh 0 0;
+
+    }
+
+    .commandTitle {
+        color: white;
+        font-size: 8cqh;
+        text-align: center;
+    }
+
+    .waitSwitcher {
+        grid-area: w;
+        width: auto;
+        background-color: rgb(24, 24, 24);
+        display: flex;
+        margin: 1cqh;
+        border-radius: 2cqh;
+        flex-direction: row;
+        align-content: center;
+        align-items: center;
+        /* flex-wrap: wrap; */
+        justify-content: space-evenly;
+        height: 12cqh;
+    }
+
+    .commandOption {
+        font-size: 8cqh;
+        border: black solid 1cqh;
+        height: 12cqh;
+        margin: 2cqh;
+        text-align: center;
+        line-height: 12cqh;
+        width: 12cqh;
+        background-color: rgb(14, 14, 14);
+    }
+
+    .commandOptionNamed {
+        font-size: 6cqh;
+        border: black solid 1cqh;
+        height: 8cqh;
+        margin: 1cqh;
+        text-align: start;
+        padding-left: 1cqh;
+        line-height: 8cqh;
+        width: 45%;
+        background-color: rgb(14, 14, 14);
+    }
+
+    .multiSwitch {
+        width: 40%;
+        height: 8cqh;
+        outline: rgb(255, 255, 255) 0.2cqh solid;
+        border-radius: 999em;
+        background-color: rgb(14, 14, 14);
+        display: flex;
+        flex-wrap: wrap;
+        /* overflow: hidden; */
+        flex-direction: row;
+
+    }
+
+    .multiSwitchButton {
+        flex: 1;
+        font-size: 6cqh;
+        line-height: 8cqh;
+        background-color: rgb(0, 0, 0, 0);
+        border: none;
+        color: white;
+
+        appearance: none;
+    }
+
+    .multiSlider {
+        pointer-events: none;
+        width: 100%;
+        height: 8cqh;
+        margin-bottom: -8cqh;
+        overflow: hidden;
+    }
+
+    .multiSliding {
+        height: 8cqh;
+        pointer-events: none;
+        background-color: #7300ff;
+        border-radius: 999em;
+        /* margin-left: -100%; */
+        transition: margin-left 300ms ease-in-out;
+    }
+
+
+
+    .order ::-webkit-scrollbar:horizontal {
+        height: 4cqh;
+        /* Or a different height for horizontal scrollbar */
+    }
+
+    .saveManager {
+        display: flex;
+        align-items: center;
+        /* padding:0.4cqh; */
+        border: #7300ff 0.5cqh solid;
+        padding-left: 0.4cqh;
+        background-color: #7300ff;
+        border: rgba(255, 255, 255, 0.123) 0.5cqmin solid;
+
+    }
+
+    .textInput {
+        outline: 0cqh;
+        appearance: none;
+        background-color: black;
+        border: white 0.2cqh solid;
+        height: 5cqh;
+        color: white;
+        font-size: 4cqh;
+        width: 60%;
+        margin-top: 1.25%;
+        margin-bottom: 1.25%;
+        padding: 0px;
+    }
+
+    .send {
+        height: 10cqh;
+        width: 24cqh;
+        line-height: 8cqh;
+        margin-right: 2cqh;
+        text-align: center;
+        font-size: 8cqh;
+        color: white;
+        background-color: rgb(34, 34, 34);
+        border: #7300ff solid 0.5cqh;
+        border-radius: 2cqh;
+    }
+
+    .clear {
+        height: 10cqh;
+        width: 24cqh;
+        line-height: 8cqh;
+        margin-right: 2cqh;
+        text-align: center;
+        font-size: 8cqh;
+        color: white;
+        background-color: rgb(34, 34, 34);
+        border: #f94c4c solid 0.5cqh;
+        border-radius: 2cqh;
+    }
+
+    .emojiButton {
+        background-color: rgba(0, 0, 0, 0.299);
+        border: none;
+        outline: none;
+        height: 6.5cqh;
+        border-radius: 1cqh;
+        font-size: 5cqh;
+        line-height: 5cqh;
+        color: white;
+        min-width: 7.5cqh;
+        margin-inline: 1cqh;
+    }
+
+    .ordered {
+        /* transition: margin-left 500ms ease; */
+        background-color: rgb(12, 12, 12);
+        margin: 1cqh;
+        margin-bottom: 0cqh;
+        width: 10cqh;
+        user-select: none;
+        flex-shrink: 0;
+        touch-action: none;
+        font-size: 8cqh;
+        line-height: 10cqh;
+        height: 10cqh;
+        text-align: center;
+        color: white;
+        border: 1cqh black solid;
+    }
+
+    .orderedGap {
+        margin-left: 14.5cqh;
+    }
+
+    .orderedTransition {
+        transition: margin-left 500ms ease;
+    }
+
+    .orderedPhase {
+        position: absolute;
+        background-color: rgb(12, 12, 12);
+        margin: 1cqh;
+        margin-bottom: 0cqh;
+        width: 10cqh;
+        user-select: none;
+        flex-shrink: 0;
+        touch-action: cross-slide-x;
+        font-size: 8cqh;
+        line-height: 10cqh;
+        height: 10cqh;
+        text-align: center;
+        color: white;
+        border: 1cqh black solid;
+    }
+
+
+    .select {
+        margin-top: 10cqmin;
+        background-color: #7300ff6b;
+        width: 25cqmax;
+        height: 44.5cqmin;
+        overflow: hidden;
+        clip-path: circle(0cqmax at 0% 0%);
+        clip-path: xywh(0% 0% 100% 9cqmin);
+        transition: clip-path 300ms ease;
+        will-change: clip-path;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .selectOpen {
+        clip-path: circle(200cqmax at 0% 0%);
+        overflow-y: scroll;
+        clip-path: xywh(0% -44.5cqh 100% 89cqh)
+    }
+
+    .selectOption {
+        background-color: #7300ff;
+        font-size: 7cqmin;
+        /* padding:0.4cqh; */
+        border: rgba(255, 255, 255, 0.123) 0.5cqmin solid;
+        color: white;
+        text-align: start;
+        padding-left: 0.4cqh;
+    }
+
+    .selectTitle {
+        /* background-color: rgba(0, 255, 85, 0.247); */
+        font-size: 7cqmin;
+        /* padding:0.4cqh; */
+        border: rgba(255, 255, 255, 0.123) 0.5cqmin solid;
+        color: white;
+        text-align: start;
+        user-select: none;
+        touch-action: scroll;
+        padding-left: 0.4cqh;
+    }
+
+    .poseSelector {
+        margin-top: 35.25cqh;
+    }
+
+    .saveName {
+        width: 55%;
+        margin: 1cqh;
+        margin-inline: 1cqh;
+    }
+
+    .autonomus {
+        display: grid;
+        grid-template-areas:
+            "o o o o "
+            "m w w w"
+            "m c c c";
+        /* css grid my beloved */
+        grid-auto-columns: min-content auto
+    }
+
+    .page {
+        margin-top: 7cqh;
+
+        width: 100%;
+        height: 100%;
+        max-height: 93cqh;
+        align-content: center;
+        justify-content: center;
+
+        justify-items: center;
+        align-items: center;
+    }
+
+    .gridSquare{
+        position: relative;
+        width: 100%;
+        height: 100%;
+        background-color: rgb(32, 32, 32);
+        transition: background-color 300ms ease;
+    }
+
+    .gridSquareEditing{
+        background-color: rgb(24, 24, 24);
+
+    }
+
+    .gridUnderlay {
+        margin-top: 7cqh;
+
+        position: absolute;
+        left: 0px;
+        transition: background-color 300ms ease;
+        z-index: -1;
+        width: 100cqw;
+        height: 100cqh;
+        max-height: 93cqh;
+        display: grid;
+        align-content: center;
+        justify-content: center;
+        justify-items: center;
+        align-items: center;
+        background-color: rgb(32, 32, 32);
+
+    }
+    .gridUnderlayEditing{
+
+        background-color: rgb(12, 12, 12);
+    }
+
+    .pageF {
+        margin-top: 7cqh;
+        width: 100%;
+        height: 100%;
+        max-height: 93cqh;
+        align-content: center;
+        justify-content: center;
+
+        /* justify-items: center;
+        align-items: center; */
+    }
+
+
+    .actionButton {
+        width: 20cqmin;
+        height: 20cqmin;
+        /* width: 100%;
+        height: 100%; */
+        background-color: rgba(43, 0, 255, 0.247);
+        border: none;
+        border-radius: 3cqh;
+        color: white;
+        font-size: 4cqmin;
+        display: flex;
+        flex-direction: column;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        user-select: none;
+        touch-action: none;
+    }
+
+    .toggleButton {
+        width: 20cqmin;
+        height: 20cqmin;
+        background-color: rgba(255, 115, 0, 0);
+        border: rgb(255, 115, 0) dashed 0.5cqmin;
+        border-radius: 3cqh;
+        color: white;
+        font-size: 4cqmin;
+        display: flex;
+        flex-direction: column;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        user-select: none;
+        touch-action: none;
+    }
+
+    .optGroupButton {
+        width: 20cqmin;
+        height: 20cqmin;
+        background-color: rgba(255, 115, 0, 0);
+        border: rgb(255, 115, 0) dashed 0.5cqmin;
+        border-radius: 3cqh;
+        color: white;
+        font-size: 4cqmin;
+        display: flex;
+        flex-direction: column;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        user-select: none;
+        touch-action: none;
+    }
+
+    .toggledOn {
+        background-color: rgba(255, 115, 0, 0.6);
+        border: white dashed 0.5cqmin;
+
+    }
+
+    .oneShotButton {
+        width: 20cqmin;
+        height: 20cqmin;
+        background-color: rgba(255, 242, 0, 0.247);
+        border: rgba(255, 242, 0, 1) solid 0.5cqmin;
+
+        border-radius: 3cqh;
+        color: white;
+        font-size: 4cqmin;
+        display: flex;
+        flex-direction: column;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        user-select: none;
+        touch-action: none;
+    }
+
+    .axis {
+        height: 20cqmin;
+        width: 40cqmin;
+        background-color: rgb(24, 24, 24);
+        border-radius: 3cqh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-evenly;
+    }
+
+    .axisLabel {
+        color: white;
+        font-size: 4.8cqh;
+        text-align: center;
+
+    }
+
+    .axisKnob {
+        width: 32cqmin;
+        /* background: transparent; */
+        height: 3cqmin;
+        margin-top: 1cqmin;
+        margin-bottom: 1cqmin;
+        border-radius: 1cqmin;
+        appearance: none;
+
+    }
+
+    .verticalAxis {
+        height: 40cqmin;
+        width: 20cqmin;
+        background-color: rgb(24, 24, 24);
+        border-radius: 3cqh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-evenly;
+    }
+
+    .verticalAxisKnob {
+        width: 3cqmin;
+        /* background: transparent; */
+        height: 26cqmin;
+        margin-top: 1cqmin;
+        margin-bottom: 1cqmin;
+        border-radius: 1cqmin;
+        appearance: none;
+        writing-mode: vertical-lr;
+        direction: rtl;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        height: 10cqmin;
+        width: 10cqmin;
+        border-radius: 10cqmin;
+        background-color: blueviolet;
+    }
+
+
+    .buttonOptGroup {
+        border-radius: 2cqmin;
+        margin-top: 2cqmin;
+        margin-bottom: 2cqmin;
+        height: min-content;
+        width: min-content;
+        background-color: rgb(24, 24, 24);
+    }
+
+    .buttonOptGroup .optGroupButton {
+        margin: 2cqmin;
+        height: 16cqmin;
+        width: 16cqmin;
+    }
+
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        /* display: none; <- Crashes Chrome on hover */
+        -webkit-appearance: none;
+        margin: 0;
+        /* <-- Apparently some margin are still there even though it's hidden */
+    }
+
+    input[type=number] {
+        -moz-appearance: textfield;
+        /* Firefox */
+    }
+
+
+    .basicSubscription {
+        color: white;
+        border-radius: 2cqh;
+        display: flex;
+        height: min-content;
+        width: min-content;
+        flex-wrap: wrap;
+        font-size: 3.5cqmin;
+        padding: 1cqmin;
+        background-color: rgba(157, 0, 255, 0.258);
+    }
+
+    .bSTopic {
+        padding-right: 1cqmin;
+    }
+
+    .reefPFHolder button {
+        width: 14cqmin;
+        height: 14cqmin;
+    }
+
+
+    .numberComponent {
+        display: grid;
+        height: min-content;
+        width: min-content;
+        grid-template-areas:
+            "H H H"
+            "M T P";
+        background-color: rgb(24, 24, 24);
+        border-radius: 3cqmin;
+    }
+
+    .numberTitle {
+        color: white;
+        grid-area: H;
+        text-align: center;
+        line-height: 6cqh;
+        font-size: 4cqh;
+    }
+
+    .numberTextInput {
+        grid-area: T;
+        border: black solid 0.5cqmin;
+        height: 9cqmin;
+        color: white;
+        line-height: 9cqmin;
+        font-size: 8cqmin;
+        width: 20cqmin;
+        background-color: rgb(24, 24, 24);
+        text-align: center;
+        text-overflow: clip;
+    }
+
+    .numberPlus {
+        grid-area: P;
+
+        height: 10cqmin;
+        border: rgb(47, 0, 255) solid 0.5cqmin;
+        width: 10cqmin;
+        line-height: 8cqmin;
+        border-radius: 0 3cqmin 3cqmin 0;
+        font-size: 8cqmin;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        background-color: rgba(47, 0, 255, 0.552);
+    }
+
+    .numberMinus {
+        grid-area: M;
+
+        height: 10cqmin;
+        border: rgb(255, 0, 0) solid 0.5cqmin;
+        width: 10cqmin;
+        line-height: 0cqmin;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 3cqmin 0 0 3cqmin;
+        font-size: 8cqmin;
+        font-weight: 900;
+        background-color: rgba(255, 0, 0, 0.552);
+    }
+
+    .numberPlus p {
+        color: white !important;
+    }
+
+    .numberMinus p {
+        color: white !important;
+    }
+
+    .songSelector {
+        display: grid;
+        grid-template-areas:
+            "1E 4E"
+            "2E 5E"
+            "3E 6E";
+        /* background-color: green; */
+        align-content: space-evenly;
+        justify-content: space-evenly;
+        height: 80cqh;
+    }
+
+    .track {
+        height: 15cqh;
+        justify-content: center;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .nameHolder {
+        padding-left: 2cqh;
+        background-color: rgb(14, 14, 14);
+        height: 10cqh;
+        width: 30cqw;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        border-radius: 0 10cqh 10cqh 0;
+        align-items: center;
+    }
+
+    .name {
+        color: white;
+        font-size: 5cqh;
+
+    }
+
+    .coverArt {
+        height: 15cqh;
+        width: auto;
+        border-radius: 3cqh;
+    }
+
+    .nextSongList {
+        position: absolute;
+        right: 1cqh;
+        top: 41cqh;
+        /* Half of SongSelector (40) + Height of tabnav (7) - This width/2 */
+        background-color: rgba(255, 255, 255, 0.308);
+        height: 12cqh;
+        width: 12cqh;
+        text-align: center;
+        line-height: 12cqh;
+        border-radius: 9cqh;
+        color: white;
+        font-size: 8cqh;
+        font-weight: bold;
+        display: none;
+        font-family: 'Franklin Gothic Medium';
+
+    }
+
+    .prevSongList {
+        position: absolute;
+        left: 1cqh;
+        top: 41cqh;
+        display: none;
+
+        /* Half of SongSelector (40) + Height of tabnav (7) - This width/2 */
+        background-color: rgba(255, 255, 255, 0.308);
+        height: 12cqh;
+        width: 12cqh;
+        text-align: center;
+        line-height: 12cqh;
+        border-radius: 9cqh;
+        color: white;
+        font-size: 8cqh;
+        font-weight: bold;
+        font-family: 'Franklin Gothic Medium';
+
+    }
+
+    .playbackBar {
+        background-color: rgb(24, 24, 24);
+        height: 13cqh;
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: row;
+        align-content: space-evenly;
+        justify-content: space-evenly;
+    }
+
+    .hideableBar {
+        width: 100%;
+        height: 13cqh;
+        display: none;
+        flex-wrap: wrap;
+        flex-direction: row;
+        align-content: space-evenly;
+        justify-content: space-evenly;
+    }
+
+    .currentTrack {
+        color: white;
+        font-size: 7cqh;
+        padding-left: 2cqw;
+        line-height: 13cqh;
+        text-overflow: ellipsis;
+
+    }
+
+    .playBackButton {
+        color: white;
+        font-size: 8cqh;
+        line-height: 13cqh;
+        font-variant-emoji: text;
+        width: 5cqw;
+        user-select: none;
+        cursor: pointer;
+        text-align: center;
+    }
+
+
+
+    .playBackHolder {
+        background-color: rgb(12, 12, 12);
+        border-radius: 6cqh;
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: row;
+        width: 35cqw;
+        align-content: space-evenly;
+        justify-content: space-evenly;
+    }
+
+    .discArt {
+        /* bottom: 0; */
+        margin-top: -3cqh;
+        height: 15cqh;
+        width: auto;
+        border-radius: 15cqh;
+        animation: spinDisc 3s linear infinite forwards;
+        mask-image: radial-gradient(circle at center, transparent 0%, transparent 1.5cqh, rgb(255, 255, 255) 1.5cqh);
+    }
+
+    .half {
+        width: 50%;
+        height: 13cqh;
+        display: flex;
+        flex-wrap: nowrap;
+        flex-direction: row;
+        align-content: space-evenly;
+        justify-content: space-evenly;
+    }
+
+    
+}
+
+.currentDrag{
+    user-select: none;
+    pointer-events: none;
+}
+
+.resizeSized{
+    width: 0px !important;
+    height: 0px !important;
+}
+
+.feauxComponent{
+    border-color: rgba(255, 255, 255, 0.223);
+    background-color: #9a9a9a13;
+    border-style: dashed;
+    border-width: 0.125vw;
+    color: #00000000;
+}
+
+.teamNumberInput {
+    border-radius: 1vh;
+    height: 8vh;
+    font-size: 7vh;
+    text-align: center;
 }

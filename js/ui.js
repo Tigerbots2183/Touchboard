@@ -1,17 +1,86 @@
 // import "./nt4.js"
 import { NT4_Client } from "../lib/nt4.js";
 import { goToNextSong } from "./jukebox.js";
-import {setFromString} from "./autoBuilder.js";
+import { setFromString } from "./autoBuilder.js";
 //if removing jukebox, get rid of the gotonextsong() in the handle data callback function, remove from html, and remove import
 export function getHtmlFileName() {
     let path = window.location.pathname;
     let segments = path.split('/'); // Split the path by the '/' character
     let fileName = segments.pop();
-     // Get the last element of the array, which is the filename
+    // Get the last element of the array, which is the filename
     return fileName.slice(0, -5);
 }
 
 
+function vh(percent) {
+    var h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+    return (percent * h) / 100;
+}
+function pxTovh(pixels) {
+    var h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0)
+
+    return ((pixels / h) * 100);
+}
+function pxTovw(pixels) {
+    var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0)
+
+    return ((pixels / w) * 100);
+}
+function pxTovmin(pixels) {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const smallerDimension = Math.min(viewportWidth, viewportHeight);
+    return (pixels / smallerDimension) * 100;
+}
+
+function pxTovmax(pixels) {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const largerDimension = Math.max(viewportWidth, viewportHeight);
+    return (pixels / largerDimension) * 100;
+}
+
+
+function vw(percent) {
+    var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+    return (percent * w) / 100;
+}
+
+function vmin(percent) {
+    return Math.min(vh(percent), vw(percent));
+}
+
+function vmax(percent) {
+    return Math.max(vh(percent), vw(percent));
+}
+
+function cq(container, percent) {
+
+    let testspan = $("<span>").css("height", "1cqh").css("width", "1cqw").appendTo(container)
+
+    let cqValues = {
+        cqw: testspan.width() * percent,
+        cqh: testspan.height() * percent,
+        cqmax: Math.max(testspan.height() * percent, testspan.width() * percent),
+        cqmin: Math.min(testspan.height() * percent, testspan.width() * percent),
+    }
+
+    testspan.remove()
+
+    return cqValues;
+}
+
+function pxToCq(container, pixels) {
+
+    let cqValues = {
+        cqw: (pixels / cq(container, 1).cqw),
+        cqh: (pixels / cq(container, 1).cqh),
+        cqmax: (pixels / cq(container, 1).cqmax),
+        cqmin: (pixels / cq(container, 1).cqmin),
+    }
+
+    return cqValues
+}
 
 if (localStorage.getItem(getHtmlFileName() + "currentPath") == null) {
     localStorage.setItem(getHtmlFileName() + "currentPath", "")
@@ -32,6 +101,8 @@ $("html").on("click", (event) => {
 // function setAnimatable(){
 let $ab = $(".animatedButton, .oneShotButton")
 for (let i = 0; i < $ab.length; i++) {
+
+
     let text = $ab.eq(i).text()
     $ab.eq(i).text(" ")
 
@@ -49,75 +120,80 @@ for (let i = 0; i < $ab.length; i++) {
 }
 // }
 
-$(".animatedButton").on("mousedown touchstart", (event) => {
-
-    event.preventDefault()
-    let $spawnedCircle
-    let $ct = $(event.currentTarget)
 
 
-    //spawns a circle that represnts the touch
-    if (event.pageX == null) {
-        $spawnedCircle = $("<div>").css("background-color", $ct.css("background-color")).appendTo("body").addClass("spawnedCircle").css("top", event.changedTouches[0].pageY + "px").css("left", event.changedTouches[0].pageX + "px")
-        setTimeout(() => {
-            $($spawnedCircle.remove())
-        }, 3000);
-        $(event.currentTarget).attr("pageX", event.changedTouches[0].pageX).attr("pageY", event.changedTouches[0].pageY)
+function addButtonToAnimate(jQueryReference) {
+    jQueryReference.on("mousedown touchstart", (event) => {
 
-    } else {
+        event.preventDefault()
+        let $spawnedCircle
+        let $ct = $(event.currentTarget)
 
-        $spawnedCircle = $("<div>").css("background-color", $ct.css("background-color")).appendTo("body").addClass("spawnedCircle").css("top", event.pageY + "px").css("left", event.pageX + "px")
-        setTimeout(() => {
-            $($spawnedCircle.remove())
-        }, 3000);
-        $(event.currentTarget).attr("pageX", event.pageX).attr("pageY", event.pageY)
 
-    }
-    $spawnedCircle.offset()
-    $spawnedCircle.addClass("spawnedBigCircle")
-    let $foundP = $(event.currentTarget).find("p")
-    // let $parent = $(event.currentTarget).children(".animatedButton")
 
-    // text effects
-
-    let hue = (0 / $foundP.length) * 360
-
-    let effect = Math.floor(Math.random() * 6);
-    for (let i = 0; i < $foundP.length; i++) {
-        setTimeout(() => {
-            if (effect == 0) {
-                $foundP.eq(i).css("color", "hsl(" + hue + ", 100%, 50%").css("animation-name", "streachUp")
-                // $score.css("animation-name", "streachUp")
-            } else if (effect === 1) {
-                $foundP.eq(i).css("color", "hsl(" + hue + ", 100%, 50%").css("animation-name", "spinAround")
-                // $score.css("animation-name", "spinAround")
-            } else if (effect === 2) {
-                $foundP.eq(i).css("color", "hsl(" + hue + ", 100%, 50%").css("animation-name", "rollAround")
-                // $score.css("animation-name", "rollAround")
-
-            } else if (effect === 3) {
-                $foundP.eq(i).css("color", "hsl(" + hue + ", 100%, 50%").css("animation-name", "flipAround")
-                // $score.css("animation-name", "flipAround")
-
-            } else if (effect === 4) {
-                $foundP.eq(i).css("color", "hsl(" + hue + ", 100%, 50%").css("animation-name", "jumpUp")
-                // $score.css("animation-name", "jumpUp")
-
-            } else if (effect === 5) {
-                $foundP.eq(i).css("color", "hsl(" + hue + ", 100%, 50%").css("animation-name", "squash")
-                // $score.css("animation-name", "squash") 
-            }
-
-            hue = ((i + 1) / $foundP.length) * 360
+        //spawns a circle that represnts the touch
+        if (event.pageX == null) {
+            $spawnedCircle = $("<div>").css("background-color", $ct.css("background-color")).appendTo("body").addClass("spawnedCircle").css("top", event.changedTouches[0].pageY + "px").css("left", event.changedTouches[0].pageX + "px")
             setTimeout(() => {
-                $foundP.eq(i).css("color", "white").css("animation-name", "")
-            }, 200 + 50 * $foundP.length);
+                $($spawnedCircle.remove())
+            }, 3000);
+            $(event.currentTarget).attr("pageX", event.changedTouches[0].pageX).attr("pageY", event.changedTouches[0].pageY)
 
-        }, 50 * i);
+        } else {
+
+            $spawnedCircle = $("<div>").css("background-color", $ct.css("background-color")).appendTo("body").addClass("spawnedCircle").css("top", event.pageY + "px").css("left", event.pageX + "px")
+            setTimeout(() => {
+                $($spawnedCircle.remove())
+            }, 3000);
+            $(event.currentTarget).attr("pageX", event.pageX).attr("pageY", event.pageY)
+
+        }
+        $spawnedCircle.offset()
+        $spawnedCircle.addClass("spawnedBigCircle")
+        let $foundP = $(event.currentTarget).find("p")
+        // let $parent = $(event.currentTarget).children(".animatedButton")
+
+        // text effects
+
+        let hue = (0 / $foundP.length) * 360
+
+        let effect = Math.floor(Math.random() * 6);
+        for (let i = 0; i < $foundP.length; i++) {
+            setTimeout(() => {
+                if (effect == 0) {
+                    $foundP.eq(i).css("color", "hsl(" + hue + ", 100%, 50%").css("animation-name", "streachUp")
+                    // $score.css("animation-name", "streachUp")
+                } else if (effect === 1) {
+                    $foundP.eq(i).css("color", "hsl(" + hue + ", 100%, 50%").css("animation-name", "spinAround")
+                    // $score.css("animation-name", "spinAround")
+                } else if (effect === 2) {
+                    $foundP.eq(i).css("color", "hsl(" + hue + ", 100%, 50%").css("animation-name", "rollAround")
+                    // $score.css("animation-name", "rollAround")
+
+                } else if (effect === 3) {
+                    $foundP.eq(i).css("color", "hsl(" + hue + ", 100%, 50%").css("animation-name", "flipAround")
+                    // $score.css("animation-name", "flipAround")
+
+                } else if (effect === 4) {
+                    $foundP.eq(i).css("color", "hsl(" + hue + ", 100%, 50%").css("animation-name", "jumpUp")
+                    // $score.css("animation-name", "jumpUp")
+
+                } else if (effect === 5) {
+                    $foundP.eq(i).css("color", "hsl(" + hue + ", 100%, 50%").css("animation-name", "squash")
+                    // $score.css("animation-name", "squash") 
+                }
+
+                hue = ((i + 1) / $foundP.length) * 360
+                setTimeout(() => {
+                    $foundP.eq(i).css("color", "white").css("animation-name", "")
+                }, 200 + 50 * $foundP.length);
+
+            }, 50 * i);
 
 
-    }
-})
+        }
+    })
+}
 
 $(".tab").on("mousedown touchstart", (event) => {
     let $ct = $(event.currentTarget)
@@ -126,7 +202,7 @@ $(".tab").on("mousedown touchstart", (event) => {
     $ct.addClass("currentTab").css("background-color", "rgb(32, 32, 32)")
     if ($ct.attr("data-displaytype") == null) {
         $($ct.attr("data-page")).css("display", "grid")
-    }else{
+    } else {
         $($ct.attr("data-page")).css("display", $ct.attr("data-displaytype"))
 
     }
@@ -324,7 +400,7 @@ function onConnectCb() {
 
         for (let i = 0; i < $uiElements.length; i++) {
             if ($uiElements.eq(i).attr("data-topic")) {
-                if($uiElements.eq(i).hasClass("basicSubscription")){
+                if ($uiElements.eq(i).hasClass("basicSubscription")) {
                     continue
                 }
 
@@ -334,9 +410,9 @@ function onConnectCb() {
                         nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), $uiElements.eq(i).attr("data-value"))
 
                     } else if ($uiElements.eq(i).attr("data-type") === "double") {
-                        if($uiElements.eq(i).attr("data-persist") == "true"){
+                        if ($uiElements.eq(i).attr("data-persist") == "true") {
                             nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), parseFloat(localStorage.getItem(getHtmlFileName() + $uiElements.eq(i).attr("data-topic"))))
-                        }else{
+                        } else {
                             nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), parseFloat($uiElements.eq(i).attr("data-value")))
                         }
 
@@ -365,9 +441,9 @@ function onConnectCb() {
                     $uiElements.eq(i).toggleClass("toggledOn")
                     let oldBG = $uiElements.eq(i).css("background-color").replace(/^([^,]*,[^,]*,[^,]*),.*$/, '$1')
 
-                    if($uiElements.eq(i).hasClass("toggledOn")){
+                    if ($uiElements.eq(i).hasClass("toggledOn")) {
                         $uiElements.eq(i).css("background-color", oldBG + ", 0.6)")
-                    }else{
+                    } else {
                         $uiElements.eq(i).css("background-color", oldBG + ", 0)")
 
                     }
@@ -450,7 +526,7 @@ function onConnectCb() {
                     nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), $uiElements.eq(i).attr("data-value"))
 
                 })
-            } else if ($uiElements.eq(i).hasClass("axis") || $uiElements.eq(i).hasClass("verticalAxis") ) {
+            } else if ($uiElements.eq(i).hasClass("axis") || $uiElements.eq(i).hasClass("verticalAxis")) {
 
 
                 $uiElements.eq(i).attr("data-value", 0)
@@ -467,17 +543,17 @@ function onConnectCb() {
                     $(event.currentTarget).val(0)
                     nt4Client.addSample("/touchboard/" + $ct.parent().attr("data-topic"), parseFloat($ct.parent().attr("data-value")))
                 })
-            } else if ($uiElements.eq(i).hasClass("basicSubscription")){
+            } else if ($uiElements.eq(i).hasClass("basicSubscription")) {
 
                 nt4Client.subscribe([$uiElements.eq(i).attr('data-topic')])
 
                 $uiElements.eq(i).addClass($uiElements.eq(i).attr('data-topic').replaceAll("/", "Sl-Sl-Sl-"))
             } else if ($uiElements.eq(i).hasClass("buttonOptGroup")) {
                 $uiElements.eq(i).children(".optGroupButton").on("mousedown", (event) => {
-                    
+
                     let cI = $uiElements.eq(i).children(".optGroupButton")
-                    for(let j = 0; j < cI.length; j++){
-                        cI.eq(j).css("background-color",  cI.eq(j).css("background-color").replace(/^([^,]*,[^,]*,[^,]*),.*$/, '$1') + ", 0)").removeClass("toggledOn")
+                    for (let j = 0; j < cI.length; j++) {
+                        cI.eq(j).css("background-color", cI.eq(j).css("background-color").replace(/^([^,]*,[^,]*,[^,]*),.*$/, '$1') + ", 0)").removeClass("toggledOn")
                     }
                     let oldBG = $(event.target).css("background-color").replace(/^([^,]*,[^,]*,[^,]*),.*$/, '$1')
                     let $ct = $(event.target).addClass("toggledOn").css("background-color", oldBG + ", 0.6)")
@@ -488,9 +564,9 @@ function onConnectCb() {
                 })
 
                 let cH = $uiElements.eq(i).children(".optGroupButton")
-                for(let j = 0; j < cH.length; j++){
-                    if(cH.eq(j).hasClass("toggledOn")){
-                        cH.eq(j).css("background-color",  cH.eq(j).css("background-color").replace(/^([^,]*,[^,]*,[^,]*),.*$/, '$1') + ", 0.6)");
+                for (let j = 0; j < cH.length; j++) {
+                    if (cH.eq(j).hasClass("toggledOn")) {
+                        cH.eq(j).css("background-color", cH.eq(j).css("background-color").replace(/^([^,]*,[^,]*,[^,]*),.*$/, '$1') + ", 0.6)");
                         $uiElements.eq(i).attr("data-value", cH.eq(j).attr("data-value"))
                     }
                 }
@@ -561,7 +637,280 @@ $(".setTeam").on("click", () => {
     window.location.reload()
 })
 function roundToNearestX(number, x) {
-  
-  if (x === 0) return 0; 
-  return Math.round(number / x) * x;
+
+    if (x === 0) return 0;
+    return Math.round(number / x) * x;
 }
+
+$(".editTabs").on("click", () => {
+    $("#connect").css("pointer-events", "none")
+
+    $(".editTabs").toggleClass("editingTabs");
+    $("body").toggleClass("bodyEdit")
+    $(".gridUnderlay").toggleClass("gridUnderlayEditing")
+    $(".gridSquare").toggleClass("gridSquareEditing")
+    setTimeout(() => {
+        $("#connect").css("pointer-events", "")
+
+    }, 1000);
+
+    if ($(".editTabs").hasClass("editingTabs")) {
+
+        $("body").on("mousemove touchmove", (event) => {
+            if($(".gridSquare").length > 600){
+                $(".gridSquare").css("width", "95%").css("height", "95%")
+                return
+            }
+
+            let clientDrag = {
+                x: 0,
+                y: 0
+            }
+
+            let $eq = $(".gridSquare").eq(0)
+
+            if (event.pageX == null) {
+                clientDrag.x = event.changedTouches[0].pageX - ($eq.width()/2)
+                clientDrag.y = event.changedTouches[0].pageY - ($eq.width()/2)
+            } else {
+                clientDrag.x = event.pageX - ($eq.width()/2)
+                clientDrag.y = event.pageY - ($eq.width()/2)
+            }
+
+            //jquery ommited for preformance reasons
+            let elements = document.getElementsByClassName("gridSquare")
+            for (let i = 0; i < elements.length; i++) {
+                let $eq = elements[i]
+
+                let offset = $eq.getBoundingClientRect()
+
+                let dist = Math.hypot(offset.left-clientDrag.x,  offset.top - clientDrag.y)
+                let distVal = (0.0125 * (dist) + 95)
+
+                $eq.style.transform = 'scale(' + distVal + '%)'
+                
+            }
+
+        })
+    } else {
+        $("html").off()
+    }
+
+})
+
+$(".sideBar").children().off().on("mousedown touchstart", (event) => {
+    let ct = $(event.currentTarget)
+    if (ct.hasClass("actionButton")) {
+        let jQueryReference = createActionButton("Action Button", "esc-UNDEFINED-esc", ".dashboardHolder")
+
+        let clientDrag = {
+            x: 0,
+            y: 0
+        }
+
+        if (event.pageX == null) {
+            clientDrag.x = event.changedTouches[0].pageX - (jQueryReference.width() / 2)
+            clientDrag.y = event.changedTouches[0].pageY - (jQueryReference.height() / 2)
+        } else {
+            clientDrag.x = event.pageX - (jQueryReference.width() / 2)
+            clientDrag.y = event.pageY - (jQueryReference.height() / 2)
+        }
+
+        addToCurrentDrag(jQueryReference, clientDrag.x, clientDrag.y)
+    }
+
+
+
+})
+
+function addToCurrentDrag(jQueryReference, initalX, initalY) {
+    jQueryReference.css("position", "absolute").addClass("currentDrag")
+
+    jQueryReference.css("top", initalY).css('left', initalX)
+
+    $("html").on("mousemove touchmove", (event) => {
+        let clientDrag = {
+            x: 0,
+            y: 0,
+            rawX:0,
+            rawY:0,
+        }
+
+        if (event.pageX == null) {
+            clientDrag.rawX = event.changedTouches[0].pageX
+            clientDrag.rawY = event.changedTouches[0].pageY
+            clientDrag.x = event.changedTouches[0].pageX - (jQueryReference.width() / 2)
+            clientDrag.y = event.changedTouches[0].pageY - (jQueryReference.height() / 2)
+        } else {
+            clientDrag.rawX = event.pageX
+            clientDrag.rawY = event.pageY
+            clientDrag.x = event.pageX - (jQueryReference.width() / 2)
+            clientDrag.y = event.pageY - (jQueryReference.height() / 2)
+        }
+
+        jQueryReference.css("top", clientDrag.y).css('left', clientDrag.x)
+
+        let elementsFromPoint = document.elementsFromPoint(clientDrag.rawX, clientDrag.rawY)
+
+        for(let i = 0; i < elementsFromPoint.length; i++){
+            let $eq = $(elementsFromPoint[i])
+            if($eq.hasClass("gridSquare")){
+                // console.log($eq.attr("data-row") + "|" + $eq.attr("data-column"))
+                $(".feauxComponent").remove()
+                createActionButton(jQueryReference.text(), jQueryReference.attr("data-topic"), $(".currentTab").attr("data-page"))
+                .addClass("feauxComponent")
+                .css("grid-column", $eq.attr("data-column"))
+                .css("grid-row", $eq.attr("data-row"))
+                break
+            }
+        }
+
+    })
+}
+
+function createActionButton(displayName, topic, append = false) {
+    let actionButton = $("<button>")
+        .addClass("actionButton")
+        .attr("data-type", "boolean")
+        .attr("data-topic", topic)
+        .attr("data-value", false)
+        .text(displayName)
+
+    if(append){
+        actionButton.appendTo(append)
+    }
+
+    addButtonToAnimate(actionButton)
+
+    return actionButton
+}
+
+
+
+/* <button class="actionButton" data-type="boolean" data-topic="TestActionButton"
+            data-value="false">Action Button</button>
+        <!--One shots must have the topic in their classes to trigger animation after the bot gets the signal-->
+        <button class="oneShotButton OneShotTest" data-type="boolean" data-topic="OneShotTest" data-value="false">One
+            Shot Button</button>
+        <!-- Toggles also work in if you want in reverse, set data-value to true and add toggledOn to the classes -->
+        <button class="toggleButton" data-type="boolean" data-topic="TestToggleButton"
+            data-value="false">Toggle Button</button>
+
+        <!--Set max, min, step, and initial value for the axis, it will snap back after released to inital value-->
+        <div class="axis" data-topic="TestAxis" data-value="0" data-type="double">
+            <h1 class="axisLabel">Axis</h1>
+            <input class="axisKnob" type="range" min="0" max="0" value="0">
+        </div>
+
+        <div class="verticalAxis" data-topic="TestAxis" data-value="0" data-type="double">
+            <h1 class="axisLabel">Y-Axis</h1>
+            <input class="verticalAxisKnob" type="range" min="0" max="0" value="0">
+        </div>
+
+        <!-- The value that is sent to the bot is defined in the select option data-value, the text is displayed on the ui -->
+        <div class="select" data-value="points" data-topic="DropdownTest" data-type="string">
+            <h1 class="selectTitle">Points</h1>
+
+        </div>
+
+        <div class="buttonOptGroup" data-type="string" data-topic="testBOG" data-value="L2">
+            <button class="animatedButton optGroupButton toggledOn"
+                style="background-color: rgba(0, 81, 255, 0); border-color: rgb(0, 47, 255)" data-value="Val1">Value
+                1</button>
+            <button class="animatedButton optGroupButton"
+                style="background-color: rgba(255, 0, 0, 0); border-color: rgb(255, 0, 0)" data-value="Val2">Value
+                2</button>
+            <button class="animatedButton optGroupButton"
+                style="background-color: rgba(247, 0, 255, 0); border-color: rgb(255, 0, 225) " data-value="Val3">Value
+                3</button>
+
+        </div>
+
+        <!-- set max, min. and value in the parent element.  -->
+        <div class="numberComponent" data-topic='TestAdder' data-type="double" data-step="0.1" data-min="-1"
+            data-max="1" data-value="0" data-persist="true">
+            <p class="numberTitle">Test Adder</p>
+            <button class="numberMinus animatedButton">-</button>
+            <input class="numberTextInput" type="number" value="0"> <!-- value must match data-value -->
+            <button class="numberPlus animatedButton">+</button>
+        </div>
+
+        <div class="basicSubscription" data-topic=""><!-- must be the full path -->
+            <h1 class="bSTopic">Topic:</h1>
+            <h1 class="bSValue">Value</h1>
+        </div>
+    </div> */
+
+
+
+tabGrid(30, 15, ".uiTestTab")
+
+function tabGrid(columns, rows, tab) {
+    let $tab = $(tab)
+
+    //set the css grid to max square size and center it
+    let cqval = setGridSize($tab, columns, rows)
+    $(".gridUnderlay").css("grid-template-rows", "repeat(" + rows + " ," + cqval + "cqmin)").css("grid-template-columns", "repeat(" + columns + " ," + cqval + "cqmin)")
+
+    $(window).off().on("resize", () => {
+        let cqval = setGridSize($tab, columns, rows)
+        $(".gridUnderlay").css("grid-template-rows", "repeat(" + rows + " ," + cqval + "cqmin)").css("grid-template-columns", "repeat(" + columns + " ," + cqval + "cqmin)")
+
+    })
+
+    $tab.attr("rows", rows).attr("columns", columns)
+    $tab.css("background-color", "rgba(0,0,0,0)")
+    $tab.offset()
+
+    setGridUnderlay(columns, rows)
+    // setGridUnderlay(size, tab)
+}
+
+function setGridSize($tab, columns, rows) {
+    $tab.children().addClass("resizeSized")
+
+    $tab.css("display", "grid").css("grid-template-columns", "repeat(" + columns + " ,1fr").css("grid-template-rows", "repeat(" + rows + " ,1fr")
+    $tab.offset()
+    let frSpan = $("<span>").css('width', ' 100%').css("height", "100%").appendTo($tab)
+
+    let widthFr = frSpan.width()
+    let heightFr = frSpan.height()
+
+    frSpan.remove()
+
+    $tab.offset()
+
+    let cqval = 0
+    if (widthFr < heightFr) {
+        $tab.css("display", "grid").css("grid-template-columns", "repeat(" + columns + " ,1fr")
+
+        let widthSpan = $("<span>").css('width', ' 100%').appendTo($tab)
+
+        $tab.css("grid-template-rows", "repeat(" + rows + " ," + pxToCq($tab, widthSpan.width()).cqmin + "cqmin)").css("grid-template-columns", "repeat(" + columns + " ," + pxToCq($tab, widthSpan.width()).cqmin + "cqmin)")
+        cqval = pxToCq($tab, widthSpan.width()).cqmin
+        widthSpan.remove()
+    } else {
+        $tab.css("display", "grid").css("grid-template-rows", "repeat(" + rows + " ,1fr")
+
+        //find fractional unit size for current grid
+        let widthSpan = $("<span>").css('height', ' 100%').appendTo($tab)
+
+        //convert the fractional unit to view units to avoid resizing overflow. 
+        $tab.css("grid-template-columns", "repeat(" + columns + " ," + pxToCq($tab, widthSpan.height()).cqmin + "cqmin)").css("grid-template-rows", "repeat(" + rows + " ," + pxToCq($tab, widthSpan.height()).cqmin + "cqmin)")
+        cqval = pxToCq($tab, widthSpan.height()).cqmin
+        widthSpan.remove()
+    }
+
+    $tab.children().removeClass("resizeSized")
+    return cqval
+}
+
+function setGridUnderlay(columns, rows) {
+
+    for (let i = 0; i < columns * rows; i++) {
+        //added 1 to be consitent with css namings.
+        $("<div>").addClass("gridSquare").appendTo(".gridUnderlay").attr("data-column", (i % columns) +1 ).attr("data-row", (Math.floor(i/columns)) +1)
+    }
+
+}
+

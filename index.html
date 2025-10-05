@@ -35,274 +35,310 @@ SOFTWARE. -->
 </head>
 
 <body>
+    <div class="dashboardHolder">
+        <div class="tabNav">
+            <!-- Insert tab buttons after this or between existing buttons after here -->
+            <div class="tab currentTab" data-page=".autonomus"><i>Pose-Plotter</i></div>
 
-    <div class="tabNav">
-        <!-- Insert tab buttons after this or between existing buttons after here -->
-        <div class="tab currentTab" data-page=".autonomus"><i>Pose-Plotter</i></div>
+            <div class="tab tabConnection" data-page=".jukeBox">Jukebox</div>
 
-        <div class="tab tabConnection" data-page=".jukeBox">Jukebox</div>
-
-        <div class="tab tabConnection" data-page=".uiTestTab" data-displaytype="flex">Ui Test</div>
-        <!-- Comment out when done testing-->
-
-        <!-- Insert tab buttons before this or between existing buttons before here -->
+            <div class="tab tabConnection" data-page=".uiTestTab">Ui Test</div>
 
 
-        <p class="connectionText">Offline</p>
-        <label class="switch">
-            <input id="connect" type="checkbox">
-            <span class="slider round"></span>
-        </label>
-        <button class="teamNumber">#</button>
-        <button class="fullScreen">🗖</button>
-    </div>
+            <p class="connectionText">Offline</p>
+            <label class="switch">
+                <input id="connect" type="checkbox">
+                <span class="slider round"></span>
+            </label>
+            <button class="editTabs">✎</button>
+            <button class="teamNumber">#</button>
+            <button class="fullScreen">🗖</button>
+        </div>
 
-    <div class="setTeamNumberOrIp">
-        <h1 class="setTeamTitle">Team Number or IP</h1>
-        <input type="text" class="textInput teamNumberInput" placeholder="">
-        <p class="simHint">Use localhost for simulator</p>
-        <input type="button" class="setTeam" value="Set">
-    </div>
-    <!-- Insert tabs after this or between existing tabs after here -->
+        <div class="gridUnderlay">
+            
+        </div>
 
-    <!-- I recommend minimizing existing tabs in vscode-->
-    <div class="autonomus pageF">
+        <div class="setTeamNumberOrIp">
+            <h1 class="setTeamTitle">Team Number or IP</h1>
+            <input type="text" class="textInput teamNumberInput" placeholder="">
+            <p class="simHint">Use localhost for simulator</p>
+            <input type="button" class="setTeam" value="Set">
+        </div>
 
-        <div class="commands commandName">
-            <div class="commandNav">
-                <h1 class="commandTitle">Commands</h1>
-                <div class="multiSwitch" data-value="Await">
-                    <div class="multiSlider">
-                        <div class="multiSliding" style="width:50%;"></div>
+        <div class="autonomus pageF">
+
+            <div class="commands commandName">
+                <div class="commandNav">
+                    <h1 class="commandTitle">Commands</h1>
+                    <div class="multiSwitch" data-value="Await">
+                        <div class="multiSlider">
+                            <div class="multiSliding" style="width:50%;"></div>
+                        </div>
+
+                        <input type="button" class="multiSwitchButton" value="Await">
+                        <input type="button" class="multiSwitchButton" value="Sync">
+                        <!-- <button class="multiSwitchButton stringMultiButton">String</button> -->
                     </div>
+                </div>
+                <div class="commandHolder">
+                    <!-- <div class="autoCommand" data-value="*value" data-displayName="*displayName"></div> -->
+                    <!-- Insert Commands After here-->
 
-                    <input type="button" class="multiSwitchButton" value="Await">
-                    <input type="button" class="multiSwitchButton" value="Sync">
-                    <!-- <button class="multiSwitchButton stringMultiButton">String</button> -->
+
+
+                    <!-- Insert Commands Before here-->
                 </div>
             </div>
-            <div class="commandHolder">
-                <!-- <div class="autoCommand" data-value="*value" data-displayName="*displayName"></div> -->
-                <!-- Insert Commands After here-->
 
-                
+            <div class="order">
+                <div class="orderHolder" id="orderHolder">
 
-                <!-- Insert Commands Before here-->
-            </div>
-        </div>
 
-        <div class="order">
-            <div class="orderHolder" id="orderHolder">
-
+                </div>
 
             </div>
+            <svg class="autoMap" viewBox="0 0 1536.5998 1670.4481" width="1536.5999" height="1670.448" version="1.1"
+                id="svg108" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+                <desc id="desc1">FeildCad.dxf - scale = 25.400000, origin = (0.000000, 0.000000), method = file</desc>
+                <defs id="defs4" />
 
-        </div>
-        <svg class="autoMap" viewBox="0 0 1536.5998 1670.4481" width="1536.5999" height="1670.448" version="1.1"
-            id="svg108" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
-            <desc id="desc1">FeildCad.dxf - scale = 25.400000, origin = (0.000000, 0.000000), method = file</desc>
-            <defs id="defs4" />
+                <g id="g100" transform="translate(3318.4141,8047.3308)">
 
-            <g id="g100" transform="translate(3318.4141,8047.3308)">
+                    <g id="g127" transform="matrix(0.05,0,0,0.05,-3318.7174,-8047.2935)"
+                        style="fill:#333333;stroke-width:200;stroke-dasharray:none">
 
-                <g id="g127" transform="matrix(0.05,0,0,0.05,-3318.7174,-8047.2935)"
-                    style="fill:#333333;stroke-width:200;stroke-dasharray:none">
-
-                    <path
-                        style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:bevel;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
-                        d="m 9820.8011,13071.916 c -883.8673,-510.296 -1609.7583,-930.538 -1613.0913,-933.871 -8.3839,-8.384 2316.6762,-4039.8688 2330.4702,-4040.8671 8.016,-0.58 1575.938,2700.9841 2128.42,3667.3111 l 30.32,53.033 -622.275,1078.338 c -342.252,593.086 -627.797,1084.082 -634.545,1091.103 -6.747,7.02 -735.432,-404.751 -1619.2989,-915.047 z"
-                        id="poseI" class="poseBTN" data-pose="I" data-x=" 478.857 " data-y=" 574.857 " />
-                    <path
-                        style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
-                        d="m 12742.306,11682.813 c -25.385,-43.829 -134.586,-232.468 -242.668,-419.199 -108.082,-186.731 -202.707,-349.856 -210.277,-362.5 -7.571,-12.644 -15.812,-27.208 -18.315,-32.364 -14.993,-30.888 -199.611,-347.244 -203.645,-348.958 -2.695,-1.146 -4.901,-4.837 -4.901,-8.202 0,-8.64 -169.476,-301.766 -175.936,-304.298 -2.923,-1.146 -5.314,-5.089 -5.314,-8.761 0,-9.104 -56.435,-106.77 -65.005,-112.498 -3.778,-2.525 -4.787,-4.635 -2.24,-4.687 5.489,-0.114 -32.301,-63.656 -41.816,-70.313 -3.61,-2.525 -4.583,-4.635 -2.161,-4.687 5.442,-0.119 -56.38,-108.0015 -64.924,-113.2947 -3.394,-2.1032 -5.653,-5.7785 -5.02,-8.1676 1.312,-4.9514 -160.208,-287.5504 -171.091,-299.3435 -3.915,-4.2421 -7.633,-10.5981 -8.263,-14.1246 -0.63,-3.5264 -199.614,-350.0596 -442.188,-770.0738 -242.573,-420.0142 -441.042,-765.1088 -441.042,-766.877 0,-1.7681 1051.875,-3.2148 2337.5,-3.2148 h 2337.5 V 9896.875 11762.5 h -1262.019 -1262.019 z"
-                        id="poseH" class="poseBTN" data-pose="H" data-x=" 646.533 " data-y=" 478.219 " />
-                    <path
-                        style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
-                        d="M 15423.767,9899.495 V 8034.5008 h 2334.208 2334.208 l -23.45,41.9845 c -12.897,23.0914 -497.073,862.3388 -1075.947,1864.9941 l -1052.498,1823.0096 h -1258.26 -1258.261 z"
-                        id="poseG" class="poseBTN" data-pose="G" data-x=" 711.419 " data-y=" 478.633 " />
-                    <path
-                        style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
-                        d="m 18673.394,12918.403 c -343.423,-594.841 -626.516,-1087.027 -629.094,-1093.746 -2.578,-6.72 96.755,-187.821 220.742,-402.448 123.986,-214.626 226.507,-395.438 227.824,-401.803 1.318,-6.365 6.838,-15.565 12.268,-20.444 12.259,-11.016 479.392,-820.929 482.701,-836.906 1.321,-6.374 6.865,-15.582 12.319,-20.461 5.455,-4.879 275.57,-469.4375 600.255,-1032.3522 l 590.336,-1023.4813 32.179,55.6289 c 945.035,1633.7084 2299.521,3985.4726 2298.418,3990.6926 -1.05,4.971 -3063.511,1778.936 -3209.385,1859.072 -11.792,6.478 -118.447,-172.864 -638.563,-1073.752 z"
-                        id="poseF" class="poseBTN" data-pose="F" data-x=" 878.703 " data-y=" 574.801 " />
-                    <path
-                        style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
-                        d="m 19990.754,15199.968 c -343.31,-594.642 -626.404,-1086.908 -629.096,-1093.925 -7.321,-19.078 3212.857,-1877.107 3226.846,-1861.877 11.183,12.175 2328.171,4025.2 2328.171,4032.393 0,2.516 -967.887,4.575 -2150.86,4.575 h -2150.86 z"
-                        id="poseE" class="poseBTN" data-pose="E" data-x=" 910.788 " data-y=" 631.201 " />
-                    <path
-                        style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
-                        d="m 20999.091,19520.244 c -870.188,-502.696 -1595.342,-922.805 -1611.453,-933.573 l -29.293,-19.579 629.049,-1089.796 629.048,-1089.796 h 2148.029 c 1181.416,0 2148.029,2.584 2148.029,5.742 0,4.715 -2324.055,4034.705 -2329.541,4039.502 -0.94,0.822 -713.681,-409.803 -1583.868,-912.5 z"
-                        id="poseD" class="poseBTN" data-pose="D" data-x=" 910.559 " data-y=" 823.724 " />
-                    <path
-                        style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
-                        d="m 19115.54,22714.139 -1075.857,-1863.291 627.033,-1087.582 c 344.869,-598.17 630.135,-1087.736 633.926,-1087.924 3.79,-0.188 362.665,205.064 797.498,456.116 434.833,251.051 797.337,457.77 805.563,459.375 8.226,1.604 20.602,9.112 27.502,16.685 6.9,7.572 366.92,217.865 800.045,467.319 433.125,249.454 788.962,454.721 790.75,456.149 1.787,1.428 -516.085,902.072 -1150.827,2001.431 -634.742,1099.358 -1159.859,2009.224 -1166.926,2021.923 -10.705,19.235 -192.485,-288.021 -1088.707,-1840.201 z"
-                        id="poseC" class="poseBTN" data-pose="C" data-x=" 877.758 " data-y=" 879.710 " />
-                    <path
-                        style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
-                        d="m 15425,22775 v -1850 h 1275 c 925.045,0 1275,7.692 1275,28.024 0,35.831 602.672,1081.685 629.73,1092.809 11.149,4.584 20.27,20.163 20.27,34.621 0,33.861 329.479,604.36 355.399,615.379 10.781,4.584 19.601,20.47 19.601,35.303 0,27.42 222.232,421 250.625,443.864 8.537,6.875 22.749,32.091 31.582,56.036 29.79,80.759 472.893,831.296 501.724,849.831 15.713,10.102 20.644,18.54 10.958,18.75 -9.686,0.211 39.204,98.762 108.645,219.003 69.442,120.241 136.825,238.366 149.741,262.5 22.314,41.694 -92.392,43.88 -2302.395,43.88 H 15425 Z"
-                        id="poseB" class="poseBTN" data-pose="B" data-x=" 709.744 " data-y=" 976.932 " />
-                    <path
-                        style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
-                        d="m 10945.187,24118.107 c 160.772,-278.792 641.063,-1111.229 1067.313,-1849.86 l 775,-1342.967 1256.25,-0.14 1256.25,-0.14 v 1850 1850 h -2323.563 -2323.563 z"
-                        id="poseA" class="poseBTN" data-pose="A" data-x=" 646.859 " data-y=" 976.518 " />
-                    <path
-                        style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
-                        d="M 9377.8565,22549.279 C 8741.328,21446.633 8229.9748,20535.871 8241.516,20525.363 8282.6434,20487.918 11395.025,18700 11419.082,18700 c 21.244,0 1203.215,2022.287 1242.661,2126.123 8.716,22.946 -73.288,190.376 -202.037,412.5 -119.189,205.632 -217.008,387.94 -217.374,405.127 -0.366,17.188 -8.848,31.25 -18.849,31.25 -23.787,0 -362.884,601.037 -354.733,628.75 3.438,11.688 -3.391,21.25 -15.175,21.25 -25.701,0 -361.164,574.023 -361.602,618.75 -0.168,17.188 -8.072,31.25 -17.564,31.25 -22.846,0 -357.042,578.52 -357.436,618.75 -0.168,17.188 -8.254,31.25 -17.969,31.25 -9.714,0 -126.861,190.326 -260.326,422.947 -133.465,232.621 -256.351,441.666 -273.08,464.545 -25.918,35.444 -201.617,-254.969 -1187.7415,-1963.213 z"
-                        id="poseL" class="poseBTN" data-pose="L" data-x=" 478.411 " data-y=" 878.900 " />
-                    <path
-                        style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
-                        d="M 8105.2826,20344.314 C 8078.0621,20299.316 7569.5581,19418.75 6975.2737,18387.5 6380.9894,17356.25 5878.8021,16487.188 5859.302,16456.25 L 5823.8474,16400 H 7969.1587 10114.47 l 626.445,1084.635 626.445,1084.635 -1008.68,582.01 C 9803.906,19471.386 9350,19740.8 9350,19749.979 c 0,9.178 -14.0625,16.963 -31.25,17.298 -25.2307,0.493 -746.1625,406.588 -1085.1127,611.236 l -78.8627,47.614 z"
-                        id="poseK" class="poseBTN" data-pose="K" data-x=" 447.327 " data-y=" 824.232 " />
-                    <path
-                        style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
-                        d="m 5869.9037,16193.75 c 26.9399,-44.687 535.2835,-925 1129.6523,-1956.25 594.3689,-1031.25 1097.0238,-1900.915 1117.0109,-1932.589 l 36.3402,-57.589 167.2964,93.895 c 92.013,51.642 208.3063,116.932 258.4295,145.089 50.1233,28.157 179.4983,103.017 287.5,166.357 108.0018,63.34 263.867,152.017 346.367,197.061 82.5,45.043 161.25,90.59 175,101.214 13.75,10.625 171.25,102.913 350,205.085 178.75,102.172 472.571,271.99 652.935,377.372 180.364,105.383 339.739,191.605 354.166,191.605 14.428,0 29.982,8.897 34.566,19.771 4.583,10.875 134.807,92.437 289.385,181.25 154.579,88.814 281.142,170.665 281.25,181.893 0.109,11.228 -278.239,503.246 -618.552,1093.373 l -618.75,1072.957 -2145.789,0.378 -2145.789,0.378 z"
-                        id="poseJ" class="poseBTN" data-pose="J" data-x=" 447.056 " data-y=" 629.111 " />
-                    <path
-                        style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
-                        d="m 106.06602,23490.099 c 0,-2996.31 2.12811,-3096.794 63.85963,-3015.287 281.02014,371.047 2937.56365,4050.754 2941.19605,4073.993 3.8343,24.531 -2739.44269,1895.166 -2943.18384,2006.951 -58.71321,32.214 -61.87184,-124.292 -61.87184,-3065.657 z"
-                        id="poseLT" class="poseBTN" data-pose="LT" data-x=" 44.147 " data-y=" 1250.344 " />
-                    <path
-                        style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
-                        d="M 1740.6367,28953.312 C 865.92963,27748.775 150.26019,26755.922 150.26019,26746.971 c 0,-18.08 3038.56411,-2068.944 3065.35261,-2068.944 21.044,0 3104.1541,4242.842 3104.1541,4271.802 0,11.598 -604.5763,460.171 -1343.5029,996.829 -738.9266,536.658 -1411.3961,1025.462 -1494.3769,1086.231 l -150.8737,110.491 z"
-                        id="poseLM" class="poseBTN" data-pose="LM" data-x=" 120.733 " data-y=" 1356.508 " />
-                    <path
-                        style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
-                        d="M 4156.3292,32279.358 C 3746.8328,31715.404 3412.0646,31248.05 3412.4,31240.795 c 0.3354,-7.256 673.4494,-501.28 1495.8089,-1097.832 1443.7361,-1047.307 1496.2635,-1083.51 1526.125,-1051.821 28.7842,30.546 3015.0862,4138.195 3046.1948,4190.031 11.7473,19.575 -374.0805,23.556 -2282.7618,23.556 H 4900.8683 Z"
-                        id="poseLB" class="poseBTN" data-pose="LB" data-x=" 195.178 " data-y=" 1459.450 " />
-                    <path
-                        style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
-                        d="m 21275.245,33260.535 c 19.44,-24.307 698.346,-959.013 1508.68,-2077.126 810.334,-1118.113 1494.309,-2047.433 1519.943,-2065.157 33.282,-23.011 467.95,273.809 1520.169,1038.069 810.458,588.662 1468.119,1086.62 1461.468,1106.572 -6.651,19.953 -337.518,487.029 -735.261,1037.947 l -723.169,1001.67 -2293.587,1.11 c -1830.267,0.885 -2286.447,-7.818 -2258.243,-43.085 z"
-                        id="poseRB" class="poseBTN" data-pose="RB" data-x=" 1168.383 " data-y=" 1456.070 " />
-                    <path
-                        style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
-                        d="m 26727.06,30639.347 c -358.874,-260.344 -664.43,-466.233 -679.014,-457.533 -14.584,8.7 -26.516,0.26 -26.516,-18.756 0,-19.016 -353.996,-291.573 -786.657,-605.683 -432.661,-314.11 -791.733,-585.191 -797.939,-602.402 -6.205,-17.21 682.818,-986.814 1531.164,-2154.674 l 1542.447,-2123.381 1535.963,1032.277 c 1398.736,940.051 1532.01,1038.015 1491.717,1096.508 -236.922,343.944 -3124.898,4304.877 -3139.414,4305.787 -10.59,0.665 -312.878,-211.8 -671.751,-472.143 z"
-                        id="poseRM" class="poseBTN" data-pose="RM" data-x=" 1242.828 " data-y=" 1353.127 " />
-                    <path
-                        style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
-                        d="m 29150.477,25612.682 c -797.263,-536.362 -1470.865,-995.899 -1496.894,-1021.194 -39.256,-38.15 207.896,-397.483 1449.569,-2107.516 l 1496.894,-2061.525 9.21,1544.427 c 5.066,849.435 5.066,2236.658 0,3082.718 l -9.21,1538.292 z"
-                        id="poseRT" class="poseBTN" data-pose="RT" data-x=" 1319.414 " data-y=" 1246.963 " />
+                        <path
+                            style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:bevel;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
+                            d="m 9820.8011,13071.916 c -883.8673,-510.296 -1609.7583,-930.538 -1613.0913,-933.871 -8.3839,-8.384 2316.6762,-4039.8688 2330.4702,-4040.8671 8.016,-0.58 1575.938,2700.9841 2128.42,3667.3111 l 30.32,53.033 -622.275,1078.338 c -342.252,593.086 -627.797,1084.082 -634.545,1091.103 -6.747,7.02 -735.432,-404.751 -1619.2989,-915.047 z"
+                            id="poseI" class="poseBTN" data-pose="I" data-x=" 478.857 " data-y=" 574.857 " />
+                        <path
+                            style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
+                            d="m 12742.306,11682.813 c -25.385,-43.829 -134.586,-232.468 -242.668,-419.199 -108.082,-186.731 -202.707,-349.856 -210.277,-362.5 -7.571,-12.644 -15.812,-27.208 -18.315,-32.364 -14.993,-30.888 -199.611,-347.244 -203.645,-348.958 -2.695,-1.146 -4.901,-4.837 -4.901,-8.202 0,-8.64 -169.476,-301.766 -175.936,-304.298 -2.923,-1.146 -5.314,-5.089 -5.314,-8.761 0,-9.104 -56.435,-106.77 -65.005,-112.498 -3.778,-2.525 -4.787,-4.635 -2.24,-4.687 5.489,-0.114 -32.301,-63.656 -41.816,-70.313 -3.61,-2.525 -4.583,-4.635 -2.161,-4.687 5.442,-0.119 -56.38,-108.0015 -64.924,-113.2947 -3.394,-2.1032 -5.653,-5.7785 -5.02,-8.1676 1.312,-4.9514 -160.208,-287.5504 -171.091,-299.3435 -3.915,-4.2421 -7.633,-10.5981 -8.263,-14.1246 -0.63,-3.5264 -199.614,-350.0596 -442.188,-770.0738 -242.573,-420.0142 -441.042,-765.1088 -441.042,-766.877 0,-1.7681 1051.875,-3.2148 2337.5,-3.2148 h 2337.5 V 9896.875 11762.5 h -1262.019 -1262.019 z"
+                            id="poseH" class="poseBTN" data-pose="H" data-x=" 646.533 " data-y=" 478.219 " />
+                        <path
+                            style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
+                            d="M 15423.767,9899.495 V 8034.5008 h 2334.208 2334.208 l -23.45,41.9845 c -12.897,23.0914 -497.073,862.3388 -1075.947,1864.9941 l -1052.498,1823.0096 h -1258.26 -1258.261 z"
+                            id="poseG" class="poseBTN" data-pose="G" data-x=" 711.419 " data-y=" 478.633 " />
+                        <path
+                            style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
+                            d="m 18673.394,12918.403 c -343.423,-594.841 -626.516,-1087.027 -629.094,-1093.746 -2.578,-6.72 96.755,-187.821 220.742,-402.448 123.986,-214.626 226.507,-395.438 227.824,-401.803 1.318,-6.365 6.838,-15.565 12.268,-20.444 12.259,-11.016 479.392,-820.929 482.701,-836.906 1.321,-6.374 6.865,-15.582 12.319,-20.461 5.455,-4.879 275.57,-469.4375 600.255,-1032.3522 l 590.336,-1023.4813 32.179,55.6289 c 945.035,1633.7084 2299.521,3985.4726 2298.418,3990.6926 -1.05,4.971 -3063.511,1778.936 -3209.385,1859.072 -11.792,6.478 -118.447,-172.864 -638.563,-1073.752 z"
+                            id="poseF" class="poseBTN" data-pose="F" data-x=" 878.703 " data-y=" 574.801 " />
+                        <path
+                            style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
+                            d="m 19990.754,15199.968 c -343.31,-594.642 -626.404,-1086.908 -629.096,-1093.925 -7.321,-19.078 3212.857,-1877.107 3226.846,-1861.877 11.183,12.175 2328.171,4025.2 2328.171,4032.393 0,2.516 -967.887,4.575 -2150.86,4.575 h -2150.86 z"
+                            id="poseE" class="poseBTN" data-pose="E" data-x=" 910.788 " data-y=" 631.201 " />
+                        <path
+                            style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
+                            d="m 20999.091,19520.244 c -870.188,-502.696 -1595.342,-922.805 -1611.453,-933.573 l -29.293,-19.579 629.049,-1089.796 629.048,-1089.796 h 2148.029 c 1181.416,0 2148.029,2.584 2148.029,5.742 0,4.715 -2324.055,4034.705 -2329.541,4039.502 -0.94,0.822 -713.681,-409.803 -1583.868,-912.5 z"
+                            id="poseD" class="poseBTN" data-pose="D" data-x=" 910.559 " data-y=" 823.724 " />
+                        <path
+                            style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
+                            d="m 19115.54,22714.139 -1075.857,-1863.291 627.033,-1087.582 c 344.869,-598.17 630.135,-1087.736 633.926,-1087.924 3.79,-0.188 362.665,205.064 797.498,456.116 434.833,251.051 797.337,457.77 805.563,459.375 8.226,1.604 20.602,9.112 27.502,16.685 6.9,7.572 366.92,217.865 800.045,467.319 433.125,249.454 788.962,454.721 790.75,456.149 1.787,1.428 -516.085,902.072 -1150.827,2001.431 -634.742,1099.358 -1159.859,2009.224 -1166.926,2021.923 -10.705,19.235 -192.485,-288.021 -1088.707,-1840.201 z"
+                            id="poseC" class="poseBTN" data-pose="C" data-x=" 877.758 " data-y=" 879.710 " />
+                        <path
+                            style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
+                            d="m 15425,22775 v -1850 h 1275 c 925.045,0 1275,7.692 1275,28.024 0,35.831 602.672,1081.685 629.73,1092.809 11.149,4.584 20.27,20.163 20.27,34.621 0,33.861 329.479,604.36 355.399,615.379 10.781,4.584 19.601,20.47 19.601,35.303 0,27.42 222.232,421 250.625,443.864 8.537,6.875 22.749,32.091 31.582,56.036 29.79,80.759 472.893,831.296 501.724,849.831 15.713,10.102 20.644,18.54 10.958,18.75 -9.686,0.211 39.204,98.762 108.645,219.003 69.442,120.241 136.825,238.366 149.741,262.5 22.314,41.694 -92.392,43.88 -2302.395,43.88 H 15425 Z"
+                            id="poseB" class="poseBTN" data-pose="B" data-x=" 709.744 " data-y=" 976.932 " />
+                        <path
+                            style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
+                            d="m 10945.187,24118.107 c 160.772,-278.792 641.063,-1111.229 1067.313,-1849.86 l 775,-1342.967 1256.25,-0.14 1256.25,-0.14 v 1850 1850 h -2323.563 -2323.563 z"
+                            id="poseA" class="poseBTN" data-pose="A" data-x=" 646.859 " data-y=" 976.518 " />
+                        <path
+                            style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
+                            d="M 9377.8565,22549.279 C 8741.328,21446.633 8229.9748,20535.871 8241.516,20525.363 8282.6434,20487.918 11395.025,18700 11419.082,18700 c 21.244,0 1203.215,2022.287 1242.661,2126.123 8.716,22.946 -73.288,190.376 -202.037,412.5 -119.189,205.632 -217.008,387.94 -217.374,405.127 -0.366,17.188 -8.848,31.25 -18.849,31.25 -23.787,0 -362.884,601.037 -354.733,628.75 3.438,11.688 -3.391,21.25 -15.175,21.25 -25.701,0 -361.164,574.023 -361.602,618.75 -0.168,17.188 -8.072,31.25 -17.564,31.25 -22.846,0 -357.042,578.52 -357.436,618.75 -0.168,17.188 -8.254,31.25 -17.969,31.25 -9.714,0 -126.861,190.326 -260.326,422.947 -133.465,232.621 -256.351,441.666 -273.08,464.545 -25.918,35.444 -201.617,-254.969 -1187.7415,-1963.213 z"
+                            id="poseL" class="poseBTN" data-pose="L" data-x=" 478.411 " data-y=" 878.900 " />
+                        <path
+                            style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
+                            d="M 8105.2826,20344.314 C 8078.0621,20299.316 7569.5581,19418.75 6975.2737,18387.5 6380.9894,17356.25 5878.8021,16487.188 5859.302,16456.25 L 5823.8474,16400 H 7969.1587 10114.47 l 626.445,1084.635 626.445,1084.635 -1008.68,582.01 C 9803.906,19471.386 9350,19740.8 9350,19749.979 c 0,9.178 -14.0625,16.963 -31.25,17.298 -25.2307,0.493 -746.1625,406.588 -1085.1127,611.236 l -78.8627,47.614 z"
+                            id="poseK" class="poseBTN" data-pose="K" data-x=" 447.327 " data-y=" 824.232 " />
+                        <path
+                            style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
+                            d="m 5869.9037,16193.75 c 26.9399,-44.687 535.2835,-925 1129.6523,-1956.25 594.3689,-1031.25 1097.0238,-1900.915 1117.0109,-1932.589 l 36.3402,-57.589 167.2964,93.895 c 92.013,51.642 208.3063,116.932 258.4295,145.089 50.1233,28.157 179.4983,103.017 287.5,166.357 108.0018,63.34 263.867,152.017 346.367,197.061 82.5,45.043 161.25,90.59 175,101.214 13.75,10.625 171.25,102.913 350,205.085 178.75,102.172 472.571,271.99 652.935,377.372 180.364,105.383 339.739,191.605 354.166,191.605 14.428,0 29.982,8.897 34.566,19.771 4.583,10.875 134.807,92.437 289.385,181.25 154.579,88.814 281.142,170.665 281.25,181.893 0.109,11.228 -278.239,503.246 -618.552,1093.373 l -618.75,1072.957 -2145.789,0.378 -2145.789,0.378 z"
+                            id="poseJ" class="poseBTN" data-pose="J" data-x=" 447.056 " data-y=" 629.111 " />
+                        <path
+                            style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
+                            d="m 106.06602,23490.099 c 0,-2996.31 2.12811,-3096.794 63.85963,-3015.287 281.02014,371.047 2937.56365,4050.754 2941.19605,4073.993 3.8343,24.531 -2739.44269,1895.166 -2943.18384,2006.951 -58.71321,32.214 -61.87184,-124.292 -61.87184,-3065.657 z"
+                            id="poseLT" class="poseBTN" data-pose="LT" data-x=" 44.147 " data-y=" 1250.344 " />
+                        <path
+                            style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
+                            d="M 1740.6367,28953.312 C 865.92963,27748.775 150.26019,26755.922 150.26019,26746.971 c 0,-18.08 3038.56411,-2068.944 3065.35261,-2068.944 21.044,0 3104.1541,4242.842 3104.1541,4271.802 0,11.598 -604.5763,460.171 -1343.5029,996.829 -738.9266,536.658 -1411.3961,1025.462 -1494.3769,1086.231 l -150.8737,110.491 z"
+                            id="poseLM" class="poseBTN" data-pose="LM" data-x=" 120.733 " data-y=" 1356.508 " />
+                        <path
+                            style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
+                            d="M 4156.3292,32279.358 C 3746.8328,31715.404 3412.0646,31248.05 3412.4,31240.795 c 0.3354,-7.256 673.4494,-501.28 1495.8089,-1097.832 1443.7361,-1047.307 1496.2635,-1083.51 1526.125,-1051.821 28.7842,30.546 3015.0862,4138.195 3046.1948,4190.031 11.7473,19.575 -374.0805,23.556 -2282.7618,23.556 H 4900.8683 Z"
+                            id="poseLB" class="poseBTN" data-pose="LB" data-x=" 195.178 " data-y=" 1459.450 " />
+                        <path
+                            style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
+                            d="m 21275.245,33260.535 c 19.44,-24.307 698.346,-959.013 1508.68,-2077.126 810.334,-1118.113 1494.309,-2047.433 1519.943,-2065.157 33.282,-23.011 467.95,273.809 1520.169,1038.069 810.458,588.662 1468.119,1086.62 1461.468,1106.572 -6.651,19.953 -337.518,487.029 -735.261,1037.947 l -723.169,1001.67 -2293.587,1.11 c -1830.267,0.885 -2286.447,-7.818 -2258.243,-43.085 z"
+                            id="poseRB" class="poseBTN" data-pose="RB" data-x=" 1168.383 " data-y=" 1456.070 " />
+                        <path
+                            style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
+                            d="m 26727.06,30639.347 c -358.874,-260.344 -664.43,-466.233 -679.014,-457.533 -14.584,8.7 -26.516,0.26 -26.516,-18.756 0,-19.016 -353.996,-291.573 -786.657,-605.683 -432.661,-314.11 -791.733,-585.191 -797.939,-602.402 -6.205,-17.21 682.818,-986.814 1531.164,-2154.674 l 1542.447,-2123.381 1535.963,1032.277 c 1398.736,940.051 1532.01,1038.015 1491.717,1096.508 -236.922,343.944 -3124.898,4304.877 -3139.414,4305.787 -10.59,0.665 -312.878,-211.8 -671.751,-472.143 z"
+                            id="poseRM" class="poseBTN" data-pose="RM" data-x=" 1242.828 " data-y=" 1353.127 " />
+                        <path
+                            style="fill:#333333;fill-rule:evenodd;stroke:#ffffff;stroke-width:200;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-dasharray:none;paint-order:stroke fill markers"
+                            d="m 29150.477,25612.682 c -797.263,-536.362 -1470.865,-995.899 -1496.894,-1021.194 -39.256,-38.15 207.896,-397.483 1449.569,-2107.516 l 1496.894,-2061.525 9.21,1544.427 c 5.066,849.435 5.066,2236.658 0,3082.718 l -9.21,1538.292 z"
+                            id="poseRT" class="poseBTN" data-pose="RT" data-x=" 1319.414 " data-y=" 1246.963 " />
+                    </g>
                 </g>
-            </g>
-            <g id="g100" transform="translate(3324.48,15581.98)">
-                <path id="path100" style="fill:#1a1a1a00;stroke:#ffffff;stroke-width:15;stroke-dasharray:none"
-                    d="m -1795.38,-14245.402 -10.985,15.125 -223.5345,307.795 -2.5065,3.45 h -6.575 -345 -344.4 -344.999 -4.35 l -5.39,-7.42 -219.305,-301.97 -14.555,-20.045 v -169.05 -626.398 -345.6 -184.965 h 1521.6 v 80.366 1164.604 z" />
-                <path style="fill:#b3b3b3;stroke:#666666;stroke-width:2.5;stroke-dasharray:5, 15;stroke-dashoffset:0"
-                    d="M -2556.181,-13919.032 V -15574.48" id="path47" />
-                <path
-                    d="m -2685.726,-14989.087 -129.545,224.38 17.9931,31.165 111.5519,193.21 h 259.09 l 129.5451,-224.375 -129.5451,-224.38 z m 5.5425,9.6 h 248.0051 l 124.0024,214.78 -124.0024,214.775 h -248.0051 l -124.0025,-214.775 z"
-                    style="fill:#7300ff;stroke:#7300ff;stroke-width:5" id="path110" />
-                <path
-                    d="m -2680.1835,-14979.487 -124.0025,214.78 124.0025,214.775 h 248.0051 l 124.0024,-214.775 -124.0024,-214.78 z"
-                    style="fill:none;stroke:none;stroke-width:5" id="path109" />
-                <path onclick="alert('worked')"
-                    d="m -2209.9261,-14110.15 a 36.872604,36.872604 0 0 0 0,-73.745 36.872604,36.872604 0 0 0 0,73.745 z"
-                    style="fill:#008080;stroke:#ffffff;stroke-width:5;stroke-dasharray:none" id="path45" />
-                <path id="path70-1" style="fill:#333333;stroke:#333333;stroke-width:4.97527;stroke-dasharray:none"
-                    d="m -3309.4796,-15348.667 1506.6031,-0.06 m -1506.5999,4.69 h 1506.5834 m 0,-9.6 h -1506.5834" />
-                <path d="m -2556.181,-14110.267 a 36.7557,36.7557 0 0 0 0,-73.511 36.7557,36.7557 0 0 0 0,73.511 z"
-                    style="fill:#008080;stroke:#ffffff;stroke-width:5;stroke-dasharray:none" id="path95" />
-                <path id="path97" style="fill:#4d4d4d;stroke:#000000;stroke-width:5;stroke-dasharray:none"
-                    d="m -2467.8787,-14607.532 h -176.6043 l -3.6695,-2.11 -88.3025,-152.945 v -4.235 l 88.3025,-152.944 3.665,-2.121 h 176.6045 l 3.6695,2.114 88.3025,152.946 v 4.23 l -88.3021,152.945 z" />
-                <path id="path98"
-                    style="fill:#5599ff;fill-opacity:1;stroke:#5599ff;stroke-width:15;stroke-linecap:square;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
-                    d="m -2443.9343,-14861.387 a 3.984,3.984 0 0 0 0,-7.968 3.984,3.984 0 0 0 0,7.968 z m -143.3016,-46.881 a 3.984,3.984 0 0 0 0,-7.968 3.984,3.984 0 0 0 0,7.968 z m 62.101,294.943 a 3.84,3.84 0 0 0 0,-7.68 3.84,3.84 0 0 0 0,7.68 z m -143.1145,-247.953 a 3.984,3.984 0 0 0 0,-7.968 3.984,3.984 0 0 0 0,7.968 z m -31.2375,53.529 a 3.84,3.84 0 0 0 0,-7.68 3.84,3.84 0 0 0 0,7.68 z m 286.416,0.107 a 3.8400001,3.8400001 0 0 0 0,-7.68 3.8400001,3.8400001 0 0 0 0,7.68 z m 0.1871,93.655 a 3.84,3.84 0 0 0 0,-7.68 3.84,3.84 0 0 0 0,7.68 z m -31.2375,53.673 a 3.84,3.84 0 0 0 0,-7.68 3.84,3.84 0 0 0 0,7.68 z m -143.1144,46.917 a 3.984,3.984 0 0 0 0,-7.968 3.984,3.984 0 0 0 0,7.968 z m -81.2007,-46.809 a 3.84,3.84 0 0 0 0,-7.68 3.84,3.84 0 0 0 0,7.68 z m -30.8633,-53.745 a 3.984,3.984 0 0 0 0,-7.968 3.984,3.984 0 0 0 0,7.968 z m 174.1647,-194.101 a 3.984,3.984 0 0 0 0,-7.968 3.984,3.984 0 0 0 0,7.968 z" />
-                <path d="m -2902.0162,-14107.313 a 39.7095,39.7095 0 0 0 0,-79.419 39.7095,39.7095 0 0 0 0,79.419 z"
-                    style="fill:#008080;stroke:#ffffff;stroke-width:5;stroke-dasharray:none" id="path99" />
-            </g>
-            <foreignObject width="1536.5998" height="179.749980769" x="0" y="240">
-                <input type="range" class="startPos" min="100" max="1446.5998">
-            </foreignObject>
-        </svg>
+                <g id="g100" transform="translate(3324.48,15581.98)">
+                    <path id="path100" style="fill:#1a1a1a00;stroke:#ffffff;stroke-width:15;stroke-dasharray:none"
+                        d="m -1795.38,-14245.402 -10.985,15.125 -223.5345,307.795 -2.5065,3.45 h -6.575 -345 -344.4 -344.999 -4.35 l -5.39,-7.42 -219.305,-301.97 -14.555,-20.045 v -169.05 -626.398 -345.6 -184.965 h 1521.6 v 80.366 1164.604 z" />
+                    <path
+                        style="fill:#b3b3b3;stroke:#666666;stroke-width:2.5;stroke-dasharray:5, 15;stroke-dashoffset:0"
+                        d="M -2556.181,-13919.032 V -15574.48" id="path47" />
+                    <path
+                        d="m -2685.726,-14989.087 -129.545,224.38 17.9931,31.165 111.5519,193.21 h 259.09 l 129.5451,-224.375 -129.5451,-224.38 z m 5.5425,9.6 h 248.0051 l 124.0024,214.78 -124.0024,214.775 h -248.0051 l -124.0025,-214.775 z"
+                        style="fill:#7300ff;stroke:#7300ff;stroke-width:5" id="path110" />
+                    <path
+                        d="m -2680.1835,-14979.487 -124.0025,214.78 124.0025,214.775 h 248.0051 l 124.0024,-214.775 -124.0024,-214.78 z"
+                        style="fill:none;stroke:none;stroke-width:5" id="path109" />
+                    <path onclick="alert('worked')"
+                        d="m -2209.9261,-14110.15 a 36.872604,36.872604 0 0 0 0,-73.745 36.872604,36.872604 0 0 0 0,73.745 z"
+                        style="fill:#008080;stroke:#ffffff;stroke-width:5;stroke-dasharray:none" id="path45" />
+                    <path id="path70-1" style="fill:#333333;stroke:#333333;stroke-width:4.97527;stroke-dasharray:none"
+                        d="m -3309.4796,-15348.667 1506.6031,-0.06 m -1506.5999,4.69 h 1506.5834 m 0,-9.6 h -1506.5834" />
+                    <path d="m -2556.181,-14110.267 a 36.7557,36.7557 0 0 0 0,-73.511 36.7557,36.7557 0 0 0 0,73.511 z"
+                        style="fill:#008080;stroke:#ffffff;stroke-width:5;stroke-dasharray:none" id="path95" />
+                    <path id="path97" style="fill:#4d4d4d;stroke:#000000;stroke-width:5;stroke-dasharray:none"
+                        d="m -2467.8787,-14607.532 h -176.6043 l -3.6695,-2.11 -88.3025,-152.945 v -4.235 l 88.3025,-152.944 3.665,-2.121 h 176.6045 l 3.6695,2.114 88.3025,152.946 v 4.23 l -88.3021,152.945 z" />
+                    <path id="path98"
+                        style="fill:#5599ff;fill-opacity:1;stroke:#5599ff;stroke-width:15;stroke-linecap:square;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+                        d="m -2443.9343,-14861.387 a 3.984,3.984 0 0 0 0,-7.968 3.984,3.984 0 0 0 0,7.968 z m -143.3016,-46.881 a 3.984,3.984 0 0 0 0,-7.968 3.984,3.984 0 0 0 0,7.968 z m 62.101,294.943 a 3.84,3.84 0 0 0 0,-7.68 3.84,3.84 0 0 0 0,7.68 z m -143.1145,-247.953 a 3.984,3.984 0 0 0 0,-7.968 3.984,3.984 0 0 0 0,7.968 z m -31.2375,53.529 a 3.84,3.84 0 0 0 0,-7.68 3.84,3.84 0 0 0 0,7.68 z m 286.416,0.107 a 3.8400001,3.8400001 0 0 0 0,-7.68 3.8400001,3.8400001 0 0 0 0,7.68 z m 0.1871,93.655 a 3.84,3.84 0 0 0 0,-7.68 3.84,3.84 0 0 0 0,7.68 z m -31.2375,53.673 a 3.84,3.84 0 0 0 0,-7.68 3.84,3.84 0 0 0 0,7.68 z m -143.1144,46.917 a 3.984,3.984 0 0 0 0,-7.968 3.984,3.984 0 0 0 0,7.968 z m -81.2007,-46.809 a 3.84,3.84 0 0 0 0,-7.68 3.84,3.84 0 0 0 0,7.68 z m -30.8633,-53.745 a 3.984,3.984 0 0 0 0,-7.968 3.984,3.984 0 0 0 0,7.968 z m 174.1647,-194.101 a 3.984,3.984 0 0 0 0,-7.968 3.984,3.984 0 0 0 0,7.968 z" />
+                    <path d="m -2902.0162,-14107.313 a 39.7095,39.7095 0 0 0 0,-79.419 39.7095,39.7095 0 0 0 0,79.419 z"
+                        style="fill:#008080;stroke:#ffffff;stroke-width:5;stroke-dasharray:none" id="path99" />
+                </g>
+                <foreignObject width="1536.5998" height="179.749980769" x="0" y="240">
+                    <input type="range" class="startPos" min="100" max="1446.5998">
+                </foreignObject>
+            </svg>
 
-        <div class="waitSwitcher">
-            <input type="button" class="clear" value="❌">
+            <div class="waitSwitcher">
+                <input type="button" class="clear" value="❌">
 
-            <div class="select poseSelector" style="margin-top: 35.25vh;" data-value="None">
-                <h1 class="selectTitle poseSelectorTitle">Saved</h1>
-
-
-                <div class="saveManager">
-                    <input class="textInput saveName" placeholder="Name"
-                        style="width: 55%; margin:1vh; margin-inline: 1vh; ">
-                    <button class="save emojiButton">💾</button>
-                    <button class="delete emojiButton">🗑️</button>
-
-                </div>
+                <div class="select poseSelector" data-value="None">
+                    <h1 class="selectTitle poseSelectorTitle">Saved</h1>
 
 
-            </div>
-            <input type="button" class="send" value="➦">
-        </div>
-    </div>
-
-
-
-    <div class="jukeBox pageF">
-        <div class="songSelector">
-            <!-- <div class='songSetter' data-displayName='*name' data-coverSrc='*coverArtSrc' data-robotFileName='*filename.chrp'></div> -->
-            <!-- Insert Songs After here-->
-
-
-
-            <!-- Insert Songs Before here-->
-        </div>
-        <div class="playbackBar">
-            <div class="hideableBar">
-                <div class="half" style="justify-content: start; padding-left: 2vw; width: 48vw;">
-                    <img class="discArt" src="">
-                    <h1 class="currentTrack"></h1>
-                </div>
-
-                <div class="half">
-                    <div class="playBackHolder">
-                        <h1 class="playBackButton prevSong" style="line-height: 12vh;">⏮</h1>
-                        <h1 class="playBackButton stopPlayback">⏹</h1>
-                        <h1 class="playBackButton playPause" data-state="playing" style="line-height: 12vh;">⏸</h1>
-                        <h1 class="playBackButton restartPlayback">⟳</h1>
-                        <h1 class="playBackButton nextSong" style="line-height: 12vh;">⏭</h1>
+                    <div class="saveManager">
+                        <input class="textInput saveName" placeholder="Name">
+                        <button class="save emojiButton">💾</button>
+                        <button class="delete emojiButton">🗑️</button>
 
                     </div>
-                    <h1 class="playBackButton shuffleButton" data-state="once">⏺</h1>
-                </div>
-            </div>
 
+
+                </div>
+                <input type="button" class="send" value="➦">
+            </div>
+        </div>
+
+        <div class="jukeBox pageF">
+            <div class="songSelector">
+                <!-- <div class='songSetter' data-displayName='*name' data-coverSrc='*coverArtSrc' data-robotFileName='*filename.chrp'></div> -->
+                <!-- Insert Songs After here-->
+                <!-- 
+                <div class='songSetter' data-displayName='Space Junk Galaxy'
+                data-coverSrc='./coverArt/SuperMarioGalaxy.jpg' data-robotFileName='spj.chrp'> </div>
+            <div class='songSetter' data-displayName='Another Medium' data-coverSrc='./coverArt/Undertale.png'
+                data-robotFileName='AnotherMedium.chrp'> </div>
+            <div class='songSetter' data-displayName='Hopes And Dreams' data-coverSrc='./coverArt/Undertale.png'
+                data-robotFileName='HopesAndDreams.chrp'> </div>
+            <div class='songSetter' data-displayName='Ruins' data-coverSrc='./coverArt/Undertale.png'
+                data-robotFileName='Ruins.chrp'> </div>
+            <div class='songSetter' data-displayName='Otherside' data-coverSrc='./coverArt/LenaReine.jpg'
+                data-robotFileName='Otherside.chrp'> </div>
+            <div class='songSetter' data-displayName='Athletic Theme'
+                data-coverSrc='./coverArt/NewSuperMarioBros.jpg' data-robotFileName='Athletic.chrp'> </div>
+            <div class='songSetter' data-displayName='Super Mario Land' data-coverSrc='./coverArt/MarioLand.jpg'
+                data-robotFileName='SuperMarioLand.chrp'> </div>
+            <div class='songSetter' data-displayName='Staff Roll' data-coverSrc='./coverArt/MarioWorld.png'
+                data-robotFileName='SuperMarioWorldEnding.chrp'> </div>
+            <div class='songSetter' data-displayName='Megalovania' data-coverSrc='./coverArt/Undertale.png'
+                data-robotFileName='Megalovania.chrp'> </div>
+            <div class='songSetter' data-displayName='The Moon' data-coverSrc='./coverArt/Ducktales.png'
+                data-robotFileName='Moon.chrp'> </div>
+            <div class='songSetter' data-displayName='Sanctuary Guardian' data-coverSrc='./coverArt/EarthBound.jpg'
+                data-robotFileName='Sg.chrp'> </div>
+            <div class='songSetter' data-displayName='Fallen Down' data-coverSrc='./coverArt/Undertale.png'
+                data-robotFileName='FallenDown.chrp'> </div>
+            <div class='songSetter' data-displayName='Gusty Garden Galaxy'
+                data-coverSrc='./coverArt/SuperMarioGalaxy.jpg' data-robotFileName='GustyGardenGalaxy.chrp'> </div>
+            <div class='songSetter' data-displayName='Working For Nook'
+                data-coverSrc='./coverArt/AnimalCrossing.jpg' data-robotFileName='WorkingForNook.chrp'> </div>
+            <div class='songSetter' data-displayName='5:00pm' data-coverSrc='./coverArt/AnimalCrossing.jpg'
+                data-robotFileName='AnimalCrossing500.chrp'> </div>
+            <div class='songSetter' data-displayName='The Roost' data-coverSrc='./coverArt/AnimalCrossingWW.jpg'
+                data-robotFileName='AnimalCrossingWWRoost.chrp'> </div>
+            <div class='songSetter' data-displayName='Winter Nights' data-coverSrc='./coverArt/LogoSquareBig.png'
+                data-robotFileName='WinterNights.chrp'> </div> -->
+
+
+                <!-- Insert Songs Before here-->
+            </div>
+            <div class="playbackBar">
+                <div class="hideableBar">
+                    <div class="half">
+                        <img class="discArt" src="">
+                        <h1 class="currentTrack"></h1>
+                    </div>
+
+                    <div class="half">
+                        <div class="playBackHolder">
+                            <h1 class="playBackButton prevSong" style="line-height: 12cqh;">⏮</h1>
+                            <h1 class="playBackButton stopPlayback">⏹</h1>
+                            <h1 class="playBackButton playPause" data-state="playing" style="line-height: 12cqh;">⏸</h1>
+                            <h1 class="playBackButton restartPlayback">⟳</h1>
+                            <h1 class="playBackButton nextSong" style="line-height: 12cqh;">⏭</h1>
+
+                        </div>
+                        <h1 class="playBackButton shuffleButton" data-state="once">⏺</h1>
+                    </div>
+                </div>
+
+
+            </div>
+            <div class="nextSongList">&gt</div>
+            <div class="prevSongList">&lt</div>
 
         </div>
-        <div class="nextSongList">&gt</div>
-        <div class="prevSongList">&lt</div>
 
+
+        <div class="uiTestTab page">
+            <!-- <button class="actionButton" data-type="boolean" data-topic="TestActionButton"
+            data-value="false">Action Button</button> -->
+
+            
+        </div>
     </div>
+    <!-- Insert tabs before this or between existing tabs before here -->
 
-
-    <div class="uiTestTab page">
+    <div class="sideBar">
         <!-- action button sends true as long as it is held -->
-        <button class="actionButton animatedButton" data-type="boolean" data-topic="TestActionButton"
+        <button class="actionButton" data-type="boolean" data-topic="TestActionButton"
             data-value="false">Action Button</button>
         <!--One shots must have the topic in their classes to trigger animation after the bot gets the signal-->
         <button class="oneShotButton OneShotTest" data-type="boolean" data-topic="OneShotTest" data-value="false">One
             Shot Button</button>
         <!-- Toggles also work in if you want in reverse, set data-value to true and add toggledOn to the classes -->
-        <button class="toggleButton animatedButton" data-type="boolean" data-topic="TestToggleButton"
+        <button class="toggleButton" data-type="boolean" data-topic="TestToggleButton"
             data-value="false">Toggle Button</button>
 
         <!--Set max, min, step, and initial value for the axis, it will snap back after released to inital value-->
         <div class="axis" data-topic="TestAxis" data-value="0" data-type="double">
             <h1 class="axisLabel">Axis</h1>
-            <input class="axisKnob" type="range" min="-1" max="1" step="0.01" value="0">
+            <input class="axisKnob" type="range" min="0" max="0" value="0">
         </div>
 
         <div class="verticalAxis" data-topic="TestAxis" data-value="0" data-type="double">
             <h1 class="axisLabel">Y-Axis</h1>
-            <input class="verticalAxisKnob" type="range" min="-1" max="1" step="0.3" value="0">
+            <input class="verticalAxisKnob" type="range" min="0" max="0" value="0">
         </div>
 
         <!-- The value that is sent to the bot is defined in the select option data-value, the text is displayed on the ui -->
         <div class="select" data-value="points" data-topic="DropdownTest" data-type="string">
             <h1 class="selectTitle">Points</h1>
-            <h1 class="selectOption" data-value="opt1">Option 1</h1>
-            <h1 class="selectOption" data-value="opt2">Option 2</h1>
-            <h1 class="selectOption" data-value="opt3">Option 3</h1>
-            <h1 class="selectOption" data-value="opt4">Option 4</h1>
-            <h1 class="selectOption" data-value="opt5">Option 5</h1>
 
         </div>
 
@@ -334,7 +370,9 @@ SOFTWARE. -->
         </div>
     </div>
 
-    <!-- Insert tabs before this or between existing tabs before here -->
+    <div class="bottomBar">
+
+    </div>
 
     <script src="./js/ui.js" type="module"></script>
     <script src="./js/autoBuilder.js" type="module"></script>
