@@ -38,7 +38,7 @@ SOFTWARE. -->
     <div class="dashboardHolder">
         <div class="tabNav">
             <!-- Insert tab buttons after this or between existing buttons after here -->
-            <div class="tab currentTab" data-page=".autonomus"><i>Pose-Plotter</i></div>
+            <div class="tab currentTab" data-page=".autonomus">PosePlotter</div>
 
             <div class="tab tabConnection" data-page=".jukeBox">Jukebox</div>
 
@@ -56,7 +56,7 @@ SOFTWARE. -->
         </div>
 
         <div class="gridUnderlay">
-            
+
         </div>
 
         <div class="setTeamNumberOrIp">
@@ -309,21 +309,21 @@ SOFTWARE. -->
             <!-- <button class="actionButton" data-type="boolean" data-topic="TestActionButton"
             data-value="false">Action Button</button> -->
 
-            
+
         </div>
     </div>
     <!-- Insert tabs before this or between existing tabs before here -->
 
     <div class="sideBar">
         <!-- action button sends true as long as it is held -->
-        <button class="actionButton" data-type="boolean" data-topic="TestActionButton"
-            data-value="false">Action Button</button>
+        <button class="actionButton" data-type="boolean" data-topic="TestActionButton" data-value="false">Action
+            Button</button>
         <!--One shots must have the topic in their classes to trigger animation after the bot gets the signal-->
         <button class="oneShotButton OneShotTest" data-type="boolean" data-topic="OneShotTest" data-value="false">One
             Shot Button</button>
         <!-- Toggles also work in if you want in reverse, set data-value to true and add toggledOn to the classes -->
-        <button class="toggleButton" data-type="boolean" data-topic="TestToggleButton"
-            data-value="false">Toggle Button</button>
+        <button class="toggleButton" data-type="boolean" data-topic="TestToggleButton" data-value="false">Toggle
+            Button</button>
 
         <!--Set max, min, step, and initial value for the axis, it will snap back after released to inital value-->
         <div class="axis" data-topic="TestAxis" data-value="0" data-type="double">
@@ -337,7 +337,7 @@ SOFTWARE. -->
         </div>
 
         <!-- The value that is sent to the bot is defined in the select option data-value, the text is displayed on the ui -->
-        <div class="select" data-value="points" data-topic="DropdownTest" data-type="string">
+        <div class="select sideBarSelect" data-value="points" data-topic="DropdownTest" data-type="string">
             <h1 class="selectTitle">Points</h1>
 
         </div>
@@ -356,9 +356,9 @@ SOFTWARE. -->
         </div>
 
         <!-- set max, min. and value in the parent element.  -->
-        <div class="numberComponent" data-topic='TestAdder' data-type="double" data-step="0.1" data-min="-1"
-            data-max="1" data-value="0" data-persist="true">
-            <p class="numberTitle">Test Adder</p>
+        <div class="numberComponent" data-type="double" data-step="1" data-min="0" data-max="20" data-value="0"
+            data-persist="true">
+            <p class="numberTitle">Row:</p>
             <button class="numberMinus animatedButton">-</button>
             <input class="numberTextInput" type="number" value="0"> <!-- value must match data-value -->
             <button class="numberPlus animatedButton">+</button>
@@ -371,7 +371,23 @@ SOFTWARE. -->
     </div>
 
     <div class="bottomBar">
+        <div class="numberInput setGridRow" data-topic='TestAdder' data-step="1" data-min="1" data-max="100" style="grid-area: R;"
+            data-value="4" >
+            <p class="numberInputTitle">Rows:</p>
+            <button class="numberMinus animatedButton">-</button>
+            <input class="numberTextInput" type="number" value="4"> <!-- value must match data-value -->
+            <button class="numberPlus animatedButton">+</button>
+        </div>
 
+        <div class="numberInput setGridColumn" data-topic='TestAdder' data-type="double" data-step="1" data-min="1" data-max="100" style="grid-area: C;"
+            data-value="9" >
+            <p class="numberInputTitle">Cols:</p>
+            <button class="numberMinus animatedButton">-</button>
+            <input class="numberTextInput" type="number" value="9"> <!-- value must match data-value -->
+            <button class="numberPlus animatedButton">+</button>
+        </div>
+
+        <button class="trashCan">🗑</button>
     </div>
 
     <script src="./js/ui.js" type="module"></script>

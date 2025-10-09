@@ -5,7 +5,7 @@ html {
     padding: 0px;
     background-color: rgb(128, 32, 32);
     overflow: hidden;
-
+    touch-action: none;
 }
 
 body {
@@ -39,7 +39,7 @@ body {
 
 .uiTestTab {
     display: none;
-} 
+}
 
 
 
@@ -71,13 +71,13 @@ body {
     flex-wrap: nowrap;
 }
 
-.sideBar>div{
+.sideBar>div {
     flex-shrink: 0;
     margin-top: 2.5vh;
     margin-bottom: 2.5vh;
 }
 
-.sideBar>button{
+.sideBar>button {
     flex-shrink: 0;
     margin-top: 2.5vh;
     margin-bottom: 2.5vh;
@@ -90,6 +90,13 @@ body {
     width: 100%;
     height: 20cqh;
     grid-area: B;
+    align-items: center;
+    box-sizing: border-box;
+    justify-items: center;
+    display: grid;
+    grid-template-areas:
+        "R 🗑"
+        "C 🗑";
 }
 
 
@@ -367,6 +374,28 @@ foreignObject input[type=range]::-webkit-slider-thumb {
     border-radius: 1.5vmin;
 }
 
+
+.numberInput {
+    display: grid;
+    height: min-content;
+    width: min-content;
+    grid-template-areas:
+        "H M T P";
+    background-color: rgb(24, 24, 24);
+    border-radius: 1.5vmin;
+}
+
+.numberInputTitle {
+    color: white;
+    grid-area: H;
+    text-align: start;
+    line-height: 5vh;
+    font-size: 4vh;
+    padding-left: 1vh;
+    width: 12vh;
+}
+
+
 .numberTitle {
     color: white;
     grid-area: H;
@@ -395,7 +424,7 @@ foreignObject input[type=range]::-webkit-slider-thumb {
     border: rgb(47, 0, 255) solid 0.25vmin;
     width: 5vmin;
     line-height: 4vmin;
-    border-radius: 0 2vmin 2vmin 0;
+    border-radius: 0 1.5vmin 1.5vmin 0;
     font-size: 4vmin;
     display: flex;
     align-items: center;
@@ -418,6 +447,12 @@ foreignObject input[type=range]::-webkit-slider-thumb {
     font-size: 4vmin;
     font-weight: 900;
     background-color: rgba(255, 0, 0, 0.552);
+}
+
+.numberInput button {
+    border-color: #7300ff;
+    background-color: #7300ff8d;
+
 }
 
 .numberPlus p {
@@ -714,8 +749,10 @@ input[type=number] {
         border-radius: 3cqh 3cqh 0 0;
         height: 7cqh;
         overflow: hidden;
-     
+        text-overflow: ellipsis;
+
     }
+
 
     .currentTab {
         background-color: rgb(128, 32, 32);
@@ -1110,10 +1147,11 @@ input[type=number] {
 
 
     .select {
-        margin-top: 10cqmin;
+        /* margin-top: 10cqmin; */
         background-color: #7300ff6b;
-        width: 25cqmax;
+        width: 40cqmin;
         height: 44.5cqmin;
+        margin-top: 35cqmin;
         overflow: hidden;
         clip-path: circle(0cqmax at 0% 0%);
         clip-path: xywh(0% 0% 100% 9cqmin);
@@ -1124,6 +1162,7 @@ input[type=number] {
     }
 
     .selectOpen {
+
         clip-path: circle(200cqmax at 0% 0%);
         overflow-y: scroll;
         clip-path: xywh(0% -44.5cqh 100% 89cqh)
@@ -1153,6 +1192,8 @@ input[type=number] {
 
     .poseSelector {
         margin-top: 35.25cqh;
+        height: 44.5cqmin;
+
     }
 
     .saveName {
@@ -1177,6 +1218,9 @@ input[type=number] {
         width: 100%;
         height: 100%;
         max-height: 93cqh;
+
+        overflow: hidden;
+
         align-content: center;
         justify-content: center;
 
@@ -1184,7 +1228,7 @@ input[type=number] {
         align-items: center;
     }
 
-    .gridSquare{
+    .gridSquare {
         position: relative;
         width: 100%;
         height: 100%;
@@ -1192,8 +1236,8 @@ input[type=number] {
         transition: background-color 300ms ease;
     }
 
-    .gridSquareEditing{
-        background-color: rgb(24, 24, 24);
+    .gridSquareEditing {
+        background-color: rgb(32, 32, 32);
 
     }
 
@@ -1215,7 +1259,8 @@ input[type=number] {
         background-color: rgb(32, 32, 32);
 
     }
-    .gridUnderlayEditing{
+
+    .gridUnderlayEditing {
 
         background-color: rgb(12, 12, 12);
     }
@@ -1236,6 +1281,8 @@ input[type=number] {
     .actionButton {
         width: 20cqmin;
         height: 20cqmin;
+        min-width: 0px;
+        min-height: 0px;
         /* width: 100%;
         height: 100%; */
         background-color: rgba(43, 0, 255, 0.247);
@@ -1650,25 +1697,29 @@ input[type=number] {
         justify-content: space-evenly;
     }
 
-    
+
 }
 
-.currentDrag{
+.currentDrag {
     user-select: none;
     pointer-events: none;
 }
 
-.resizeSized{
+.resizeSized {
     width: 0px !important;
+    position: absolute;
     height: 0px !important;
 }
 
-.feauxComponent{
+.feauxComponent {
     border-color: rgba(255, 255, 255, 0.223);
     background-color: #9a9a9a13;
     border-style: dashed;
     border-width: 0.125vw;
     color: #00000000;
+    pointer-events: none;
+    /* width: 100%;
+    height: 100%; */
 }
 
 .teamNumberInput {
@@ -1676,4 +1727,154 @@ input[type=number] {
     height: 8vh;
     font-size: 7vh;
     text-align: center;
+}
+
+/* Border corner code from Temani Afif on stack overflow (was not trying to figure this out myself looks cumbersome*/
+
+.cornerBorder {
+    width: 100%;
+    height: 100%;
+    animation-duration: 1.5s;
+    animation-iteration-count: 1;
+
+
+    --b: 0.75vmin;
+    /* thickness of the border */
+    --c: #7300ff;
+    /* color of the border */
+    --w: 3vmin;
+    /* width of border */
+
+    border: var(--b) solid #0000;
+    /* space for the border */
+    --_g: #0000 90deg, var(--c) 0;
+    --_p: var(--w) var(--w) border-box no-repeat;
+    background:
+        conic-gradient(from 90deg at top var(--b) left var(--b), var(--_g)) 0 0 / var(--_p),
+        conic-gradient(from 180deg at top var(--b) right var(--b), var(--_g)) 100% 0 / var(--_p),
+        conic-gradient(from 0deg at bottom var(--b) left var(--b), var(--_g)) 0 100% / var(--_p),
+        conic-gradient(from -90deg at bottom var(--b) right var(--b), var(--_g)) 100% 100% / var(--_p);
+}
+
+@keyframes cornerWash {
+    0% {
+        --c: red;
+        background-color: rgba(255, 0, 0, 0.196);
+        opacity: 0%;
+    }
+
+    40% {
+        opacity: 100%;
+        background-color: rgba(255, 0, 0, 0.196);
+
+        --c: red;
+
+    }
+
+    50% {
+        opacity: 0%;
+        background-color: rgba(255, 0, 0, 0.196);
+
+        --c: red;
+
+    }
+
+    90% {
+        opacity: 100%;
+        background-color: rgba(255, 0, 0, 0.196);
+
+        --c: red;
+
+    }
+
+    100% {
+        opacity: 0%;
+        background-color: rgba(255, 0, 0, 0.196);
+
+        --c: red;
+
+    }
+
+}
+
+.trashCan {
+    grid-area: 🗑;
+    height: 100%;
+    aspect-ratio: 1/1;
+    background-color: rgb(0, 0, 0, 0);
+    border: none;
+    color: white;
+    font-size: 8vh;
+    width: auto;
+}
+
+.removeShake {
+    animation-duration: 0.15s;
+    animation-iteration-count: infinite;
+    animation-name: tilt-shaking;
+}
+
+.removeShake:hover {
+    animation-duration: 0.15s;
+    animation-iteration-count: infinite;
+    animation-name: tilt-remove;
+}
+
+@keyframes tilt-shaking {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    25% {
+        transform: rotate(5deg);
+    }
+
+    50% {
+        transform: rotate(0eg);
+    }
+
+    75% {
+        transform: rotate(-5deg);
+    }
+
+    100% {
+        transform: rotate(0deg);
+    }
+}
+
+
+@keyframes tilt-remove {
+    0% {
+        transform: rotate(0deg);
+        outline: red solid 1cqh;
+    }
+
+    25% {
+        transform: rotate(10deg);
+        outline: red solid 1cqh;
+
+
+    }
+
+    50% {
+        transform: rotate(0eg);
+        outline: red solid 1cqh;
+
+
+    }
+
+    75% {
+        transform: rotate(-10deg);
+        outline: red solid 1cqh;
+
+
+        
+    }
+
+    100% {
+        transform: rotate(0deg);
+        outline: red solid 1cqh;
+
+
+    }
 }

@@ -56,7 +56,7 @@ function vmax(percent) {
 
 function cq(container, percent) {
 
-    let testspan = $("<span>").css("height", "1cqh").css("width", "1cqw").appendTo(container)
+    let testspan = $("<span>").css("height", "1cqh").css("width", "1cqw").css("position", "absolute").appendTo(container)
 
     let cqValues = {
         cqw: testspan.width() * percent,
@@ -123,9 +123,8 @@ for (let i = 0; i < $ab.length; i++) {
 
 
 function addButtonToAnimate(jQueryReference) {
-    jQueryReference.on("mousedown touchstart", (event) => {
+    jQueryReference.on("pointerdown ", (event) => {
 
-        event.preventDefault()
         let $spawnedCircle
         let $ct = $(event.currentTarget)
 
@@ -195,7 +194,7 @@ function addButtonToAnimate(jQueryReference) {
     })
 }
 
-$(".tab").on("mousedown touchstart", (event) => {
+$(".tab").on("pointerdown ", (event) => {
     let $ct = $(event.currentTarget)
     $(".page, .pageF").css("display", "none")
     $(".tab").removeClass("currentTab").css("background-color", "rgb(12, 12, 12)")
@@ -267,14 +266,15 @@ function oneShotAnimation(elemClass) {
 
     }
 }
-
-
-$(".select").on("touchdown mousedown", (event) => {
-    if (!$(event.target).hasClass("textInput") && !$(event.target).hasClass("delete") && !$(event.target).hasClass("save") && !$(event.target).hasClass("saveManager")) {
-        $(event.currentTarget).toggleClass("selectOpen")
-    }
-})
-// $(".selectOption").on("touchdown mousedown", (event) => {
+setSelectOpener()
+function setSelectOpener() {
+    $(".select").not(".sideBarSelect").off().on(" pointerdown", (event) => {
+        if (!$(event.target).hasClass("textInput") && !$(event.target).hasClass("delete") && !$(event.target).hasClass("save") && !$(event.target).hasClass("saveManager")) {
+            $(event.currentTarget).toggleClass("selectOpen")
+        }
+    })
+}
+// $(".selectOption").on("touchdown pointerdown", (event) => {
 //     let $ct = $(event.target)
 
 //     $(".select").attr("data-value", $ct.attr("data-value"))
@@ -426,17 +426,15 @@ function onConnectCb() {
 
         for (let i = 0; i < $uiElements.length; i++) {
             if ($uiElements.eq(i).hasClass("actionButton")) {
-                $($uiElements.eq(i)).on("touchstart mousedown", (event) => {
+                $($uiElements.eq(i)).on(" pointerdown", (event) => {
                     nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), true)
                     $uiElements.eq(i).attr("data-value", "true")
-                    event.preventDefault()
-                }).on("mouseup touchend mouseleave touchcancel", (event) => {
+                }).on("pointerup   mouseleave touchcancel", (event) => {
                     nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), false)
                     $uiElements.eq(i).attr("data-value", "false");
-                    event.preventDefault()
                 })
             } else if ($uiElements.eq(i).hasClass("toggleButton")) {
-                $uiElements.eq(i).on("touchstart mousedown", (event) => {
+                $uiElements.eq(i).on(" pointerdown", (event) => {
                     nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), !(JSON.parse($uiElements.eq(i).attr("data-value"))))
                     $uiElements.eq(i).toggleClass("toggledOn")
                     let oldBG = $uiElements.eq(i).css("background-color").replace(/^([^,]*,[^,]*,[^,]*),.*$/, '$1')
@@ -448,13 +446,11 @@ function onConnectCb() {
 
                     }
                     $uiElements.eq(i).attr("data-value", !(JSON.parse($uiElements.eq(i).attr("data-value"))))
-                    event.preventDefault()
                 })
             } else if ($uiElements.eq(i).hasClass("oneShotButton")) {
                 nt4Client.subscribe(["/touchboard/" + $uiElements.eq(i).attr("data-topic")])
-                $uiElements.eq(i).on("touchstart mousedown", (event) => {
+                $uiElements.eq(i).on(" pointerdown", (event) => {
                     nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), true)
-                    event.preventDefault()
                 })
             } else if ($uiElements.eq(i).hasClass("numberComponent")) {
                 if ($uiElements.eq(i).attr('data-persist') == "true") {
@@ -468,8 +464,7 @@ function onConnectCb() {
                 }
                 nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), parseFloat(localStorage.getItem(getHtmlFileName() + $uiElements.eq(i).attr("data-topic"))))
 
-                $uiElements.eq(i).children(".numberPlus").on("mousedown touchstart", (event) => {
-                    event.preventDefault()
+                $uiElements.eq(i).children(".numberPlus").on("pointerdown ", (event) => {
                     let $ct = $(event.currentTarget)
                     let max = parseFloat($ct.parent().attr("data-max"))
                     let step = parseFloat($ct.parent().attr("data-step"))
@@ -484,8 +479,7 @@ function onConnectCb() {
                         }
                     }
                 })
-                $uiElements.eq(i).children(".numberMinus").on("mousedown touchstart", (event) => {
-                    event.preventDefault()
+                $uiElements.eq(i).children(".numberMinus").on("pointerdown ", (event) => {
                     let $ct = $(event.currentTarget)
                     let min = parseFloat($ct.parent().attr("data-min"))
                     let step = parseFloat($ct.parent().attr("data-step"))
@@ -501,7 +495,6 @@ function onConnectCb() {
                     }
                 })
                 $uiElements.eq(i).children(".numberTextInput").on("blur", (event) => {
-                    event.preventDefault()
 
                     let $ct = $(event.currentTarget)
                     let max = parseFloat($ct.parent().attr("data-max"))
@@ -519,7 +512,7 @@ function onConnectCb() {
                     }
                 })
             } else if ($uiElements.eq(i).hasClass("select")) {
-                $uiElements.eq(i).children(".selectOption").on("mousedown", (event) => {
+                $uiElements.eq(i).children(".selectOption").on("pointerdown", (event) => {
                     let $ct = $(event.target)
                     $uiElements.eq(i).attr("data-value", $ct.attr("data-value"))
                     $uiElements.eq(i).children(".selectTitle").text($ct.text())
@@ -537,7 +530,7 @@ function onConnectCb() {
                     $uiElements.eq(i).attr("data-value", $ct.val())
                     nt4Client.addSample("/touchboard/" + $ct.parent().attr("data-topic"), parseFloat($ct.parent().attr("data-value")))
 
-                }).on("mouseup touchend", (event) => {
+                }).on("pointerup  ", (event) => {
                     let $ct = $(event.target)
                     $uiElements.eq(i).attr("data-value", 0)
                     $(event.currentTarget).val(0)
@@ -549,7 +542,7 @@ function onConnectCb() {
 
                 $uiElements.eq(i).addClass($uiElements.eq(i).attr('data-topic').replaceAll("/", "Sl-Sl-Sl-"))
             } else if ($uiElements.eq(i).hasClass("buttonOptGroup")) {
-                $uiElements.eq(i).children(".optGroupButton").on("mousedown", (event) => {
+                $uiElements.eq(i).children(".optGroupButton").on("pointerdown", (event) => {
 
                     let cI = $uiElements.eq(i).children(".optGroupButton")
                     for (let j = 0; j < cI.length; j++) {
@@ -649,6 +642,7 @@ $(".editTabs").on("click", () => {
     $("body").toggleClass("bodyEdit")
     $(".gridUnderlay").toggleClass("gridUnderlayEditing")
     $(".gridSquare").toggleClass("gridSquareEditing")
+
     setTimeout(() => {
         $("#connect").css("pointer-events", "")
 
@@ -656,26 +650,14 @@ $(".editTabs").on("click", () => {
 
     if ($(".editTabs").hasClass("editingTabs")) {
 
-        $("body").on("mousemove touchmove", (event) => {
-            if($(".gridSquare").length > 600){
+        $("body").on("pointermove ", (event) => {
+            if ($(".gridSquare").length > 600) {
                 $(".gridSquare").css("width", "95%").css("height", "95%")
                 return
             }
-
-            let clientDrag = {
-                x: 0,
-                y: 0
-            }
-
             let $eq = $(".gridSquare").eq(0)
 
-            if (event.pageX == null) {
-                clientDrag.x = event.changedTouches[0].pageX - ($eq.width()/2)
-                clientDrag.y = event.changedTouches[0].pageY - ($eq.width()/2)
-            } else {
-                clientDrag.x = event.pageX - ($eq.width()/2)
-                clientDrag.y = event.pageY - ($eq.width()/2)
-            }
+            let clientDrag = clientDragHandler(event, $eq)
 
             //jquery ommited for preformance reasons
             let elements = document.getElementsByClassName("gridSquare")
@@ -684,11 +666,17 @@ $(".editTabs").on("click", () => {
 
                 let offset = $eq.getBoundingClientRect()
 
-                let dist = Math.hypot(offset.left-clientDrag.x,  offset.top - clientDrag.y)
+                let dist = Math.hypot(offset.left - clientDrag.x, offset.top - clientDrag.y)
                 let distVal = (0.0125 * (dist) + 95)
 
+                if (distVal > 100) {
+                    distVal = 100
+                }
+
                 $eq.style.transform = 'scale(' + distVal + '%)'
-                
+
+
+
             }
 
         })
@@ -698,152 +686,180 @@ $(".editTabs").on("click", () => {
 
 })
 
-$(".sideBar").children().off().on("mousedown touchstart", (event) => {
-    let ct = $(event.currentTarget)
-    if (ct.hasClass("actionButton")) {
-        let jQueryReference = createActionButton("Action Button", "esc-UNDEFINED-esc", ".dashboardHolder")
-
-        let clientDrag = {
-            x: 0,
-            y: 0
-        }
-
-        if (event.pageX == null) {
-            clientDrag.x = event.changedTouches[0].pageX - (jQueryReference.width() / 2)
-            clientDrag.y = event.changedTouches[0].pageY - (jQueryReference.height() / 2)
-        } else {
-            clientDrag.x = event.pageX - (jQueryReference.width() / 2)
-            clientDrag.y = event.pageY - (jQueryReference.height() / 2)
-        }
-
-        addToCurrentDrag(jQueryReference, clientDrag.x, clientDrag.y)
-    }
+let grid = {
+    row: 0,
+    column: 0,
+    endRow: false,
+    endColumn: false,
+    rowReverse: false,
+    columnReverse: false,
+    rowOffset: 1,
+    columnOffset: 1,
+}
+grid.endColumn = grid.column
+grid.endRow = grid.row
 
 
+$(".sideBar").children().off().on("pointerdown ", (event) => {
+    $("*").removeClass("removeShake")
+    $(".trashCan").removeClass("trashActive")
+
+    let componentType = $(event.currentTarget)[0].classList[0];
+
+    let jQueryReference = createDefaultOf(componentType, ".dashboardHolder", "esc-UNDEFINED-esc")
+
+    let clientDrag = clientDragHandler(event, jQueryReference)
+
+    addToCurrentDrag(jQueryReference, clientDrag.x, clientDrag.y, componentType)
 
 })
 
-function addToCurrentDrag(jQueryReference, initalX, initalY) {
+function addToCurrentDrag(jQueryReference, initalX, initalY, componentType) {
+    $(".currentDrag").remove()
     jQueryReference.css("position", "absolute").addClass("currentDrag")
 
     jQueryReference.css("top", initalY).css('left', initalX)
 
-    $("html").on("mousemove touchmove", (event) => {
-        let clientDrag = {
-            x: 0,
-            y: 0,
-            rawX:0,
-            rawY:0,
-        }
+    $("html").off("pointermove.dragComponent").on("pointermove.dragComponent", (event) => {
+        // console.log("Start" + grid.column + " " + grid.row + " ")
+        // console.log("End" + grid.endColumn + " " + grid.endRow + " ")
+        flipHandler()
 
-        if (event.pageX == null) {
-            clientDrag.rawX = event.changedTouches[0].pageX
-            clientDrag.rawY = event.changedTouches[0].pageY
-            clientDrag.x = event.changedTouches[0].pageX - (jQueryReference.width() / 2)
-            clientDrag.y = event.changedTouches[0].pageY - (jQueryReference.height() / 2)
-        } else {
-            clientDrag.rawX = event.pageX
-            clientDrag.rawY = event.pageY
-            clientDrag.x = event.pageX - (jQueryReference.width() / 2)
-            clientDrag.y = event.pageY - (jQueryReference.height() / 2)
-        }
+
+        let clientDrag = clientDragHandler(event, jQueryReference);
 
         jQueryReference.css("top", clientDrag.y).css('left', clientDrag.x)
 
         let elementsFromPoint = document.elementsFromPoint(clientDrag.rawX, clientDrag.rawY)
 
-        for(let i = 0; i < elementsFromPoint.length; i++){
+        for (let i = 0; i < elementsFromPoint.length; i++) {
             let $eq = $(elementsFromPoint[i])
-            if($eq.hasClass("gridSquare")){
+            if ($eq.hasClass("gridSquare")) {
                 // console.log($eq.attr("data-row") + "|" + $eq.attr("data-column"))
                 $(".feauxComponent").remove()
-                createActionButton(jQueryReference.text(), jQueryReference.attr("data-topic"), $(".currentTab").attr("data-page"))
-                .addClass("feauxComponent")
-                .css("grid-column", $eq.attr("data-column"))
-                .css("grid-row", $eq.attr("data-row"))
+
+
+                if (grid.endColumn) {
+                    grid.endColumn = parseInt($eq.attr("data-column"))
+                    grid.endRow = parseInt($eq.attr("data-row"))
+
+                    flipHandler()
+
+                    setCornerBorder(grid.row, grid.column, parseInt($eq.attr("data-row")) + grid.rowOffset, parseInt($eq.attr("data-column")) + grid.columnOffset, $(".currentTab").attr("data-page"))
+                    createDefaultOf(componentType, $(".currentTab").attr("data-page"))
+                        .addClass("feauxComponent")
+                        .css("grid-column", grid.column)
+                        .css("grid-row", grid.row)
+                        .css("grid-column-end", parseInt($eq.attr("data-column")) + grid.columnOffset)
+                        .css("grid-row-end", parseInt($eq.attr("data-row")) + grid.rowOffset)
+
+
+                } else {
+                    grid.column = parseInt($eq.attr("data-column"))
+                    grid.row = parseInt($eq.attr("data-row"))
+
+                    createDefaultOf(componentType, $(".currentTab").attr("data-page"))
+                        .addClass("feauxComponent")
+                        .css("grid-column", parseInt($eq.attr("data-column")))
+                        .css("grid-row", parseInt($eq.attr("data-row")))
+
+                    flipHandler()
+
+                    setCornerBorder(grid.row, grid.column, grid.row, grid.column, $(".currentTab").attr("data-page"))
+
+                }
                 break
             }
         }
 
+    }).off("pointerup.dragComponent").on("pointerup.dragComponent", (event) => {
+
+        console.log("end")
+
+        let clientDrag = clientDragHandler(event)
+
+        let elementsFromPoint = $(document.elementsFromPoint(clientDrag.rawX, clientDrag.rawY))
+
+        for (let i = 0; i < elementsFromPoint.length; i++) {
+            let $eq = $(elementsFromPoint[i])
+            if ($eq.hasClass("gridSquare")) {
+                grid.endColumn = parseInt($eq.attr("data-column")) //+ grid.columnOffset
+                grid.endRow = parseInt($eq.attr("data-row")) //+ grid.rowOffset
+            }
+        }
+
+        for (let i = 0; i < elementsFromPoint.length; i++) {
+            let $eq = elementsFromPoint.eq(i)
+            if ($eq.hasClass("page")) {
+
+                let newComponent = createDefaultOf(componentType, $(".currentTab").attr("data-page"))
+                    .css("grid-column", parseInt(grid.column))
+                    .css("grid-row", parseInt(grid.row))
+                    .attr("data-row", parseInt(grid.row))
+                    .attr("data-column", parseInt(grid.column))
+
+                if (grid.endColumn) {
+                    newComponent
+                        .css("grid-column-end", parseInt(grid.endColumn) + grid.columnOffset)
+                        .css("grid-row-end", parseInt(grid.endRow) + grid.rowOffset)
+                        .attr("data-endRow", grid.endRow)
+                        .attr("data-endColumn", grid.endColumn)
+                    setCornerBorder(parseInt(grid.row), parseInt(grid.column), parseInt(grid.endRow) + grid.rowOffset, parseInt(grid.endColumn) + grid.columnOffset, $(".currentTab").attr("data-page"))
+
+                }
+
+                jQueryReference.remove()
+                $("html").off("pointermove.dragComponent pointerup.dragComponent ")
+                $(".page").off("pointerdown.dragComponent")
+                $(".feauxComponent").remove()
+                $(".cornerBorder").remove()
+                grid.row = 0
+                grid.column = 0
+                grid.endRow = 0;
+                grid.endColumn = 0;
+                grid.rowReverse = false
+                grid.columnReverse = false
+                grid.columnOffset = 1
+                grid.rowOffset = 1
+
+                break
+            }
+        }
+    })
+
+    $(".page").off("pointerdown.dragComponent").on("pointerdown.dragComponent", (event) => {
+        let clientDrag = clientDragHandler(event)
+
+        let elementsFromPoint = $(document.elementsFromPoint(clientDrag.rawX, clientDrag.rawY))
+        $(".feauxComponent").remove()
+
+        for (let i = 0; i < elementsFromPoint.length; i++) {
+            let $eq = $(elementsFromPoint[i])
+
+            if ($eq.hasClass("gridSquare")) {
+
+                createDefaultOf(componentType, $(".currentTab").attr("data-page"))
+                    .addClass("feauxComponent")
+                    .css("grid-column", $eq.attr("data-column"))
+                    .css("grid-row", $eq.attr("data-row"))
+
+                grid.column = $eq.attr("data-column")
+                grid.row = $eq.attr("data-row")
+                grid.endColumn = parseInt($eq.attr("data-column")) + 1
+                grid.endRow = parseInt($eq.attr("data-row")) + 1
+
+                setCornerBorder(grid.row, grid.column, grid.row, grid.column, $(".currentTab").attr("data-page"))
+
+            }
+        }
+        //grid row start && grid row end
     })
 }
 
-function createActionButton(displayName, topic, append = false) {
-    let actionButton = $("<button>")
-        .addClass("actionButton")
-        .attr("data-type", "boolean")
-        .attr("data-topic", topic)
-        .attr("data-value", false)
-        .text(displayName)
-
-    if(append){
-        actionButton.appendTo(append)
-    }
-
-    addButtonToAnimate(actionButton)
-
-    return actionButton
-}
 
 
-
-/* <button class="actionButton" data-type="boolean" data-topic="TestActionButton"
-            data-value="false">Action Button</button>
-        <!--One shots must have the topic in their classes to trigger animation after the bot gets the signal-->
-        <button class="oneShotButton OneShotTest" data-type="boolean" data-topic="OneShotTest" data-value="false">One
-            Shot Button</button>
-        <!-- Toggles also work in if you want in reverse, set data-value to true and add toggledOn to the classes -->
-        <button class="toggleButton" data-type="boolean" data-topic="TestToggleButton"
-            data-value="false">Toggle Button</button>
-
-        <!--Set max, min, step, and initial value for the axis, it will snap back after released to inital value-->
-        <div class="axis" data-topic="TestAxis" data-value="0" data-type="double">
-            <h1 class="axisLabel">Axis</h1>
-            <input class="axisKnob" type="range" min="0" max="0" value="0">
-        </div>
-
-        <div class="verticalAxis" data-topic="TestAxis" data-value="0" data-type="double">
-            <h1 class="axisLabel">Y-Axis</h1>
-            <input class="verticalAxisKnob" type="range" min="0" max="0" value="0">
-        </div>
-
-        <!-- The value that is sent to the bot is defined in the select option data-value, the text is displayed on the ui -->
-        <div class="select" data-value="points" data-topic="DropdownTest" data-type="string">
-            <h1 class="selectTitle">Points</h1>
-
-        </div>
-
-        <div class="buttonOptGroup" data-type="string" data-topic="testBOG" data-value="L2">
-            <button class="animatedButton optGroupButton toggledOn"
-                style="background-color: rgba(0, 81, 255, 0); border-color: rgb(0, 47, 255)" data-value="Val1">Value
-                1</button>
-            <button class="animatedButton optGroupButton"
-                style="background-color: rgba(255, 0, 0, 0); border-color: rgb(255, 0, 0)" data-value="Val2">Value
-                2</button>
-            <button class="animatedButton optGroupButton"
-                style="background-color: rgba(247, 0, 255, 0); border-color: rgb(255, 0, 225) " data-value="Val3">Value
-                3</button>
-
-        </div>
-
-        <!-- set max, min. and value in the parent element.  -->
-        <div class="numberComponent" data-topic='TestAdder' data-type="double" data-step="0.1" data-min="-1"
-            data-max="1" data-value="0" data-persist="true">
-            <p class="numberTitle">Test Adder</p>
-            <button class="numberMinus animatedButton">-</button>
-            <input class="numberTextInput" type="number" value="0"> <!-- value must match data-value -->
-            <button class="numberPlus animatedButton">+</button>
-        </div>
-
-        <div class="basicSubscription" data-topic=""><!-- must be the full path -->
-            <h1 class="bSTopic">Topic:</h1>
-            <h1 class="bSValue">Value</h1>
-        </div>
-    </div> */
-
-
-
-tabGrid(30, 15, ".uiTestTab")
+tabGrid(9, 4, ".uiTestTab")// <-- perfect for defailt
+// tabGrid(18, 8, '.uiTestTab')
 
 function tabGrid(columns, rows, tab) {
     let $tab = $(tab)
@@ -906,11 +922,385 @@ function setGridSize($tab, columns, rows) {
 }
 
 function setGridUnderlay(columns, rows) {
-
+    $(".gridSquare").remove()
     for (let i = 0; i < columns * rows; i++) {
         //added 1 to be consitent with css namings.
-        $("<div>").addClass("gridSquare").appendTo(".gridUnderlay").attr("data-column", (i % columns) +1 ).attr("data-row", (Math.floor(i/columns)) +1)
+        $("<div>").addClass("gridSquare").appendTo(".gridUnderlay").attr("data-column", (i % columns) + 1).attr("data-row", (Math.floor(i / columns)) + 1)
     }
 
 }
 
+function clientDragHandler(event, jQueryReference) {
+    let clientDrag = {
+        x: 0,
+        y: 0,
+        rawX: 0,
+        rawY: 0,
+        isTouch: false,
+    }
+
+    let jQueryDimensions
+
+    console.log(event)
+
+
+    if (jQueryReference) {
+        jQueryDimensions = {
+            height: jQueryReference.outerHeight(true) / 2,
+            width: jQueryReference.outerWidth(true) / 2,
+        }
+
+    }
+
+    clientDrag.rawX = event.pageX
+    clientDrag.rawY = event.pageY
+    if (jQueryReference) {
+        clientDrag.x = event.pageX - jQueryDimensions.width
+        clientDrag.y = event.pageY - jQueryDimensions.height
+    }
+
+
+
+    return clientDrag
+}
+
+function flipHandler() {
+    //Handle flipping of corners to maintain origin gridspace
+
+    if (grid.endRow || grid.endColumn) {
+
+        if (grid.rowReverse && grid.endRow >= grid.row) {
+            grid.row--
+            grid.rowOffset = 1
+            grid.rowReverse = false
+        }
+        if (!grid.rowReverse && grid.endRow < grid.row) {
+            grid.row++
+            grid.rowOffset = 0
+            grid.rowReverse = true
+        }
+
+        if (grid.columnReverse && grid.endColumn >= grid.column) {
+            grid.column--
+            grid.columnOffset = 1
+            grid.columnReverse = false
+        }
+        if (!grid.columnReverse && grid.endColumn < grid.column) {
+            grid.column++
+            grid.columnOffset = 0;
+            grid.columnReverse = true
+        }
+    }
+
+}
+
+function createDefaultOf(component, append, topic = "esc-UNSET-esc") {
+    if (component == "actionButton") {
+        return createActionButton("Action Button", topic, append)
+    } else if (component == "oneShotButton") {
+        return createOneShotButton("One Shot Button", topic, append)
+    } else if (component == "toggleButton") {
+        return createToggleButton("Toggle Button", topic, append, false)
+    } else if (component == "axis") {
+        return createAxis("Axis", topic, append, false).div
+    } else if (component == "verticalAxis") {
+        return createAxis("Y-Axis", topic, append, true).div
+    } else if (component == "select") {
+        return createDropdown("Dropdown", topic, append, "").div
+    }
+}
+
+function setCornerBorder(row = endRow, column = endColumn, endRow, endColumn, append = false, remove = true) {
+    if (remove) {
+        $(".cornerBorder").remove()
+    }
+    let cornerBorder = $("<div>").addClass("cornerBorder")
+        .css("grid-row", row)
+        .css("grid-column", column)
+        .css("grid-column-end", endColumn)
+        .css("grid-row-end", endRow)
+
+    if (append) {
+        cornerBorder.appendTo(append)
+    }
+
+    return cornerBorder
+}
+
+function createActionButton(displayName, topic, append = false) {
+    let actionButton = $("<button>")
+        .addClass("actionButton")
+        .attr("data-type", "boolean")
+        .attr("data-topic", topic)
+        .attr("data-value", false)
+        .text(displayName)
+
+    if (append) {
+        actionButton.appendTo(append)
+    }
+
+    addButtonToAnimate(actionButton)
+
+    return actionButton
+}
+
+function createOneShotButton(displayName, topic, append = false) {
+    let oneShotButton = $("<button>")
+        .addClass("oneShotButton")
+        .addClass(topic)
+        .attr("data-type", "boolean")
+        .attr("data-topic", topic)
+        .attr("data-value", false)
+        .text(displayName)
+
+    if (append) {
+        oneShotButton.appendTo(append)
+    }
+
+    addButtonToAnimate(oneShotButton)
+
+    return oneShotButton
+}
+
+function createToggleButton(displayName, topic, append = false, value = false) {
+    let toggleButton = $("<button>")
+        .addClass("toggleButton")
+        .attr("data-type", "boolean")
+        .attr("data-topic", topic)
+        .attr("data-value", value)
+        .text(displayName)
+
+    if (value) {
+        toggleButton.addClass("toggledOn")
+    }
+
+    if (append) {
+        toggleButton.appendTo(append)
+    }
+
+    addButtonToAnimate(toggleButton)
+
+    return toggleButton
+}
+
+function createAxis(displayName, topic, append = false, vertical = false, value = 0, min = -1, max = 1, step = 0.01, snapBack = true) {
+    let axis = {
+        div: $('<div>'),
+        label: $("<h1>").addClass("axisLabel"),
+        knob: $("<input>")
+    }
+
+    axis.label.appendTo(axis.div)
+    axis.knob.appendTo(axis.div)
+
+    if (!vertical) {
+        axis.div.addClass("axis")
+        axis.knob.addClass("axisKnob")
+    } else {
+        axis.div.addClass("verticalAxis")
+        axis.knob.addClass('verticalAxisKnob')
+    }
+
+    axis.div.attr("data-topic", topic)
+        .attr("data-value", 0)
+        .attr('data-type', "double")
+
+    axis.knob.attr("type", "range")
+        .attr("min", min)
+        .attr("max", max)
+        .attr("step", step)
+        .attr("value", value)
+
+    axis.label.text(displayName)
+
+    if (append) {
+        axis.div.appendTo(append)
+    }
+
+    return axis
+}
+
+
+function createDropdown(initalOptionName, topic, append = false, initalOptionValue, additionalOptions = []) {
+
+    additionalOptions.unshift({
+        name: initalOptionName,
+        value: initalOptionValue,
+    })
+
+    let dropdown = {
+        div: $("<div>").addClass("select").attr("data-value", initalOptionValue).attr("data-topic", topic).attr("data-type", "string"),
+        title: $("<h1>").appendTo("dropdown.div").addClass("selectTitle").text(initalOptionName),
+    }
+
+    let $aO = []
+    for (let i = 0; i < additionalOptions.length; i++) {
+        $aO.push($("<h1>").appendTo(dropdown.div).addClass("selectOption").text(additionalOptions[i].name).attr("data-value", initalOptionValue));
+    }
+
+    dropdown["options"] = $aO
+
+    if (append) {
+        dropdown.div.appendTo(append)
+    }
+
+    setSelectOpener()
+
+    return dropdown
+}
+
+setGridInput(".uiTestTab")
+
+function setGridInput(tab) {
+
+    for (let i = 0; i < 2; i++) {
+        let currentSetting
+        let current
+
+        if (i == 0) {
+            currentSetting = $(".setGridRow")
+            current = 'Row'
+        }
+        else {
+            currentSetting = $(".setGridColumn")
+            current = "Column"
+        }
+
+        function findMin(currentMin, val, current) {
+            let min = currentMin
+            let minElement = []
+
+            let components = $($(".currentTab").attr("data-page")).children()
+            for (let i = 0; i < components.length; i++) {
+                let $eq = components.eq(i)
+
+                let minValues = {
+                    current: parseInt($eq.attr("data-" + current.toLowerCase())),
+                    currentEnd: parseInt($eq.attr("data-end" + current))
+                }
+
+                if (minValues.current > minValues.currentEnd) {
+                    minValues.current--
+                }
+
+                if (minValues.current > min) {
+                    min = minValues.current
+                    minElement = [$eq]
+                } else if (minValues.current == min){
+                    minElement.push($eq)
+                }
+
+                if (minValues.currentEnd > min) {
+                    min = minValues.currentEnd
+                    minElement = [$eq]
+                }else if (minValues.currentEnd == min){
+                    minElement.push($eq)
+                }
+            }
+            if (minElement && min == val + 1) {
+                console.log(minElement)
+                for (let i = 0; i < minElement.length; i++) {
+                    let gridProperties = {
+                        offsetX: 1,
+                        offsetY: 1,
+                    }
+
+                    if (minElement[i].attr("data-endRow") < parseInt(minElement[i].attr("data-row"))) {
+                        gridProperties.offsetY = 0
+                    }
+
+                    if (minElement[i].attr("data-endColumn") < parseInt(minElement[i].attr("data-column"))) {
+                        gridProperties.offsetX = 0
+                    }
+
+                    let borderWarn = setCornerBorder(minElement[i].attr("data-row"), minElement[i].attr("data-column"), parseInt(minElement[i].attr("data-endRow")) + gridProperties.offsetY, parseInt(minElement[i].attr("data-endColumn")) + gridProperties.offsetX, $(".currentTab").attr("data-page"), false).css("animation-name", "cornerWash")
+                    setTimeout(() => {
+                        borderWarn.remove()
+                    }, 1500);
+                }
+            }
+            minElement = []
+            return min
+        }
+
+
+
+        currentSetting.children(".numberPlus").on("pointerdown ", (event) => {
+            let $ct = $(event.currentTarget)
+            let max = parseFloat($ct.parent().attr("data-max"))
+            let step = parseFloat($ct.parent().attr("data-step"))
+            let $numberTarget = $ct.parent().children(".numberTextInput")
+            let currentVal = roundToNearestX(parseFloat($numberTarget.val()) + step, step)
+            if (currentVal <= max) {
+                $numberTarget.val(currentVal)
+                $ct.parent().attr("data-value", $numberTarget.val())
+
+                tabGrid(parseInt($(".setGridColumn").attr("data-value")), parseInt($(".setGridRow").attr("data-value")), tab)
+            }
+        })
+        currentSetting.children(".numberMinus").on("pointerdown ", (event) => {
+            let $ct = $(event.currentTarget)
+
+
+
+
+
+            let step = parseFloat($ct.parent().attr("data-step"))
+            let $numberTarget = $ct.parent().children(".numberTextInput")
+            let currentVal = roundToNearestX((parseFloat($numberTarget.val()) - step), step)
+
+            let min = findMin(parseFloat($ct.parent().attr("data-min")), currentVal, current)
+
+            if (currentVal >= min) {
+                $numberTarget.val(currentVal)
+                $ct.parent().attr("data-value", $numberTarget.val())
+
+                tabGrid(parseInt($(".setGridColumn").attr("data-value")), parseInt($(".setGridRow").attr("data-value")), tab)
+
+            }
+        })
+        currentSetting.children(".numberTextInput").on("blur", (event) => {
+            event.preventDefault()
+
+            let $ct = $(event.currentTarget)
+            let max = parseFloat($ct.parent().attr("data-max"))
+
+            let min = findMin(parseFloat($ct.parent().attr("data-min")), $ct.val() - 1, current)
+
+
+
+            if ($ct.val() > max) {
+                $ct.val(max)
+            } else if ($ct.val() < min) {
+                $ct.val(min)
+            }
+            $ct.parent().attr("data-value", $ct.val())
+
+            tabGrid(parseInt($(".setGridColumn").attr("data-value")), parseInt($(".setGridRow").attr("data-value")), tab)
+        })
+    }
+}
+
+
+
+$(".trashCan").on(" pointerdown", (event) => {
+    $(".trashCan").toggleClass("trashActive")
+    let elements = $($(".currentTab").attr("data-page")).children()
+
+    for (let i = 0; i < elements.length; i++) {
+        let $eq = elements.eq(i)
+
+        if ($(".trashCan").hasClass("trashActive")) {
+            $eq.addClass("removeShake")
+        } else {
+            $eq.off("pointerdown.remove",)
+            $eq.removeClass("removeShake")
+
+        }
+
+    }
+
+    $(".removeShake").on("pointerdown.remove ", (event) => {
+        $(event.currentTarget).remove()
+    })
+})
