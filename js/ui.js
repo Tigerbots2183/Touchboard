@@ -941,7 +941,6 @@ function clientDragHandler(event, jQueryReference) {
 
     let jQueryDimensions
 
-    console.log(event)
 
 
     if (jQueryReference) {
@@ -1006,7 +1005,11 @@ function createDefaultOf(component, append, topic = "esc-UNSET-esc") {
     } else if (component == "verticalAxis") {
         return createAxis("Y-Axis", topic, append, true).div
     } else if (component == "select") {
-        return createDropdown("Dropdown", topic, append, "").div
+        return createDropdown(topic, append, 0, [{name:"Dropdown", value:""}]).div
+    } else if (component == "buttonOptGroup") {
+        return createOptGroup(topic, append, 0, [{name:"Value 1", value:""}, {name:"Value 2", value:""}]).div
+    } else if (component == "numberComponent") {
+        return createNumberComponent("Number", topic, append).div
     }
 }
 
@@ -1121,21 +1124,20 @@ function createAxis(displayName, topic, append = false, vertical = false, value 
 }
 
 
-function createDropdown(initalOptionName, topic, append = false, initalOptionValue, additionalOptions = []) {
+function createDropdown(topic, append = false, initalOptionIndex = 0, options = []) {
 
-    additionalOptions.unshift({
-        name: initalOptionName,
-        value: initalOptionValue,
-    })
+ 
 
     let dropdown = {
-        div: $("<div>").addClass("select").attr("data-value", initalOptionValue).attr("data-topic", topic).attr("data-type", "string"),
-        title: $("<h1>").appendTo("dropdown.div").addClass("selectTitle").text(initalOptionName),
+        div: $("<div>").addClass("select").attr("data-value", options[initalOptionIndex].value).attr("data-topic", topic).attr("data-type", "string"),
+        
     }
 
+    dropdown["title"] = $("<h1>").appendTo(dropdown.div).addClass("selectTitle").text(options[initalOptionIndex].name)
+
     let $aO = []
-    for (let i = 0; i < additionalOptions.length; i++) {
-        $aO.push($("<h1>").appendTo(dropdown.div).addClass("selectOption").text(additionalOptions[i].name).attr("data-value", initalOptionValue));
+    for (let i = 0; i < options.length; i++) {
+        $aO.push($("<h1>").appendTo(dropdown.div).addClass("selectOption").text(options[i].name).attr("data-value", options.value));
     }
 
     dropdown["options"] = $aO
@@ -1147,6 +1149,60 @@ function createDropdown(initalOptionName, topic, append = false, initalOptionVal
     setSelectOpener()
 
     return dropdown
+}
+
+function createOptGroup(topic, append, initalOptionIndex = 0, options = []){
+
+
+    let optDiv = $("<div>").addClass("buttonOptGroup").attr("data-topic", topic).attr("data-type", "string")
+
+    let optGroup = {
+        div: optDiv,
+    }
+
+    let $aO = []
+
+    for(let i =0; i < options.length; i++){
+        let hue = (i * (360/options.length))
+        console.log(hue)
+        let newButton = $("<button>").addClass("animatedButton").addClass("optGroupButton").attr("data-value", options[i].value).text(options[i].name).appendTo(optDiv).css("border-color", "hsla(" + hue + ", 100%, 50%, 1)").css("background-color", "hsla(" + hue + ", 100%, 50%, 0)")
+        if(i == initalOptionIndex){
+            newButton.addClass("toggledOn").css("background-color", "hsla(" + hue + ", 100%, 50%, 0.6)")
+        }
+        $aO.push(newButton)
+    }
+
+    optGroup["options"] = $aO
+
+    if(append) {
+        optGroup.div.appendTo(append)
+    }
+
+    return optGroup
+
+}
+function createNumberComponent(title, topic, append = false, value = 0, min = -1, max = 1, step = 0.1, persist = false){
+
+   let numberComponent = {
+    div:$("<div>").addClass("numberComponent").attr("data-type", 'double').attr("data-step", step).attr("data-min", min).attr("data-max", max).attr("data-value", value).attr("data-persist", persist).attr("data-topic", topic),
+   }
+
+   numberComponent["title"] = $("<p>").addClass("numberTitle").text(title).appendTo(numberComponent.div)
+   numberComponent["minus"] = $("<button>").addClass("numberMinus").addClass("animatedButton").text("-").appendTo(numberComponent.div)
+   numberComponent["input"] = $("<input>").addClass("numberTextInput").attr("type", "number").attr("value", value).appendTo(numberComponent.div)
+   numberComponent["plus"] = $("<button>").addClass("numberPlus").addClass("animatedButton").text("+").appendTo(numberComponent.div)
+
+   if(append){
+    numberComponent.div.appendTo(append)
+   }
+
+   return numberComponent
+  
+//    <button class="numberMinus animatedButton">-</button>
+//    <input class="numberTextInput" type="number" value="0"> <!-- value must match data-value -->
+//    <button class="numberPlus animatedButton">+</button>
+// </div>
+
 }
 
 setGridInput(".uiTestTab")

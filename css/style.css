@@ -419,7 +419,7 @@ foreignObject input[type=range]::-webkit-slider-thumb {
 
 .numberPlus {
     grid-area: P;
-
+    color: white;
     height: 5vmin;
     border: rgb(47, 0, 255) solid 0.25vmin;
     width: 5vmin;
@@ -435,7 +435,7 @@ foreignObject input[type=range]::-webkit-slider-thumb {
 
 .numberMinus {
     grid-area: M;
-
+    color: white;
     height: 5vmin;
     border: rgb(255, 0, 0) solid 0.25vmin;
     width: 5vmin;
@@ -517,7 +517,7 @@ foreignObject input[type=range]::-webkit-slider-thumb {
 .toggledOn {
     background-color: rgba(255, 115, 0, 0.6);
     border: white dashed 0.25vmin;
-
+ 
 }
 
 .oneShotButton {
