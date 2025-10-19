@@ -143,7 +143,7 @@ function populateCommands() {
                 clearTimeout(currentTimeout)
             })
             $(".orderHolder").scrollLeft($(".orderHolder")[0].scrollWidth)
-            if ($(".multiSwitch").attr("data-value") == "Sync") {
+            if ($(".autoSwitch").attr("data-value") == "Sync") {
                 $cr.text(currentCommand.value + "+")
             }
 

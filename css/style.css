@@ -10,6 +10,7 @@ html {
 
 body {
     width: 100%;
+    box-sizing: border-box;
     height: 100%;
     margin: 0px;
     padding: 0px;
@@ -58,6 +59,7 @@ body {
 
 .sideBar {
     width: 100%;
+    min-width: 20vw;
     border-left: 0.5vw rgb(5, 5, 5) solid;
     /* border-style: */
     display: flex;
@@ -66,18 +68,41 @@ body {
     background-color: rgb(18, 18, 18);
     height: 100%;
     grid-area: S;
+    padding: 0px;
+    margin: 0px;
     overflow-y: scroll;
     overflow-x: hidden;
     flex-wrap: nowrap;
+    box-sizing: border-box;
+
 }
 
-.sideBar>div {
+.ioComponents {
+    width: 100%;
+
+    width: max-content;
+    /* border-style: */
+    padding: 0px;
+    margin: 0px; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: rgb(18, 18, 18);
+    height: 90%;
+    grid-area: S;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    flex-wrap: nowrap;
+    box-sizing: border-box;
+}
+
+.ioComponents>div {
     flex-shrink: 0;
     margin-top: 2.5vh;
     margin-bottom: 2.5vh;
 }
 
-.sideBar>button {
+.ioComponents>button {
     flex-shrink: 0;
     margin-top: 2.5vh;
     margin-bottom: 2.5vh;
@@ -95,8 +120,8 @@ body {
     justify-items: center;
     display: grid;
     grid-template-areas:
-        "R 🗑"
-        "C 🗑";
+        "R 🗑 ⚙"
+        "C 🗑 ⚙";
 }
 
 
@@ -517,7 +542,7 @@ foreignObject input[type=range]::-webkit-slider-thumb {
 .toggledOn {
     background-color: rgba(255, 115, 0, 0.6);
     border: white dashed 0.25vmin;
- 
+
 }
 
 .oneShotButton {
@@ -682,6 +707,49 @@ input[type=number] {
     touch-action: scroll;
     padding-left: 0.2vh;
 }
+
+.multiSwitch {
+    width: 50%;
+    height: 4vh;
+    outline: rgb(255, 255, 255) 0.2vh solid;
+    border-radius: 999em;
+    background-color: rgb(14, 14, 14);
+    display: flex;
+    flex-wrap: wrap;
+    min-width: 18vh;
+    /* overflow: hidden; */
+    flex-direction: row;
+
+}
+
+.multiSwitchButton {
+    flex: 1;
+    font-size: 3vh;
+    line-height: 4vh;
+    background-color: rgb(0, 0, 0, 0);
+    border: none;
+    color: white;
+
+    appearance: none;
+}
+
+.multiSlider {
+    pointer-events: none;
+    width: 100%;
+    height: 4vh;
+    margin-bottom: -4vh;
+    overflow: hidden;
+}
+
+.multiSliding {
+    height: 4vh;
+    pointer-events: none;
+    background-color: #7300ff;
+    border-radius: 999em;
+    /* margin-left: -100%; */
+    transition: margin-left 300ms ease-in-out;
+}
+
 
 
 @container dashboardHolder (width > 0px) {
@@ -1808,6 +1876,17 @@ input[type=number] {
     width: auto;
 }
 
+.editSettings {
+    grid-area: ⚙;
+    height: 100%;
+    aspect-ratio: 1/1;
+    background-color: rgb(0, 0, 0, 0);
+    border: none;
+    color: white;
+    font-size: 8vh;
+    width: auto;
+}
+
 .removeShake {
     animation-duration: 0.15s;
     animation-iteration-count: infinite;
@@ -1868,7 +1947,7 @@ input[type=number] {
         outline: red solid 1cqh;
 
 
-        
+
     }
 
     100% {
@@ -1877,4 +1956,264 @@ input[type=number] {
 
 
     }
+}
+
+.sideBarNav{
+    height: 10%;
+    color:white;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-evenly;
+    width: 100%;
+    border-bottom: rgb(12, 12, 12) 0.5vmin solid;
+    background-color: rgb(24, 24, 24);
+}
+
+.sideBarNav h1{
+    width: 40%;
+    text-align: center;
+    padding: 1%;
+    user-select: none;
+    padding-top:5%;
+    padding-bottom: 5%;
+    /* background-color: rgb(32, 32, 32); */
+}
+
+.sideBarUnderline{
+    text-decoration: underline;
+}
+
+.editSidebar{
+    width: 100%;
+
+    /* border-style: */
+    padding: 0px;
+    margin: 0px; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: rgb(18, 18, 18);
+    height: 90%;
+    grid-area: S;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    flex-wrap: nowrap;
+    box-sizing: border-box;
+}
+
+.sideInputDiv{
+    margin-top: 2vh;
+    color: white;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    align-items: center;
+    justify-content: space-evenly;
+    width: 100%;
+    line-height: 3.9vh;
+    font-size: 3vmin;
+}
+
+.sideInputDiv input[type="checkbox"]{
+    width: 3vh;
+    height: 3vh;
+    align-items: center;
+    background-color: rgb(32, 32, 32);
+    border-radius: 0.25vh;
+    border: 0.25vh solid rgb(58, 58, 58);
+    appearance: none;
+
+}
+
+.sideInputDiv input[type="checkbox"]:checked{
+    width: 3vh;
+    height: 3vh;
+    appearance:checkbox;
+    align-items: center;
+}
+
+
+.textInput {
+    outline: 0vh;
+    appearance: none;
+    background-color: black;
+    border: white 0.2vh solid;
+    height: 3.5vh;
+    color: white;
+    font-size: 3vh;
+    width: 60%;
+    margin-top: .05vh;
+    margin-bottom: .05vh;
+    padding: 0px;
+}
+
+.sideBar .numberTextInput{
+    animation-duration: 2s;
+    animation-timing-function: ease;
+    animation-iteration-count: 1;
+    outline: 0vh;
+    appearance: none;
+    background-color: black;
+    border: white 0.2vh solid;
+    height: 3.5vh;
+    color: white;
+    font-size: 3vh;
+    width: 40%;
+    margin-top: .05vh;
+    margin-bottom: .05vh;
+    padding: 0px;
+}
+.sideBar .numberTextInput:disabled{
+    outline: 0vh;
+    appearance: none;
+    background-color: transparent;
+    border: rgb(107, 107, 107) 0.2vh dashed;
+    height: 3.5vh;
+    color: rgb(107, 107, 107);
+    font-size: 3vh;
+    width: 40%;
+    margin-top: .05vh;
+    margin-bottom: .05vh;
+    padding: 0px;
+}
+
+@keyframes warn {
+    0% {
+        background-color: rgb(0, 0, 0);
+        border-color: white;
+    }
+
+    40% {
+        background-color: rgba(255, 0, 0, 0.196);
+        border-color: rgb(255, 0, 0);
+
+    }
+
+    50% {
+        background-color: rgb(0, 0, 0);
+        border-color: white;
+
+    }
+
+    90% {
+        background-color: rgba(255, 0, 0, 0.196);
+        border-color: rgb(255, 0, 0);
+
+    }
+
+    100% {
+        background-color: rgb(0, 0, 0);
+        border-color: white;
+
+    }
+}
+
+.multiAdder{
+    container-name: multiAdder;
+    container-type: inline-size;
+    border-radius: 1vh;
+
+    margin-top: 2vh;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-content: center;
+    align-items: center;
+    justify-content: space-evenly;
+    width: 100%;
+    line-height: 3.9vh;
+    padding-bottom: 1vh;
+    font-size: 3vmin;
+    background-color: rgb(24,24,24);
+}
+.optionAdder .textInput{
+    width: 28%;
+    border: 0.25vh solid rgb(58, 58, 58);
+   
+
+}
+
+
+.scrollingAdder{
+    margin-top: 0.25vh;
+    margin-bottom: 0.25vh;
+    width: 95%;
+}
+
+.optionAdder{
+    transition: margin-top ease;
+
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    align-items: center;
+    justify-content: space-evenly;
+    /* padding-top: 1vh; */
+    border: 0.25vh solid rgb(58, 58, 58);
+    width: 95%;
+    box-sizing: border-box;
+}
+.optionAdder p {
+    width: min-content;
+}
+
+.sideBarEmojiButton {
+    background-color: rgb(32, 32, 32);
+
+    border: none;
+    outline: none;
+    height: 4vh;
+    border-radius: 1vh;
+    font-size: 3vh;
+    line-height: 3.5vh;
+    color: white;
+    border: 0.25vh solid rgb(58, 58, 58);
+    width: 4vh;
+}
+
+.hamburger{
+    font-family: "Arial Unicode MS";
+    border:none;
+    background-color: transparent;
+    margin-top: -0.3vh;
+}
+
+.editOption{
+    border:none;
+    background-color: transparent;
+}
+
+.phasedOption{
+    position: absolute; 
+    pointer-events: none;
+    z-index: 2;
+}
+
+@container multiAdder (width > 0px) {
+    .sidebarOption{
+        background-color: rgb(24,24,24);
+        user-select: none;
+        transition: margin-top ease;
+        margin-top: 0.25vh;
+        margin-bottom: 0.25vh;
+        border: 0.25vh solid rgb(58, 58, 58);
+        width: 95cqw;
+        box-sizing: border-box;
+        height: 4.25vh;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-evenly;
+        align-items: center;
+        align-content: center;
+    }
+    
+
+}
+
+.marginedOption{
+    margin-top: 5vh;
 }

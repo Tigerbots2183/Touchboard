@@ -286,12 +286,18 @@ function setSelectOpener() {
 // let daq = new SignalDAQNT4("localhost", ci, null, null, 
 export var nt4Client = new NT4_Client(localStorage.getItem(getHtmlFileName() + "teamNumber"),
     "Touchboard",
-    doNothing,
+    topicAnnounce,
     doNothing,
     handleNewData,
     onConnectCb,
     onDisconnectCb
 );
+
+
+function topicAnnounce(topic, some) {
+    console.log(topic)
+}
+
 
 function doNothing() { }
 
@@ -342,20 +348,24 @@ $("#connect").on("click", () => {
 })
 
 function handleNewData(topic, timestamp, value) {
-    console.log(topic.name)
+    // console.log(topic.name)
     // console.log(value)
     let topicSplit = topic.name.split("/")
     let topicName = topicSplit[topicSplit.length - 1]
     // console.log(topicSplit)
+
+    if (topic.name.includes(".")) {
+        return
+    }
 
     if (topicName == "musicIsFinished") {
         if (value == true) {
             goToNextSong()
         }
     }
-    if ($("." + topic.name.replaceAll("/", "Sl-Sl-Sl-")).hasClass("basicSubscription")) {
+    if ($("." + topic.name.replaceAll("/", "-Sl-Sl-Sl-")).hasClass("basicSubscription")) {
         console.log(value)
-        $("." + (topic.name.replaceAll("/", "Sl-Sl-Sl-"))).children(".bSValue").text(JSON.stringify(value))
+        $("." + (topic.name.replaceAll("/", "-Sl-Sl-Sl-"))).children(".bSValue").text(JSON.stringify(value))
     } else if ($("." + topicName).hasClass("oneShotButton")) {
         oneShotAnimation("." + topicName)
     }
@@ -395,6 +405,8 @@ function onConnectCb() {
         nt4Client.publishTopic("/touchboard/musicIsFinished", "boolean")
 
         nt4Client.addSample("/touchboard/musicIsFinished", true)
+
+        nt4Client.subscribe([""], true, true)
 
         let $uiElements = $(".page").children().add($(".btnHolder").children())
 
@@ -566,6 +578,7 @@ function onConnectCb() {
             }
         }
 
+        console.log(nt4Client.subscriptions)
 
 
 
@@ -700,7 +713,7 @@ grid.endColumn = grid.column
 grid.endRow = grid.row
 
 
-$(".sideBar").children().off().on("pointerdown ", (event) => {
+$(".ioComponents").children().off().on("pointerdown ", (event) => {
     $("*").removeClass("removeShake")
     $(".trashCan").removeClass("trashActive")
 
@@ -999,15 +1012,15 @@ function createDefaultOf(component, append, topic = "esc-UNSET-esc") {
     } else if (component == "oneShotButton") {
         return createOneShotButton("One Shot Button", topic, append)
     } else if (component == "toggleButton") {
-        return createToggleButton("Toggle Button", topic, append, false)
+        return createToggleButton("Toggle Button", topic, append)
     } else if (component == "axis") {
         return createAxis("Axis", topic, append, false).div
     } else if (component == "verticalAxis") {
         return createAxis("Y-Axis", topic, append, true).div
     } else if (component == "select") {
-        return createDropdown(topic, append, 0, [{name:"Dropdown", value:""}]).div
+        return createDropdown(topic, append, 0, [{ name: "Dropdown", value: "" }]).div
     } else if (component == "buttonOptGroup") {
-        return createOptGroup(topic, append, 0, [{name:"Value 1", value:""}, {name:"Value 2", value:""}]).div
+        return createOptGroup(topic, append, 0, [{ name: "Value 1", value: "" }, { name: "Value 2", value: "" }]).div
     } else if (component == "numberComponent") {
         return createNumberComponent("Number", topic, append).div
     }
@@ -1023,6 +1036,7 @@ function setCornerBorder(row = endRow, column = endColumn, endRow, endColumn, ap
         .css("grid-column-end", endColumn)
         .css("grid-row-end", endRow)
 
+
     if (append) {
         cornerBorder.appendTo(append)
     }
@@ -1030,7 +1044,7 @@ function setCornerBorder(row = endRow, column = endColumn, endRow, endColumn, ap
     return cornerBorder
 }
 
-function createActionButton(displayName, topic, append = false) {
+function createActionButton(displayName, topic, append = false, hue = 0) {
     let actionButton = $("<button>")
         .addClass("actionButton")
         .attr("data-type", "boolean")
@@ -1047,7 +1061,7 @@ function createActionButton(displayName, topic, append = false) {
     return actionButton
 }
 
-function createOneShotButton(displayName, topic, append = false) {
+function createOneShotButton(displayName, topic, append = false, hue = 0) {
     let oneShotButton = $("<button>")
         .addClass("oneShotButton")
         .addClass(topic)
@@ -1065,7 +1079,7 @@ function createOneShotButton(displayName, topic, append = false) {
     return oneShotButton
 }
 
-function createToggleButton(displayName, topic, append = false, value = false) {
+function createToggleButton(displayName, topic, append = false, hue = 0, value = false) {
     let toggleButton = $("<button>")
         .addClass("toggleButton")
         .attr("data-type", "boolean")
@@ -1086,7 +1100,7 @@ function createToggleButton(displayName, topic, append = false, value = false) {
     return toggleButton
 }
 
-function createAxis(displayName, topic, append = false, vertical = false, value = 0, min = -1, max = 1, step = 0.01, snapBack = true) {
+function createAxis(displayName, topic, append = false, vertical = false, hue = 0, value = 0, min = -1, max = 1, step = 0.01, snapBack = true) {
     let axis = {
         div: $('<div>'),
         label: $("<h1>").addClass("axisLabel"),
@@ -1123,14 +1137,37 @@ function createAxis(displayName, topic, append = false, vertical = false, value 
     return axis
 }
 
+function createNumberComponent(title, topic, append = false, hue = 0, value = 0, min = -1, max = 1, step = 0.1, persist = false) {
 
-function createDropdown(topic, append = false, initalOptionIndex = 0, options = []) {
+    let numberComponent = {
+        div: $("<div>").addClass("numberComponent").attr("data-type", 'double').attr("data-step", step).attr("data-min", min).attr("data-max", max).attr("data-value", value).attr("data-persist", persist).attr("data-topic", topic),
+    }
 
- 
+    numberComponent["title"] = $("<p>").addClass("numberTitle").text(title).appendTo(numberComponent.div)
+    numberComponent["minus"] = $("<button>").addClass("numberMinus").addClass("animatedButton").text("-").appendTo(numberComponent.div)
+    numberComponent["input"] = $("<input>").addClass("numberTextInput").attr("type", "number").attr("value", value).appendTo(numberComponent.div)
+    numberComponent["plus"] = $("<button>").addClass("numberPlus").addClass("animatedButton").text("+").appendTo(numberComponent.div)
+
+    if (append) {
+        numberComponent.div.appendTo(append)
+    }
+
+    return numberComponent
+
+    //    <button class="numberMinus animatedButton">-</button>
+    //    <input class="numberTextInput" type="number" value="0"> <!-- value must match data-value -->
+    //    <button class="numberPlus animatedButton">+</button>
+    // </div>
+
+}
+
+function createDropdown(topic, append = false, hue = 0, initalOptionIndex = 0, options = []) {
+
+
 
     let dropdown = {
         div: $("<div>").addClass("select").attr("data-value", options[initalOptionIndex].value).attr("data-topic", topic).attr("data-type", "string"),
-        
+
     }
 
     dropdown["title"] = $("<h1>").appendTo(dropdown.div).addClass("selectTitle").text(options[initalOptionIndex].name)
@@ -1151,7 +1188,7 @@ function createDropdown(topic, append = false, initalOptionIndex = 0, options = 
     return dropdown
 }
 
-function createOptGroup(topic, append, initalOptionIndex = 0, options = []){
+function createOptGroup(topic, append, hue = 0, initalOptionIndex = 0, options = []) {
 
 
     let optDiv = $("<div>").addClass("buttonOptGroup").attr("data-topic", topic).attr("data-type", "string")
@@ -1162,11 +1199,11 @@ function createOptGroup(topic, append, initalOptionIndex = 0, options = []){
 
     let $aO = []
 
-    for(let i =0; i < options.length; i++){
-        let hue = (i * (360/options.length))
+    for (let i = 0; i < options.length; i++) {
+        let hue = (i * (360 / options.length))
         console.log(hue)
         let newButton = $("<button>").addClass("animatedButton").addClass("optGroupButton").attr("data-value", options[i].value).text(options[i].name).appendTo(optDiv).css("border-color", "hsla(" + hue + ", 100%, 50%, 1)").css("background-color", "hsla(" + hue + ", 100%, 50%, 0)")
-        if(i == initalOptionIndex){
+        if (i == initalOptionIndex) {
             newButton.addClass("toggledOn").css("background-color", "hsla(" + hue + ", 100%, 50%, 0.6)")
         }
         $aO.push(newButton)
@@ -1174,34 +1211,28 @@ function createOptGroup(topic, append, initalOptionIndex = 0, options = []){
 
     optGroup["options"] = $aO
 
-    if(append) {
+    if (append) {
         optGroup.div.appendTo(append)
     }
 
     return optGroup
 
 }
-function createNumberComponent(title, topic, append = false, value = 0, min = -1, max = 1, step = 0.1, persist = false){
 
-   let numberComponent = {
-    div:$("<div>").addClass("numberComponent").attr("data-type", 'double').attr("data-step", step).attr("data-min", min).attr("data-max", max).attr("data-value", value).attr("data-persist", persist).attr("data-topic", topic),
-   }
 
-   numberComponent["title"] = $("<p>").addClass("numberTitle").text(title).appendTo(numberComponent.div)
-   numberComponent["minus"] = $("<button>").addClass("numberMinus").addClass("animatedButton").text("-").appendTo(numberComponent.div)
-   numberComponent["input"] = $("<input>").addClass("numberTextInput").attr("type", "number").attr("value", value).appendTo(numberComponent.div)
-   numberComponent["plus"] = $("<button>").addClass("numberPlus").addClass("animatedButton").text("+").appendTo(numberComponent.div)
+function setEditSidebar(component, currentTarget) {
+    if (component == "actionButton") {
+    } else if (component == "oneShotButton") {
+    } else if (component == "toggleButton") {
+    } else if (component == "axis") {
+    } else if (component == "verticalAxis") {
+    } else if (component == "select") {
+    } else if (component == "buttonOptGroup") {
+    } else if (component == "numberComponent") {
+    }
+}
 
-   if(append){
-    numberComponent.div.appendTo(append)
-   }
-
-   return numberComponent
-  
-//    <button class="numberMinus animatedButton">-</button>
-//    <input class="numberTextInput" type="number" value="0"> <!-- value must match data-value -->
-//    <button class="numberPlus animatedButton">+</button>
-// </div>
+function setButtonSidebar(componentType, $ct) {
 
 }
 
@@ -1242,14 +1273,14 @@ function setGridInput(tab) {
                 if (minValues.current > min) {
                     min = minValues.current
                     minElement = [$eq]
-                } else if (minValues.current == min){
+                } else if (minValues.current == min) {
                     minElement.push($eq)
                 }
 
                 if (minValues.currentEnd > min) {
                     min = minValues.currentEnd
                     minElement = [$eq]
-                }else if (minValues.currentEnd == min){
+                } else if (minValues.currentEnd == min) {
                     minElement.push($eq)
                 }
             }
@@ -1360,3 +1391,162 @@ $(".trashCan").on(" pointerdown", (event) => {
         $(event.currentTarget).remove()
     })
 })
+
+$(".editSidebar").find(" .numberTextInput").on("blur", (event) => {
+    //Use parentQueries to ensure selecting right element (as always)
+
+    let $currentInput = $(event.currentTarget)
+
+    let min = $currentInput.parent().parent().find(".min")
+    let max = $currentInput.parent().parent().find(".max")
+    let val = $currentInput.parent().parent().find(".value")
+    let step = $currentInput.parent().parent().find(".step")
+    if (min.val() != "" && max.val() != "") {
+        val.removeAttr("disabled")
+    } else {
+        val.attr("disabled", "disabled").val("")
+    }
+
+    if(parseFloat(val.val()) > parseFloat(max.val())){
+        val.val(max.val())
+        max.css("animation-name", 'warn')
+
+        setTimeout(() => {
+            max.css("animation-name", "")
+        }, 2000);
+    }else if(parseFloat(val.val()) < parseFloat(min.val())){
+        val.val(min.val())
+        min.css("animation-name", 'warn')
+
+        setTimeout(() => {
+            min.css("animation-name", "")
+        }, 2000);
+    }
+
+    if (parseFloat(min.val()) >= parseFloat(max.val())) {
+        if ($currentInput.hasClass("min")) {
+            max.css("animation-name", 'warn')
+
+            setTimeout(() => {
+                max.css("animation-name", "")
+            }, 2000);
+
+            min.val(max.val() - 1)
+        } else {
+            min.css("animation-name", 'warn')
+
+            setTimeout(() => {
+                min.css("animation-name", "")
+            }, 2000);
+
+            max.val(parseFloat(min.val()) + 1)
+        }
+
+    }
+
+})
+
+let dragInfo = {
+    initalY:0,
+    currentY:0,
+    phased:false,
+    margined:false,
+}
+
+handleOptionDrag()
+handleOptionDrag($(".test1"))
+handleOptionDrag($(".test2"))
+handleOptionDrag($(".test3"))
+
+
+function handleOptionDrag(element = false){
+    if(element){
+        return addElementDragHandler(element)
+    }
+    
+    $(".multiAdder").on("pointermove.drag", (event)=>{
+        if(!dragInfo.phased) return
+
+        dragInfo.phased.css("top", event.pageY - vh(4.5/2) + "px")
+    }).on("pointerup", (event)=>{
+        console.log("end")
+        dragInfo = {
+            initalY:0,
+            currentY:0,
+            phased:false,
+            margined:false,
+        }
+        $(".sidebarOption").css("transition-duration", "").css("top", "")
+        $(".optionAdder").css("transition-duration", "")
+        $(".marginedOption").removeClass("marginedOption")
+        $(".phasedOption").removeClass("phasedOption")
+    })
+
+    $(".sidebarOption").on("pointermove.drag", (event)=>{
+        console.log(dragInfo)
+        let $hov = $(document.elementsFromPoint(event.pageX, event.pageY)).not(".phasedOption").filter(".sidebarOption, .optionAdder").eq(0)
+
+        if(!dragInfo.phased) return
+
+        dragInfo.phased.css("top", event.pageY - vh(4.5/2) + "px")
+
+        if($hov.is(dragInfo.phased.prev())){
+            if($hov.hasClass("marginedOption") || $hov.hasClass("transitioning")){
+                return
+            }
+    
+            if($hov.hasClass("sidebarOption") || $hov.hasClass("optionAdder")){
+                let transitioner = $(".marginedOption").removeClass("marginedOption").addClass("transitioning")
+
+                setTimeout(() => {
+                    transitioner.removeClass("transitioning")
+                }, 300);
+    
+                $hov.addClass("marginedOption")
+    
+                dragInfo.phased.insertBefore($hov)
+            }
+        } else{
+            if($hov.next().hasClass("marginedOption") || $hov.next().hasClass("transitioning")){
+                return
+            }
+    
+            if($hov.hasClass("sidebarOption") || $hov.hasClass("optionAdder")){
+                let transitioner = $(".marginedOption").removeClass("marginedOption").addClass("transitioning")
+
+                setTimeout(() => {
+                    transitioner.removeClass("transitioning")
+                }, 300);
+    
+                $hov.next().addClass("marginedOption")
+    
+                dragInfo.phased.insertAfter($hov)
+                
+            }
+        }
+    })
+
+    function addElementDragHandler($element){
+        $element.children(".hamburger").on("pointerdown", (event)=>{
+
+            //bro i was like, you know what, ima not use event.current target, ima use $element inside the lambda like a normal person
+            //and guess what
+            //it would select like half the elements in the div
+            //currenttaget my beloved 
+
+            let $pr = $(event.currentTarget).parent()
+
+            dragInfo.phased = $pr
+
+            $pr.addClass('phasedOption').css("top", event.pageY - vh(4.5/2) + "px")
+
+            dragInfo.margined = $pr.next()
+
+            dragInfo.margined.addClass("marginedOption").offset()
+            
+            $(".sidebarOption").css("transition-duration", "300ms")
+            $(".optionAdder").css("transition-duration", "300ms")
+            
+        })
+    }
+}

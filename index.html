@@ -71,7 +71,7 @@ SOFTWARE. -->
             <div class="commands commandName">
                 <div class="commandNav">
                     <h1 class="commandTitle">Commands</h1>
-                    <div class="multiSwitch" data-value="Await">
+                    <div class="multiSwitch autoSwitch" data-value="Await">
                         <div class="multiSlider">
                             <div class="multiSliding" style="width:50%;"></div>
                         </div>
@@ -315,74 +315,222 @@ SOFTWARE. -->
     <!-- Insert tabs before this or between existing tabs before here -->
 
     <div class="sideBar">
-        <!-- action button sends true as long as it is held -->
-        <button class="actionButton" data-type="boolean" data-topic="TestActionButton" data-value="false">Action
-            Button</button>
-        <!--One shots must have the topic in their classes to trigger animation after the bot gets the signal-->
-        <button class="oneShotButton OneShotTest" data-type="boolean" data-topic="OneShotTest" data-value="false">One
-            Shot Button</button>
-        <!-- Toggles also work in if you want in reverse, set data-value to true and add toggledOn to the classes -->
-        <button class="toggleButton" data-type="boolean" data-topic="TestToggleButton" data-value="false">Toggle
-            Button</button>
-
-        <!--Set max, min, step, and initial value for the axis, it will snap back after released to inital value-->
-        <div class="axis" data-topic="TestAxis" data-value="0" data-type="double">
-            <h1 class="axisLabel">Axis</h1>
-            <input class="axisKnob" type="range" min="0" max="0" value="0">
+        <div class="sideBarNav">
+            <h1 class="sideBarUnderline addButtons">Input</h1>
+            <h1 class="addButtons">Output</h1>
         </div>
+        <div class="ioComponents" style="display: none;">
+            <!-- action button sends true as long as it is held -->
+            <button class="actionButton" data-type="boolean" data-topic="TestActionButton" data-value="false">Action
+                Button</button>
+            <!--One shots must have the topic in their classes to trigger animation after the bot gets the signal-->
+            <button class="oneShotButton OneShotTest" data-type="boolean" data-topic="OneShotTest"
+                data-value="false">One
+                Shot Button</button>
+            <!-- Toggles also work in if you want in reverse, set data-value to true and add toggledOn to the classes -->
+            <button class="toggleButton" data-type="boolean" data-topic="TestToggleButton" data-value="false">Toggle
+                Button</button>
 
-        <div class="verticalAxis" data-topic="TestAxis" data-value="0" data-type="double">
-            <h1 class="axisLabel">Y-Axis</h1>
-            <input class="verticalAxisKnob" type="range" min="0" max="0" value="0">
+            <!--Set max, min, step, and initial value for the axis, it will snap back after released to inital value-->
+            <div class="axis" data-topic="TestAxis" data-value="0" data-type="double">
+                <h1 class="axisLabel">Axis</h1>
+                <input class="axisKnob" type="range" min="0" max="0" value="0">
+            </div>
+
+            <div class="verticalAxis" data-topic="TestAxis" data-value="0" data-type="double">
+                <h1 class="axisLabel">Y-Axis</h1>
+                <input class="verticalAxisKnob" type="range" min="0" max="0" value="0">
+            </div>
+
+            <!-- The value that is sent to the bot is defined in the select option data-value, the text is displayed on the ui -->
+            <div class="select sideBarSelect" data-value="points" data-topic="DropdownTest" data-type="string">
+                <h1 class="selectTitle">Points</h1>
+
+            </div>
+
+            <div class="buttonOptGroup" data-type="string" data-topic="testBOG" data-value="L2">
+                <button class="animatedButton optGroupButton toggledOn"
+                    style="background-color: rgba(0, 81, 255, 0); border-color: rgb(0, 47, 255)" data-value="Val1">Value
+                    1</button>
+                <button class="animatedButton optGroupButton"
+                    style="background-color: rgba(255, 0, 0, 0); border-color: rgb(255, 0, 0)" data-value="Val2">Value
+                    2</button>
+
+
+            </div>
+
+            <!-- set max, min. and value in the parent element.  -->
+            <div class="numberComponent" data-type="double" data-step="1" data-min="0" data-max="20" data-value="0"
+                data-persist="true">
+                <p class="numberTitle">Number</p>
+                <button class="numberMinus animatedButton">-</button>
+                <input class="numberTextInput" type="number" value="0"> <!-- value must match data-value -->
+                <button class="numberPlus animatedButton">+</button>
+            </div>
+
+            <div class="basicSubscription" data-topic=""><!-- must be the full path -->
+                <h1 class="bSTopic">Topic:</h1>
+                <h1 class="bSValue">Value</h1>
+            </div>
         </div>
+        <div class="editSidebar">
+            <!-- Button
+            <div class="sideInputDiv">
+                <p>Topic:</p>
+                <input type="text" class="textInput" placeholder="Unset">
+            </div>
+            <div class="sideInputDiv">
+                <p>Name:</p>
+                <input type="text" class="textInput" placeholder="Unset">
+            </div>
 
-        <!-- The value that is sent to the bot is defined in the select option data-value, the text is displayed on the ui -->
-        <div class="select sideBarSelect" data-value="points" data-topic="DropdownTest" data-type="string">
-            <h1 class="selectTitle">Points</h1>
+            //Toggle Button ONLY
+            <div class="sideInputDiv">
+                <p>Inital:</p>
+                <div class="multiSwitch" data-value="Await">
+                    <div class="multiSlider">
+                        <div class="multiSliding" style="width:50%;"></div>
+                    </div>
+                    <input type="button" class="multiSwitchButton" value="True">
+                    <input type="button" class="multiSwitchButton" value="False">
+                </div>
+            </div> -->
 
-        </div>
+            <!-- Number and axis
+            <div class="sideInputDiv">
+                <p>Topic:</p>
+                <input type="text" class="textInput" placeholder="Unset">
+            </div>
+            <div class="sideInputDiv">
+                <p>Name:</p>
+                <input type="text" class="textInput" placeholder="Unset">
+            </div>
+            // Axis ONLY
+            <div class="sideInputDiv">
+                <p>Format:</p>
+                <div class="multiSwitch" data-value="Await" style="width: 60%;">
+                    <div class="multiSlider">
+                        <div class="multiSliding" style="width:50%;"></div>
+                    </div>
+                    <input type="button" class="multiSwitchButton" value="X-Axis">
+                    <input type="button" class="multiSwitchButton" value="Y-Axis">
+                </div>
+            </div>
 
-        <div class="buttonOptGroup" data-type="string" data-topic="testBOG" data-value="L2">
-            <button class="animatedButton optGroupButton toggledOn"
-                style="background-color: rgba(0, 81, 255, 0); border-color: rgb(0, 47, 255)" data-value="Val1">Value
-                1</button>
-            <button class="animatedButton optGroupButton"
-                style="background-color: rgba(255, 0, 0, 0); border-color: rgb(255, 0, 0)" data-value="Val2">Value
-                2</button>
-   
+            <div class="sideInputDiv">
+                <p>Min:</p>
+                <input type="number" class="numberTextInput min" placeholder="Unset">
+            </div>
 
-        </div>
+            <div class="sideInputDiv">
+                <p>Max:</p>
+                <input type="number" class="numberTextInput max" placeholder="Unset">
+            </div>
 
-        <!-- set max, min. and value in the parent element.  -->
-        <div class="numberComponent" data-type="double" data-step="1" data-min="0" data-max="20" data-value="0"
-            data-persist="true">
-            <p class="numberTitle">Number</p>
-            <button class="numberMinus animatedButton">-</button>
-            <input class="numberTextInput" type="number" value="0"> <!-- value must match data-value -->
-            <button class="numberPlus animatedButton">+</button>
-        </div>
+            <div class="sideInputDiv">
+                <p>Value:</p>
+                <input type="number" class="numberTextInput value" placeholder="Unset" disabled>
+            </div>
 
-        <div class="basicSubscription" data-topic=""><!-- must be the full path -->
-            <h1 class="bSTopic">Topic:</h1>
-            <h1 class="bSValue">Value</h1>
+            <div class="sideInputDiv">
+                <p>Step:</p>
+                <input type="number" class="numberTextInput step" placeholder="Unset">
+            </div>
+
+            // Axis ONLY
+            <div class="sideInputDiv">
+                <p>Snap Back?</p>
+                <input type="checkbox">
+            </div>
+
+           // Number Component ONLY 
+            <div class="sideInputDiv">
+                <p>Persist?</p>
+                <input type="checkbox">
+            </div> -->
+
+            <div class="sideInputDiv">
+                <p>Topic:</p>
+                <input type="text" class="textInput" placeholder="Unset">
+            </div>
+            <div class="sideInputDiv">
+                <p>Name:</p>
+                <input type="text" class="textInput" placeholder="Unset">
+            </div>
+
+            <div class="multiAdder">
+                <p>Options:</p>
+
+                <div class="sidebarOption test1">
+                    <button class="sideBarEmojiButton hamburger">☰</button>
+                    <p>Name: 1</p>
+                    <button class="sideBarEmojiButton editOption">✎</button>
+                </div>
+                <div class="sidebarOption test2">
+                    <button class="sideBarEmojiButton hamburger">☰</button>
+                    <p>Name: 2</p>
+                    <button class="sideBarEmojiButton editOption">✎</button>
+                </div>
+                <div class="sidebarOption test3">
+                    <button class="sideBarEmojiButton hamburger">☰</button>
+                    <p>Name: 3</p>
+                    <button class="sideBarEmojiButton editOption">✎</button>
+                </div>
+                <div class="sidebarOption test3">
+                    <button class="sideBarEmojiButton hamburger">☰</button>
+                    <p>Name: 4</p>
+                    <button class="sideBarEmojiButton editOption">✎</button>
+                </div>
+                <div class="sidebarOption test3">
+                    <button class="sideBarEmojiButton hamburger">☰</button>
+                    <p>Name: 5</p>
+                    <button class="sideBarEmojiButton editOption">✎</button>
+                </div>
+                <div class="sidebarOption test3">
+                    <button class="sideBarEmojiButton hamburger">☰</button>
+                    <p>Name: 6</p>
+                    <button class="sideBarEmojiButton editOption">✎</button>
+                </div>
+                <div class="sidebarOption test3">
+                    <button class="sideBarEmojiButton hamburger">☰</button>
+                    <p>Name: 7</p>
+                    <button class="sideBarEmojiButton editOption">✎</button>
+                </div>
+                <div class="optionAdder">
+                    <input type="text" class="textInput" placeholder="Name">
+                    <p>:</p>
+                    <input type="text" class="textInput" placeholder="Value">
+                    <button class="sideBarEmojiButton hue">🎨</button>
+                    <button class="sideBarEmojiButton plus">✚</button>
+
+                </div>
+            </div>
+
+
         </div>
     </div>
 
     <div class="bottomBar">
-        <div class="numberInput setGridRow" data-topic='TestAdder' data-step="1" data-min="1" data-max="100" style="grid-area: R;"
-            data-value="4" >
+        <div class="numberInput setGridRow" data-topic='TestAdder' data-step="1" data-min="1" data-max="100"
+            style="grid-area: R;" data-value="4">
             <p class="numberInputTitle">Rows:</p>
             <button class="numberMinus animatedButton">-</button>
             <input class="numberTextInput" type="number" value="4"> <!-- value must match data-value -->
             <button class="numberPlus animatedButton">+</button>
         </div>
 
-        <div class="numberInput setGridColumn" data-topic='TestAdder' data-type="double" data-step="1" data-min="1" data-max="100" style="grid-area: C;"
-            data-value="9" >
+        <div class="numberInput setGridColumn" data-topic='TestAdder' data-type="double" data-step="1" data-min="1"
+            data-max="100" style="grid-area: C;" data-value="9">
             <p class="numberInputTitle">Cols:</p>
             <button class="numberMinus animatedButton">-</button>
             <input class="numberTextInput" type="number" value="9"> <!-- value must match data-value -->
             <button class="numberPlus animatedButton">+</button>
+        </div>
+
+        <!-- <button class="editSettings">⚙️</button> -->
+        <div class="sideInputDiv" style="grid-area: ⚙; margin-top: 0px;">
+            <p>Retain Similar Properties</p>
+            <input type="checkbox" checked>
         </div>
 
         <button class="trashCan">🗑</button>
@@ -394,5 +542,9 @@ SOFTWARE. -->
 </body>
 
 
+<!-- <div class="sideInputDiv">
+    <p>True</p>
+    <input type="checkbox">
+</div>  -->
 
 </html>
