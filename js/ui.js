@@ -109,7 +109,7 @@ for (let i = 0; i < $ab.length; i++) {
     if (typeof text === "string") {
         text = text.split(" ")
         for (let j = 0; j < text.length; j++) {
-            let $word = $("<div>").appendTo($ab.eq(i)).css('display', 'flex');
+            let $word = $("<div>").appendTo($ab.eq(i)).css('display', 'flex').addClass("buttonWord");
             for (let I = 0; I < text[j].length; I++) {
                 $("<p>").text(text[j][I]).addClass('funkyLetter').appendTo($word)
             }
@@ -268,7 +268,7 @@ function oneShotAnimation(elemClass) {
 }
 setSelectOpener()
 function setSelectOpener() {
-    $(".select").not(".sideBarSelect").off().on(" pointerdown", (event) => {
+    $(".select").not(".sideBarSelect").off("pointerdown.selectOpener").on(" pointerdown.selectOpener", (event) => {
         if (!$(event.target).hasClass("textInput") && !$(event.target).hasClass("delete") && !$(event.target).hasClass("save") && !$(event.target).hasClass("saveManager")) {
             $(event.currentTarget).toggleClass("selectOpen")
         }
@@ -713,7 +713,7 @@ grid.endColumn = grid.column
 grid.endRow = grid.row
 
 
-$(".ioComponents").children().off().on("pointerdown ", (event) => {
+$(".ioComponents").children().off().on("pointerdown.addComponent ", (event) => {
     $("*").removeClass("removeShake")
     $(".trashCan").removeClass("trashActive")
 
@@ -787,8 +787,6 @@ function addToCurrentDrag(jQueryReference, initalX, initalY, componentType) {
 
     }).off("pointerup.dragComponent").on("pointerup.dragComponent", (event) => {
 
-        console.log("end")
-
         let clientDrag = clientDragHandler(event)
 
         let elementsFromPoint = $(document.elementsFromPoint(clientDrag.rawX, clientDrag.rawY))
@@ -805,23 +803,32 @@ function addToCurrentDrag(jQueryReference, initalX, initalY, componentType) {
             let $eq = elementsFromPoint.eq(i)
             if ($eq.hasClass("page")) {
 
-                let newComponent = createDefaultOf(componentType, $(".currentTab").attr("data-page"))
-                    .css("grid-column", parseInt(grid.column))
-                    .css("grid-row", parseInt(grid.row))
-                    .attr("data-row", parseInt(grid.row))
-                    .attr("data-column", parseInt(grid.column))
+                // let newComponent = createDefaultOf(componentType, $(".currentTab").attr("data-page"))
+                //     .css("grid-column", parseInt(grid.column))
+                //     .css("grid-row", parseInt(grid.row))
+                //     .attr("data-row", parseInt(grid.row))
+                //     .attr("data-column", parseInt(grid.column))
 
                 if (grid.endColumn) {
-                    newComponent
+                    jQueryReference
+                        .css("grid-column", parseInt(grid.column))
+                        .css("grid-row", parseInt(grid.row))
+                        .attr("data-row", parseInt(grid.row))
+                        .attr("data-column", parseInt(grid.column))
                         .css("grid-column-end", parseInt(grid.endColumn) + grid.columnOffset)
                         .css("grid-row-end", parseInt(grid.endRow) + grid.rowOffset)
                         .attr("data-endRow", grid.endRow)
                         .attr("data-endColumn", grid.endColumn)
+                        .css("position", '')
+                        .css("top", "")
+                        .css("left", "")
+                        .removeClass("currentDrag")
+                        .appendTo($(".currentTab").attr("data-page"))
                     setCornerBorder(parseInt(grid.row), parseInt(grid.column), parseInt(grid.endRow) + grid.rowOffset, parseInt(grid.endColumn) + grid.columnOffset, $(".currentTab").attr("data-page"))
 
                 }
 
-                jQueryReference.remove()
+                // jQueryReference.remove()
                 $("html").off("pointermove.dragComponent pointerup.dragComponent ")
                 $(".page").off("pointerdown.dragComponent")
                 $(".feauxComponent").remove()
@@ -1018,9 +1025,9 @@ function createDefaultOf(component, append, topic = "esc-UNSET-esc") {
     } else if (component == "verticalAxis") {
         return createAxis("Y-Axis", topic, append, true).div
     } else if (component == "select") {
-        return createDropdown(topic, append, 0, [{ name: "Dropdown", value: "" }]).div
+        return createDropdown(topic, append, 0, 0, [{ name: "Dropdown", value: "" }]).div
     } else if (component == "buttonOptGroup") {
-        return createOptGroup(topic, append, 0, [{ name: "Value 1", value: "" }, { name: "Value 2", value: "" }]).div
+        return createOptGroup(topic, append, 0, 0, [{ name: "Value 1", value: "" }, { name: "Value 2", value: "" }]).div
     } else if (component == "numberComponent") {
         return createNumberComponent("Number", topic, append).div
     }
@@ -1038,13 +1045,22 @@ function setCornerBorder(row = endRow, column = endColumn, endRow, endColumn, ap
 
 
     if (append) {
-        cornerBorder.appendTo(append)
+        if($(append).children().length > 0){
+            cornerBorder.insertBefore($(append).children().eq(0));
+        } else {
+            cornerBorder.appendTo(append)
+        }
     }
 
     return cornerBorder
 }
 
-function createActionButton(displayName, topic, append = false, hue = 0) {
+let editComponent = {
+    currentTarget: false,
+    valueType: false,
+}
+
+function createActionButton(displayName, topic, append = false, hex = 0) {
     let actionButton = $("<button>")
         .addClass("actionButton")
         .attr("data-type", "boolean")
@@ -1057,11 +1073,12 @@ function createActionButton(displayName, topic, append = false, hue = 0) {
     }
 
     addButtonToAnimate(actionButton)
+    addEditHandler(actionButton, "boolean")
 
     return actionButton
 }
 
-function createOneShotButton(displayName, topic, append = false, hue = 0) {
+function createOneShotButton(displayName, topic, append = false, hex = 0) {
     let oneShotButton = $("<button>")
         .addClass("oneShotButton")
         .addClass(topic)
@@ -1075,11 +1092,12 @@ function createOneShotButton(displayName, topic, append = false, hue = 0) {
     }
 
     addButtonToAnimate(oneShotButton)
+    addEditHandler(oneShotButton, "boolean")
 
     return oneShotButton
 }
 
-function createToggleButton(displayName, topic, append = false, hue = 0, value = false) {
+function createToggleButton(displayName, topic, append = false, hex = 0, value = false) {
     let toggleButton = $("<button>")
         .addClass("toggleButton")
         .attr("data-type", "boolean")
@@ -1096,14 +1114,15 @@ function createToggleButton(displayName, topic, append = false, hue = 0, value =
     }
 
     addButtonToAnimate(toggleButton)
+    addEditHandler(toggleButton, "boolean", ".toggleSpecific")
 
     return toggleButton
 }
 
-function createAxis(displayName, topic, append = false, vertical = false, hue = 0, value = 0, min = -1, max = 1, step = 0.01, snapBack = true) {
+function createAxis(displayName, topic, append = false, vertical = false, hex = 0, value = 0, min = -1, max = 1, step = 0.01, snapBack = true) {
     let axis = {
         div: $('<div>'),
-        label: $("<h1>").addClass("axisLabel"),
+        label: $("<h1>").addClass("axisLabel").addClass("editThisText"),
         knob: $("<input>")
     }
 
@@ -1133,17 +1152,18 @@ function createAxis(displayName, topic, append = false, vertical = false, hue = 
     if (append) {
         axis.div.appendTo(append)
     }
+    addEditHandler(axis.div, "double", ".axisSpecific")
 
     return axis
 }
 
-function createNumberComponent(title, topic, append = false, hue = 0, value = 0, min = -1, max = 1, step = 0.1, persist = false) {
+function createNumberComponent(title, topic, append = false, hex = 0, value = 0, min = -1, max = 1, step = 0.1, persist = false) {
 
     let numberComponent = {
         div: $("<div>").addClass("numberComponent").attr("data-type", 'double').attr("data-step", step).attr("data-min", min).attr("data-max", max).attr("data-value", value).attr("data-persist", persist).attr("data-topic", topic),
     }
 
-    numberComponent["title"] = $("<p>").addClass("numberTitle").text(title).appendTo(numberComponent.div)
+    numberComponent["title"] = $("<p>").addClass("numberTitle").addClass("editThisText").text(title).appendTo(numberComponent.div)
     numberComponent["minus"] = $("<button>").addClass("numberMinus").addClass("animatedButton").text("-").appendTo(numberComponent.div)
     numberComponent["input"] = $("<input>").addClass("numberTextInput").attr("type", "number").attr("value", value).appendTo(numberComponent.div)
     numberComponent["plus"] = $("<button>").addClass("numberPlus").addClass("animatedButton").text("+").appendTo(numberComponent.div)
@@ -1151,6 +1171,7 @@ function createNumberComponent(title, topic, append = false, hue = 0, value = 0,
     if (append) {
         numberComponent.div.appendTo(append)
     }
+    addEditHandler(numberComponent.div, "double", ".numberComponentSpecific")
 
     return numberComponent
 
@@ -1161,7 +1182,7 @@ function createNumberComponent(title, topic, append = false, hue = 0, value = 0,
 
 }
 
-function createDropdown(topic, append = false, hue = 0, initalOptionIndex = 0, options = []) {
+function createDropdown(topic, append = false, hex = 0, initalOptionIndex = 0, options = []) {
 
 
 
@@ -1185,10 +1206,12 @@ function createDropdown(topic, append = false, hue = 0, initalOptionIndex = 0, o
 
     setSelectOpener()
 
+    addEditHandler(dropdown.div, "string")
+
     return dropdown
 }
 
-function createOptGroup(topic, append, hue = 0, initalOptionIndex = 0, options = []) {
+function createOptGroup(topic, append, hex = 0, initalOptionIndex = 0, options = []) {
 
 
     let optDiv = $("<div>").addClass("buttonOptGroup").attr("data-topic", topic).attr("data-type", "string")
@@ -1201,7 +1224,6 @@ function createOptGroup(topic, append, hue = 0, initalOptionIndex = 0, options =
 
     for (let i = 0; i < options.length; i++) {
         let hue = (i * (360 / options.length))
-        console.log(hue)
         let newButton = $("<button>").addClass("animatedButton").addClass("optGroupButton").attr("data-value", options[i].value).text(options[i].name).appendTo(optDiv).css("border-color", "hsla(" + hue + ", 100%, 50%, 1)").css("background-color", "hsla(" + hue + ", 100%, 50%, 0)")
         if (i == initalOptionIndex) {
             newButton.addClass("toggledOn").css("background-color", "hsla(" + hue + ", 100%, 50%, 0.6)")
@@ -1214,27 +1236,12 @@ function createOptGroup(topic, append, hue = 0, initalOptionIndex = 0, options =
     if (append) {
         optGroup.div.appendTo(append)
     }
+    addEditHandler(optDiv, "string")
 
     return optGroup
 
 }
 
-
-function setEditSidebar(component, currentTarget) {
-    if (component == "actionButton") {
-    } else if (component == "oneShotButton") {
-    } else if (component == "toggleButton") {
-    } else if (component == "axis") {
-    } else if (component == "verticalAxis") {
-    } else if (component == "select") {
-    } else if (component == "buttonOptGroup") {
-    } else if (component == "numberComponent") {
-    }
-}
-
-function setButtonSidebar(componentType, $ct) {
-
-}
 
 setGridInput(".uiTestTab")
 
@@ -1285,7 +1292,6 @@ function setGridInput(tab) {
                 }
             }
             if (minElement && min == val + 1) {
-                console.log(minElement)
                 for (let i = 0; i < minElement.length; i++) {
                     let gridProperties = {
                         offsetX: 1,
@@ -1370,8 +1376,10 @@ function setGridInput(tab) {
 
 
 
-$(".trashCan").on(" pointerdown", (event) => {
+$(".trashCan").on(" pointerdown.activateTrashCan", (event) => {
     $(".trashCan").toggleClass("trashActive")
+    setCornerBorder(0, 0, 0, 0, 0, true)
+
     let elements = $($(".currentTab").attr("data-page")).children()
 
     for (let i = 0; i < elements.length; i++) {
@@ -1407,14 +1415,14 @@ $(".editSidebar").find(" .numberTextInput").on("blur", (event) => {
         val.attr("disabled", "disabled").val("")
     }
 
-    if(parseFloat(val.val()) > parseFloat(max.val())){
+    if (parseFloat(val.val()) > parseFloat(max.val())) {
         val.val(max.val())
         max.css("animation-name", 'warn')
 
         setTimeout(() => {
             max.css("animation-name", "")
         }, 2000);
-    }else if(parseFloat(val.val()) < parseFloat(min.val())){
+    } else if (parseFloat(val.val()) < parseFloat(min.val())) {
         val.val(min.val())
         min.css("animation-name", 'warn')
 
@@ -1447,106 +1455,282 @@ $(".editSidebar").find(" .numberTextInput").on("blur", (event) => {
 })
 
 let dragInfo = {
-    initalY:0,
-    currentY:0,
-    phased:false,
-    margined:false,
+    initalY: 0,
+    currentY: 0,
+    phased: false,
+    margined: false,
 }
 
 handleOptionDrag()
-handleOptionDrag($(".test1"))
-handleOptionDrag($(".test2"))
-handleOptionDrag($(".test3"))
 
+function handleOptionDrag() {
 
-function handleOptionDrag(element = false){
-    if(element){
-        return addElementDragHandler(element)
-    }
-    
-    $(".multiAdder").on("pointermove.drag", (event)=>{
-        if(!dragInfo.phased) return
+    $(".multiAdder").on("pointermove.drag", (event) => {
+        if (!dragInfo.phased) return
 
-        dragInfo.phased.css("top", event.pageY - vh(4.5/2) + "px")
-    }).on("pointerup", (event)=>{
-        console.log("end")
+        dragInfo.phased.css("top", event.pageY - vh(4.5 / 2) + "px")
+    })
+
+    $(".sideBar").on("pointerup.sidebarDrag pointerleave.sidebarDrag", (event) => {
         dragInfo = {
-            initalY:0,
-            currentY:0,
-            phased:false,
-            margined:false,
+            initalY: 0,
+            currentY: 0,
+            phased: false,
+            margined: false,
         }
         $(".sidebarOption").css("transition-duration", "").css("top", "")
         $(".optionAdder").css("transition-duration", "")
         $(".marginedOption").removeClass("marginedOption")
         $(".phasedOption").removeClass("phasedOption")
     })
+}
 
-    $(".sidebarOption").on("pointermove.drag", (event)=>{
-        console.log(dragInfo)
+function addElementDragHandler($element) {
+    $element.children(".hamburger").on("pointerdown", (event) => {
+
+        //bro i was like, you know what, ima not use event.current target, ima use $element inside the lambda like a normal person
+        //and guess what
+        //it would select like half the elements in the div
+        //currenttaget my beloved 
+
+        let $pr = $(event.currentTarget).parent()
+
+        dragInfo.phased = $pr
+
+        $pr.addClass('phasedOption').css("top", event.pageY - vh(4.5 / 2) + "px")
+
+        dragInfo.margined = $pr.next()
+
+        dragInfo.margined.addClass("marginedOption").offset()
+
+        $(".sidebarOption").css("transition-duration", "300ms")
+        $(".optionAdder").css("transition-duration", "300ms")
+    })
+
+    $element.on("pointermove.drag", (event) => {
         let $hov = $(document.elementsFromPoint(event.pageX, event.pageY)).not(".phasedOption").filter(".sidebarOption, .optionAdder").eq(0)
 
-        if(!dragInfo.phased) return
+        if (!dragInfo.phased) return
 
-        dragInfo.phased.css("top", event.pageY - vh(4.5/2) + "px")
+        dragInfo.phased.css("top", event.pageY - vh(4.5 / 2) + "px")
 
-        if($hov.is(dragInfo.phased.prev())){
-            if($hov.hasClass("marginedOption") || $hov.hasClass("transitioning")){
+        if ($hov.is(dragInfo.phased.prev())) {
+            if ($hov.hasClass("marginedOption") || $hov.hasClass("transitioning")) {
                 return
             }
-    
-            if($hov.hasClass("sidebarOption") || $hov.hasClass("optionAdder")){
+
+            if ($hov.hasClass("sidebarOption") || $hov.hasClass("optionAdder")) {
                 let transitioner = $(".marginedOption").removeClass("marginedOption").addClass("transitioning")
 
                 setTimeout(() => {
                     transitioner.removeClass("transitioning")
                 }, 300);
-    
+
                 $hov.addClass("marginedOption")
-    
+
                 dragInfo.phased.insertBefore($hov)
             }
-        } else{
-            if($hov.next().hasClass("marginedOption") || $hov.next().hasClass("transitioning")){
+        } else {
+            if ($hov.next().hasClass("marginedOption") || $hov.next().hasClass("transitioning")) {
                 return
             }
-    
-            if($hov.hasClass("sidebarOption") || $hov.hasClass("optionAdder")){
+
+            if ($hov.hasClass("sidebarOption") || $hov.hasClass("optionAdder")) {
                 let transitioner = $(".marginedOption").removeClass("marginedOption").addClass("transitioning")
 
                 setTimeout(() => {
                     transitioner.removeClass("transitioning")
                 }, 300);
-    
+
                 $hov.next().addClass("marginedOption")
-    
+
                 dragInfo.phased.insertAfter($hov)
-                
+
             }
         }
     })
 
-    function addElementDragHandler($element){
-        $element.children(".hamburger").on("pointerdown", (event)=>{
-
-            //bro i was like, you know what, ima not use event.current target, ima use $element inside the lambda like a normal person
-            //and guess what
-            //it would select like half the elements in the div
-            //currenttaget my beloved 
-
-            let $pr = $(event.currentTarget).parent()
-
-            dragInfo.phased = $pr
-
-            $pr.addClass('phasedOption').css("top", event.pageY - vh(4.5/2) + "px")
-
-            dragInfo.margined = $pr.next()
-
-            dragInfo.margined.addClass("marginedOption").offset()
-            
-            $(".sidebarOption").css("transition-duration", "300ms")
-            $(".optionAdder").css("transition-duration", "300ms")
-            
-        })
-    }
 }
+
+$(".optionAdder").on("submit", () => {
+    let $sbO = $("<div>").addClass("sidebarOption").insertBefore(".optionAdder").attr("data-name", $(".newOptionName").val()).attr("data-value", $(".newOptionName").val()).attr("data-hex", $(".hex").val()).css("border-color", $(".hex").val())
+    let $ham = $("<button>").addClass("sideBarEmojiButton").addClass("hamburger").text("☰").appendTo($sbO)
+    $("<p>").text($(".newOptionName").val() + ":" + $(".newOptionValue").val()).appendTo($sbO)
+    $("<button>").text("❌").addClass("sideBarEmojiButton").addClass("trashOption").appendTo($sbO).on("pointerdown.remove", (event) => {
+        $(event.currentTarget).parent().remove()
+    }
+    )
+
+    $(".newOptionName").val("")
+    $(".newOptionValue").val("")
+    addElementDragHandler($sbO)
+
+    return false
+})
+
+function addEditHandler(element, valueType, specificClass = false) {
+    element.on("pointerdown.editHandler", (event) => {
+        // allow for blur event to execute
+        setTimeout(() => {
+
+            if ($(".trashCan").hasClass("trashActive")) return
+
+            let $ct = $(event.currentTarget)
+
+            editComponent.currentTarget = $ct
+            editComponent.valueType = valueType
+
+            $(".allComponentOptions").css("display", "")
+            $(".ioComponents").css("display", "none")
+            $(".specificComponent").css("display", "none")
+            $(".editSidebar").css("display", "none")
+
+            if (specificClass) {
+                $(specificClass).css("display", "")
+            }
+
+            $(".sideBarNav").children()
+
+            let startString = element[0].classList[0]
+
+            startString = startString.charAt(0).toUpperCase() + startString.slice(1)
+
+            $(".addButtons").css("display", "none")
+            $(".editNavButtons").css("display", "")
+            $(".editNavName").text(startString)
+
+            bindEditMenu($ct, valueType, specificClass)
+
+            let gridPoses = findEndOffset(element.attr('data-row'), element.attr('data-column'), element.attr('data-endRow'), element.attr('data-endColumn'))
+
+            setCornerBorder(gridPoses.row, gridPoses.column, gridPoses.endRow, gridPoses.endColumn, $(".currentTab").attr("data-page"), true)
+
+            $("." + valueType + "Sidebar").css("display", 'flex')
+        }, 10);
+
+    })
+}
+
+
+
+
+$(".editNavBack, .trashCan").on("pointerdown.resetEditor", () => {
+    $(".addButtons").css("display", "")
+    $(".editNavButtons").css("display", "none")
+    setCornerBorder(0, 0, 0, 0, 0, true)
+    $(".allComponentOptions").css("display", "none")
+    $(".specificComponent").css("display", "none")
+    $(".editSidebar").css("display", "none")
+    $(".ioComponents").css("display", "flex")
+
+})
+
+function bindEditMenu(element, valueType, specificClass = false) {
+
+    let inputs = $("." + valueType + "Sidebar").find(".isEdit").val("")
+
+
+    for (let i = 0; i < inputs.length; i++) {
+        let eq = inputs.eq(i)
+
+        if (eq.attr('data-editing') == "text") {
+            //defaults selection to all text for easy deletion
+            eq.val(editComponent.currentTarget.text()).on(`focus.selectText`, (event) => setTimeout(() => $(event.currentTarget)[0].setSelectionRange(0, $(event.currentTarget).val().length), 100))
+
+            eq.off("input.typing  blur.typing").on("input.typing blur.typing", (event) => {
+                let $ct = $(event.currentTarget)
+                let $comp = editComponent.currentTarget
+                $comp.children(".buttonWord").remove()
+
+                if ($comp.children(".editThisText").length > 0) {
+                    $comp.children(".editThisText").text($ct.val())
+                } else {
+                    $comp.text($ct.val())
+                }
+
+
+            })
+        } else if (eq.hasClass("numberTextInput")) {
+            let boundEditing
+            if (editComponent.currentTarget.hasClass("numberComponent")) {
+                boundEditing = editComponent.currentTarget.attr("data-" + eq.attr("data-editing"))
+            } else if (editComponent.currentTarget.hasClass("axis") || editComponent.currentTarget.hasClass("verticalAxis")) {
+                boundEditing = editComponent.currentTarget.children(".axisKnob, .verticalAxisKnob").attr(eq.attr('data-editing'))
+            
+            }
+            
+            eq.val(boundEditing)
+
+            eq.off("blur.typing").on("blur.typing", (event) => {
+                let $ct = $(event.currentTarget)
+                let $comp = editComponent.currentTarget
+
+                if (editComponent.currentTarget.hasClass("numberComponent")) {
+                    $comp.attr("data-" + $ct.attr('data-editing'), $ct.val())
+                } else if (editComponent.currentTarget.hasClass("axis") || editComponent.currentTarget.hasClass("verticalAxis")) {
+
+                    $comp.children(".axisKnob, .verticalAxisKnob").attr($ct.attr('data-editing'), $ct.val())
+                }
+            })
+        } else {
+            //defaults selection to all text for easy deletion
+            let boundEditing = editComponent.currentTarget.attr(eq.attr("data-editing"))
+
+            if (boundEditing === "esc-UNDEFINED-esc") {
+                boundEditing = ""
+            }
+
+            eq.val(boundEditing).on(`focus.selectText`, (event) => setTimeout(() => $(event.currentTarget)[0].setSelectionRange(0, $(event.currentTarget).val().length), 100))
+
+            eq.off("input.typing blur.typing").on("input.typing blur.typing", (event) => {
+                let $ct = $(event.currentTarget)
+                let $comp = editComponent.currentTarget
+
+                $comp.attr($ct.attr('data-editing'), $ct.val())
+            })
+        }
+
+    }
+
+    if(valueType == "double"){
+        let min = $(".doubleSidebar").find(".min")
+        let max = $(".doubleSidebar").find(".max")
+        let val = $(".doubleSidebar").find(".value")
+        
+        if (min.val() != "" && max.val() != "") {
+            val.removeAttr("disabled")
+        } else {
+            val.attr("disabled", "disabled").val("")
+        }
+    }
+
+
+}
+
+function findEndOffset(row, column, endRow, endColumn) {
+    let gridPoses = {
+        "row": parseFloat(row),
+        "column": parseFloat(column),
+        "endRow": parseFloat(endRow),
+        "endColumn": parseFloat(endColumn)
+    }
+
+
+    if (gridPoses.endRow >= gridPoses.row) {
+        gridPoses.endRow++
+    }
+
+    if (gridPoses.endColumn >= gridPoses.column) {
+        gridPoses.endColumn++
+    }
+
+
+    return gridPoses
+}
+
+$(".reposistionComponent").on("pointerdown.reposComponent", (event) => {
+    setCornerBorder(0, 0, 0, 0, 0, true)
+    let currentDrag = clientDragHandler(event, editComponent.currentTarget)
+    console.log(editComponent.currentTarget[0].classList[0])
+    addToCurrentDrag(editComponent.currentTarget, currentDrag.x, currentDrag.y, editComponent.currentTarget[0].classList[0])
+})

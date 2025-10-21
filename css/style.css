@@ -1790,12 +1790,7 @@ input[type=number] {
     height: 100%; */
 }
 
-.teamNumberInput {
-    border-radius: 1vh;
-    height: 8vh;
-    font-size: 7vh;
-    text-align: center;
-}
+
 
 /* Border corner code from Temani Afif on stack overflow (was not trying to figure this out myself looks cumbersome*/
 
@@ -1991,11 +1986,12 @@ input[type=number] {
     /* border-style: */
     padding: 0px;
     margin: 0px; 
-    display: flex;
+    /* display: flex; */
+    display: none;
     flex-direction: column;
     align-items: center;
     background-color: rgb(18, 18, 18);
-    height: 90%;
+    /* height: 90%; */
     grid-area: S;
     overflow-y: scroll;
     overflow-x: hidden;
@@ -2162,7 +2158,9 @@ input[type=number] {
 
 .sideBarEmojiButton {
     background-color: rgb(32, 32, 32);
-
+    text-align: center;
+    margin: 0px;
+    padding: 0px;
     border: none;
     outline: none;
     height: 4vh;
@@ -2181,7 +2179,8 @@ input[type=number] {
     margin-top: -0.3vh;
 }
 
-.editOption{
+.trashOption{
+    line-height: 4.25vh;
     border:none;
     background-color: transparent;
 }
@@ -2206,8 +2205,9 @@ input[type=number] {
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;
-        justify-content: space-evenly;
+        justify-content: space-between;
         align-items: center;
+        touch-action: none;
         align-content: center;
     }
     
@@ -2215,5 +2215,42 @@ input[type=number] {
 }
 
 .marginedOption{
-    margin-top: 5vh;
+    margin-top: 4.75vh;
+}
+
+.teamNumberInput {
+    border-radius: 1vh;
+    height: 8vh;
+    font-size: 7vh;
+    text-align: center;
+}
+
+.hex{
+    height: 4vh;
+    width: 4vh;
+    background-color: transparent;
+    border: none;
+}
+
+.sideBarNav .editNavBack{
+    width: 3vh; 
+    font-weight: 900;
+}
+
+.sideBarNav .editNavName{
+    font-size: 3vh;
+    width: max-content;
+}
+
+.reposistionComponent{
+    height: 5vh;
+    font-size: 3vh;
+    line-height: 5vh;
+    border: 0.25vh solid rgb(58, 58, 58);
+    background-color: rgb(12, 12, 12);
+    color: white;
+    padding-inline: 1vh;
+    border-radius: 1vh;
+    margin-top: auto;
+    margin-bottom: 1vh;
 }
