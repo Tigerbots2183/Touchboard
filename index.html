@@ -339,10 +339,10 @@ SOFTWARE. -->
                 <input class="axisKnob" type="range" min="0" max="0" value="0">
             </div>
 
-            <div class="verticalAxis" data-topic="TestAxis" data-value="0" data-type="double">
+            <!-- <div class="verticalAxis" data-topic="TestAxis" data-value="0" data-type="double">
                 <h1 class="axisLabel editThisText">Y-Axis</h1>
                 <input class="verticalAxisKnob editThisRange" type="range" min="0" max="0" value="0">
-            </div>
+            </div> -->
 
             <!-- The value that is sent to the bot is defined in the select option data-value, the text is displayed on the ui -->
             <div class="select sideBarSelect" data-value="points" data-topic="DropdownTest" data-type="string">
@@ -386,6 +386,11 @@ SOFTWARE. -->
                 <input type="text" data-editing="data-topic" class="textInput isEdit" placeholder="Unset">
             </div>
 
+            <div class="sideInputDiv">
+                <p>Color:</p>
+                <input type="color" data-editing="color" class="colorInput isEdit" placeholder="Unset">
+            </div>
+
 
             <!-- //Toggle Button ONLY -->
             <div class="sideInputDiv specificComponent toggleSpecific">
@@ -420,6 +425,11 @@ SOFTWARE. -->
                     <input type="button" class="multiSwitchButton" value="X-Axis">
                     <input type="button" class="multiSwitchButton" value="Y-Axis">
                 </div>
+            </div>
+
+            <div class="sideInputDiv specificComponent axisSpecific">
+                <p>Color:</p>
+                <input type="color" data-editing="color" class="colorInput isEdit" placeholder="Unset">
             </div>
 
             <div class="sideInputDiv">

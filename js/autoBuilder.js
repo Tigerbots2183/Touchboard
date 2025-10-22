@@ -59,12 +59,13 @@ function alongPath(angle, radius, xposLocal = 750, yposLocal = 750,) {
 multiSwitchButtonEvent()
 function multiSwitchButtonEvent() {
     $(".multiSwitchButton").off()
-    $(".multiSwitchButton").on("click", (event) => {
+    $(".multiSwitchButton").on("pointerdown.baseSwitching", (event) => {
         let leftOffset = $(event.target).offset().left - $(event.target).parent().offset().left
         $(event.target).parent().find(".multiSliding").css("margin-left", leftOffset + "px")
         $(event.target).parent().attr("data-value", $(event.target).val())
     })
 }
+
 
 
 let $pbt = $(".poseBTN")

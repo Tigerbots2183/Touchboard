@@ -491,7 +491,7 @@ foreignObject input[type=range]::-webkit-slider-thumb {
 .actionButton {
     width: 10vmin;
     height: 10vmin;
-    background-color: rgba(43, 0, 255, 0.247);
+    background-color: #2b00ff3f;
     border: none;
     border-radius: 1.5vh;
     color: white;
@@ -509,7 +509,7 @@ foreignObject input[type=range]::-webkit-slider-thumb {
     width: 10vmin;
     height: 10vmin;
     background-color: rgba(255, 115, 0, 0);
-    border: rgb(255, 115, 0) dashed 0.25vmin;
+    border: #ff7300 dashed 0.25vmin;
     border-radius: 1.5vh;
     color: white;
     font-size: 2vmin;
@@ -548,8 +548,8 @@ foreignObject input[type=range]::-webkit-slider-thumb {
 .oneShotButton {
     width: 10vmin;
     height: 10vmin;
-    background-color: rgba(255, 242, 0, 0.247);
-    border: rgba(255, 242, 0, 1) solid 0.25vmin;
+    background-color: #fff2003f;
+    border: #fff200 solid 0.25vmin;
 
     border-radius: 1.5vh;
     color: white;
@@ -589,7 +589,7 @@ foreignObject input[type=range]::-webkit-slider-thumb {
     margin-bottom: 0.5vmin;
     border-radius: 0.5vmin;
     appearance: none;
-
+    
 }
 
 .verticalAxis {
@@ -628,6 +628,8 @@ input[type=range]::-webkit-slider-thumb {
     border-radius: 1vmin;
     margin-top: 1vmin;
     margin-bottom: 1vmin;
+   
+
     height: min-content;
     width: min-content;
     background-color: rgb(24, 24, 24);
@@ -1434,6 +1436,7 @@ input[type=number] {
         flex-direction: column;
         align-items: center;
         justify-content: space-evenly;
+        --thumbColor: blueviolet;
     }
 
     .axisLabel {
@@ -1463,6 +1466,8 @@ input[type=number] {
         flex-direction: column;
         align-items: center;
         justify-content: space-evenly;
+        --thumbColor: #8a2be2;
+
     }
 
     .verticalAxisKnob {
@@ -1482,7 +1487,7 @@ input[type=number] {
         height: 10cqmin;
         width: 10cqmin;
         border-radius: 10cqmin;
-        background-color: blueviolet;
+        background-color: var(--thumbColor);
     }
 
 
@@ -1490,6 +1495,8 @@ input[type=number] {
         border-radius: 2cqmin;
         margin-top: 2cqmin;
         margin-bottom: 2cqmin;
+        min-width: 20cqmin;
+        min-height: 20cqmin;
         height: min-content;
         width: min-content;
         background-color: rgb(24, 24, 24);
@@ -1997,6 +2004,7 @@ input[type=number] {
     overflow-x: hidden;
     flex-wrap: nowrap;
     box-sizing: border-box;
+    padding-bottom: 1vh;
 }
 
 .sideInputDiv{
@@ -2043,6 +2051,14 @@ input[type=number] {
     margin-top: .05vh;
     margin-bottom: .05vh;
     padding: 0px;
+}
+
+.colorInput{
+    width: 62.5%;
+    height: 4.5vh;
+    margin: 0px;
+    background-color: rgba(0, 0, 0, 0);
+
 }
 
 .sideBar .numberTextInput{
