@@ -11,6 +11,9 @@ export function getHtmlFileName() {
     return fileName.slice(0, -5);
 }
 
+let defaultSimilarOptions = {
+    fill: false,
+}
 
 function vh(percent) {
     var h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
@@ -526,7 +529,7 @@ function onConnectCb() {
             } else if ($uiElements.eq(i).hasClass("select")) {
                 $uiElements.eq(i).children(".selectOption").on("pointerdown", (event) => {
                     let $ct = $(event.target)
-                    $uiElements.eq(i).attr("data-value", $ct.attr("data-value"))
+                    $uiElements.eq(i).attr("data-value", $ct.attr("data-value")).css("background-color", $ct.attr("data-hex") + "6b")
                     $uiElements.eq(i).children(".selectTitle").text($ct.text())
                     nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), $uiElements.eq(i).attr("data-value"))
 
@@ -587,6 +590,7 @@ function onConnectCb() {
     }, 1000);
 
 }
+
 function onDisconnectCb() {
     if ($("#connect").is(":checked")) {
         $(".fullScreen").css("background-color", "rgb(128, 32, 32)")
@@ -602,9 +606,6 @@ function onDisconnectCb() {
         }, 1000);
     }
 }
-
-
-
 
 if (localStorage.getItem(getHtmlFileName() + "teamNumber") == null) {
     $(".connectionText").text("No Team")
@@ -642,6 +643,7 @@ $(".setTeam").on("click", () => {
     }
     window.location.reload()
 })
+
 function roundToNearestX(number, x) {
 
     if (x === 0) return 0;
@@ -723,9 +725,18 @@ $(".ioComponents").children().off().on("pointerdown.addComponent ", (event) => {
 
     let jQueryReference = createDefaultOf(componentType, ".dashboardHolder", "esc-UNDEFINED-esc")
 
-    let clientDrag = clientDragHandler(event, jQueryReference)
+    //When fill is enabled, the element takes 100% of current container width, since it starts with no container, 
+    //Current drag is exempt from this 100%, but that class wont be added to later, so we make a new element with
+    //that class to put into the mouse position handler and add the offset for the center of the element. 
+
+    let dragRef = createDefaultOf(componentType, ".dashboardHolder", "esc-UNDEFINED-esc").addClass("currentDrag")
+
+    let clientDrag = clientDragHandler(event, dragRef)
+
+    dragRef.remove()
 
     addToCurrentDrag(jQueryReference, clientDrag.x, clientDrag.y, componentType)
+
 
 })
 
@@ -951,6 +962,7 @@ function setGridUnderlay(columns, rows) {
 }
 
 function clientDragHandler(event, jQueryReference) {
+
     let clientDrag = {
         x: 0,
         y: 0,
@@ -964,11 +976,13 @@ function clientDragHandler(event, jQueryReference) {
 
 
     if (jQueryReference) {
+        jQueryReference.offset()
+
         jQueryDimensions = {
             height: jQueryReference.outerHeight(true) / 2,
             width: jQueryReference.outerWidth(true) / 2,
         }
-
+        console.log(jQueryDimensions)
     }
 
     clientDrag.rawX = event.pageX
@@ -1013,26 +1027,6 @@ function flipHandler() {
 
 }
 
-function createDefaultOf(component, append, topic = "esc-UNSET-esc") {
-    if (component == "actionButton") {
-        return createActionButton("Action Button", topic, append)
-    } else if (component == "oneShotButton") {
-        return createOneShotButton("One Shot Button", topic, append)
-    } else if (component == "toggleButton") {
-        return createToggleButton("Toggle Button", topic, append)
-    } else if (component == "axis") {
-        return createAxis("Axis", topic, append, false).div
-    } else if (component == "verticalAxis") {
-        return createAxis("Y-Axis", topic, append, true).div
-    } else if (component == "select") {
-        return createDropdown(topic, append, 0, 0, [{ name: "Dropdown", value: "" }]).div
-    } else if (component == "buttonOptGroup") {
-        return createOptGroup(topic, append, 0, 0, [{ name: "Value 1", value: "" }, { name: "Value 2", value: "" }]).div
-    } else if (component == "numberComponent") {
-        return createNumberComponent("Number", topic, append).div
-    }
-}
-
 function setCornerBorder(row = endRow, column = endColumn, endRow, endColumn, append = false, remove = true) {
     if (remove) {
         $(".cornerBorder").remove()
@@ -1055,9 +1049,30 @@ function setCornerBorder(row = endRow, column = endColumn, endRow, endColumn, ap
     return cornerBorder
 }
 
+
 let editComponent = {
     currentTarget: false,
     valueType: false,
+}
+
+function createDefaultOf(component, append, topic = "esc-UNSET-esc") {
+    if (component == "actionButton") {
+        return createActionButton("Action Button", topic, append)
+    } else if (component == "oneShotButton") {
+        return createOneShotButton("One Shot Button", topic, append)
+    } else if (component == "toggleButton") {
+        return createToggleButton("Toggle Button", topic, append)
+    } else if (component == "axis") {
+        return createAxis("Axis", topic, append, false).div
+    } else if (component == "verticalAxis") {
+        return createAxis("Y-Axis", topic, append, true).div
+    } else if (component == "select") {
+        return createDropdown(topic, append, 0, 0, [{ name: "Dropdown", value: "" }]).div
+    } else if (component == "buttonOptGroup") {
+        return createOptGroup(topic, append, 0, 0, [{ name: "Value 1", value: "" }, { name: "Value 2", value: "" }]).div
+    } else if (component == "numberComponent") {
+        return createNumberComponent("Number", topic, append).div
+    }
 }
 
 function createActionButton(displayName, topic, append = false, hex = 0) {
@@ -1067,12 +1082,15 @@ function createActionButton(displayName, topic, append = false, hex = 0) {
         .attr("data-topic", topic)
         .attr("data-value", false)
         .attr("data-color", "#2b00ff")
+        .attr("data-componentType", "actionButton")
+        .attr("data-defaultSimilarOptions", JSON.stringify(defaultSimilarOptions))
         .text(displayName)
 
     if (append) {
         actionButton.appendTo(append)
     }
 
+    setSimilarOptions(actionButton, defaultSimilarOptions)
     addButtonToAnimate(actionButton)
     addEditHandler(actionButton, "boolean")
 
@@ -1087,12 +1105,15 @@ function createOneShotButton(displayName, topic, append = false, hex = 0) {
         .attr("data-topic", topic)
         .attr("data-value", false)
         .attr("data-color", "#fff200")
+        .attr("data-componentType", "oneShotButton")
+        .attr("data-defaultSimilarOptions", JSON.stringify(defaultSimilarOptions))
         .text(displayName)
 
     if (append) {
         oneShotButton.appendTo(append)
     }
 
+    setSimilarOptions(oneShotButton, defaultSimilarOptions)
     addButtonToAnimate(oneShotButton)
     addEditHandler(oneShotButton, "boolean")
 
@@ -1106,6 +1127,8 @@ function createToggleButton(displayName, topic, append = false, hex = 0, value =
         .attr("data-topic", topic)
         .attr("data-value", value)
         .attr("data-color", "#ff7300")
+        .attr("data-componentType", "toggleButton")
+        .attr("data-defaultSimilarOptions", JSON.stringify(defaultSimilarOptions))
         .text(displayName)
 
     if (value) {
@@ -1116,6 +1139,7 @@ function createToggleButton(displayName, topic, append = false, hex = 0, value =
         toggleButton.appendTo(append)
     }
 
+    setSimilarOptions(toggleButton, defaultSimilarOptions)
     addButtonToAnimate(toggleButton)
     addEditHandler(toggleButton, "boolean", ".toggleSpecific")
 
@@ -1124,7 +1148,7 @@ function createToggleButton(displayName, topic, append = false, hex = 0, value =
 
 function createAxis(displayName, topic, append = false, vertical = false, hex = 0, value = 0, min = -1, max = 1, step = 0.01, snapBack = true) {
     let axis = {
-        div: $('<div>'),
+        div: $('<div>').attr("data-defaultSimilarOptions", JSON.stringify(defaultSimilarOptions)),
         label: $("<h1>").addClass("axisLabel").addClass("editThisText"),
         knob: $("<input>")
     }
@@ -1133,10 +1157,10 @@ function createAxis(displayName, topic, append = false, vertical = false, hex = 
     axis.knob.appendTo(axis.div)
 
     if (!vertical) {
-        axis.div.addClass("axis")
+        axis.div.addClass("axis").attr("data-componentType", "axis")
         axis.knob.addClass("axisKnob")
     } else {
-        axis.div.addClass("verticalAxis")
+        axis.div.addClass("verticalAxis").attr("data-componentType", "verticalAxis")
         axis.knob.addClass('verticalAxisKnob')
     }
 
@@ -1156,6 +1180,8 @@ function createAxis(displayName, topic, append = false, vertical = false, hex = 
     if (append) {
         axis.div.appendTo(append)
     }
+
+    setSimilarOptions(axis.div, defaultSimilarOptions)
     addEditHandler(axis.div, "double", ".axisSpecific")
 
     return axis
@@ -1164,7 +1190,7 @@ function createAxis(displayName, topic, append = false, vertical = false, hex = 
 function createNumberComponent(title, topic, append = false, hex = 0, value = 0, min = -1, max = 1, step = 0.1, persist = false) {
 
     let numberComponent = {
-        div: $("<div>").addClass("numberComponent").attr("data-type", 'double').attr("data-step", step).attr("data-min", min).attr("data-max", max).attr("data-value", value).attr("data-persist", persist).attr("data-topic", topic),
+        div: $("<div>").addClass("numberComponent").attr("data-type", 'double').attr("data-step", step).attr("data-min", min).attr("data-max", max).attr("data-value", value).attr("data-persist", persist).attr("data-topic", topic).attr("data-componentType", "numberComponent").attr("data-defaultSimilarOptions", JSON.stringify(defaultSimilarOptions)),
     }
 
     numberComponent["title"] = $("<p>").addClass("numberTitle").addClass("editThisText").text(title).appendTo(numberComponent.div)
@@ -1175,6 +1201,8 @@ function createNumberComponent(title, topic, append = false, hex = 0, value = 0,
     if (append) {
         numberComponent.div.appendTo(append)
     }
+
+    setSimilarOptions(numberComponent.div, defaultSimilarOptions)
     addEditHandler(numberComponent.div, "double", ".numberComponentSpecific")
 
     return numberComponent
@@ -1186,12 +1214,12 @@ function createNumberComponent(title, topic, append = false, hex = 0, value = 0,
 
 }
 
-function createDropdown(topic, append = false, hex = 0, initalOptionIndex = 0, options = []) {
+function createDropdown(topic, append = false, hex = 0, initalOptionIndex = 0, options = [], similarOptions = defaultSimilarOptions) {
 
 
 
     let dropdown = {
-        div: $("<div>").addClass("select").attr("data-value", options[initalOptionIndex].value).attr("data-topic", topic).attr("data-type", "string").attr("data-componentOptions", JSON.stringify(options)),
+        div: $("<div>").addClass("select").attr("data-value", options[initalOptionIndex].value).attr("data-topic", topic).attr("data-type", "string").attr("data-componentType", "select").attr("data-componentOptions", JSON.stringify(options)).css("background-color", options[initalOptionIndex].color + "6b").attr("data-defaultSimilarOptions", JSON.stringify(similarOptions)),
 
     }
 
@@ -1199,7 +1227,7 @@ function createDropdown(topic, append = false, hex = 0, initalOptionIndex = 0, o
 
     let $aO = []
     for (let i = 0; i < options.length; i++) {
-        $aO.push($("<h1>").appendTo(dropdown.div).addClass("selectOption").text(options[i].name).attr("data-value", options.value));
+        $aO.push($("<h1>").appendTo(dropdown.div).addClass("selectOption").text(options[i].name).attr("data-value", options[i].value).attr("data-hex", options[i].color).css("background-color", options[i].color));
     }
 
     dropdown["options"] = $aO
@@ -1209,16 +1237,16 @@ function createDropdown(topic, append = false, hex = 0, initalOptionIndex = 0, o
     }
 
     setSelectOpener()
-
+    setSimilarOptions(dropdown.div, similarOptions)
     addEditHandler(dropdown.div, "string")
 
     return dropdown
 }
 
-function createOptGroup(topic, append, hex = 0, initalOptionIndex = 0, options = []) {
+function createOptGroup(topic, append, hex = 0, initalOptionIndex = 0, options = [], similarOptions = defaultSimilarOptions) {
 
 
-    let optDiv = $("<div>").addClass("buttonOptGroup").attr("data-topic", topic).attr("data-type", "string").attr("data-componentOptions", JSON.stringify(options))
+    let optDiv = $("<div>").addClass("buttonOptGroup").attr("data-topic", topic).attr("data-type", "string").attr("data-componentOptions", JSON.stringify(options)).attr("data-componentType", "buttonOptGroup").attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
 
     console.log(options)
 
@@ -1256,6 +1284,8 @@ function createOptGroup(topic, append, hex = 0, initalOptionIndex = 0, options =
     if (append) {
         optGroup.div.appendTo(append)
     }
+
+    setSimilarOptions(optGroup.div, similarOptions)
     addEditHandler(optDiv, "string")
 
     return optGroup
@@ -1394,12 +1424,10 @@ function setGridInput(tab) {
     }
 }
 
-
-
 $(".trashCan").on(" pointerdown.activateTrashCan", (event) => {
     $(".trashCan").toggleClass("trashActive")
     setCornerBorder(0, 0, 0, 0, 0, true)
-    
+
     let elements = $($(".currentTab").attr("data-page")).children()
 
     for (let i = 0; i < elements.length; i++) {
@@ -1591,6 +1619,8 @@ $(".optionAdder").on("submit.addDiv", () => {
 function addEditHandler(element, valueType, specificClass = false) {
     element.on("pointerdown.editHandler", (event) => {
         // allow for blur event to execute
+        $(".sideBar").off("pointerup.setEdit pointermove.setEdit")
+
         setTimeout(() => {
 
             if ($(".trashCan").hasClass("trashActive")) return
@@ -1599,6 +1629,8 @@ function addEditHandler(element, valueType, specificClass = false) {
 
             editComponent.currentTarget = $ct
             editComponent.valueType = valueType
+
+            changeSimilarInputs(JSON.parse(editComponent.currentTarget.attr("data-defaultSimilarOptions")))
 
             $(".allComponentOptions").css("display", "")
             $(".ioComponents").css("display", "none")
@@ -1611,7 +1643,7 @@ function addEditHandler(element, valueType, specificClass = false) {
 
             $(".sideBarNav").children()
 
-            let startString = element[0].classList[0]
+            let startString = element.attr("data-componentType")
 
             startString = startString.charAt(0).toUpperCase() + startString.slice(1)
 
@@ -1665,7 +1697,7 @@ function bindEditMenu(element, valueType, specificClass = false) {
         } else {
             bindOtherData(inputBeingBound)
         }
-        
+
     }
 
     if (valueType == "double") {
@@ -1699,7 +1731,7 @@ function bindEditMenu(element, valueType, specificClass = false) {
         })
     }
 
-    function bindNumbers(inputBeingBound){
+    function bindNumbers(inputBeingBound) {
         let boundEditing
         if (editComponent.currentTarget.hasClass("numberComponent")) {
             boundEditing = editComponent.currentTarget.attr("data-" + inputBeingBound.attr("data-editing"))
@@ -1723,25 +1755,25 @@ function bindEditMenu(element, valueType, specificClass = false) {
         })
     }
 
-    function bindColors(inputBeingBound){
+    function bindColors(inputBeingBound) {
         inputBeingBound.val(editComponent.currentTarget.attr("data-color"))
 
-            inputBeingBound.off("input.coloring").on("input.coloring", (event) => {
-                let $ct = $(event.currentTarget)
+        inputBeingBound.off("input.coloring").on("input.coloring", (event) => {
+            let $ct = $(event.currentTarget)
 
-                if (valueType == 'boolean') {
-                    editComponent.currentTarget.css("background-color", $ct.val() + "3f").css("border-color", $ct.val()).attr("data-color", $ct.val())
+            if (valueType == 'boolean') {
+                editComponent.currentTarget.css("background-color", $ct.val() + "3f").css("border-color", $ct.val()).attr("data-color", $ct.val())
 
-                    if (editComponent.currentTarget.hasClass("toggleButton") && !(editComponent.currentTarget.hasClass("toggledOn"))) {
-                        editComponent.currentTarget.css("background-color", $ct.val() + "00").css("border-color", $ct.val()).attr("data-color", $ct.val())
-                    }
-                } else if (valueType == "double") {
-                    editComponent.currentTarget.css("--thumbColor", $ct.val()).attr("data-color", $ct.val())
+                if (editComponent.currentTarget.hasClass("toggleButton") && !(editComponent.currentTarget.hasClass("toggledOn"))) {
+                    editComponent.currentTarget.css("background-color", $ct.val() + "00").css("border-color", $ct.val()).attr("data-color", $ct.val())
                 }
-            })
+            } else if (valueType == "double") {
+                editComponent.currentTarget.css("--thumbColor", $ct.val()).attr("data-color", $ct.val())
+            }
+        })
     }
 
-    function bindAxisDirection(inputBeingBound){
+    function bindAxisDirection(inputBeingBound) {
         setTimeout(() => {
             if (editComponent.currentTarget.hasClass("verticalAxis")) {
                 multiSwitchButtonSet(inputBeingBound, "Y-Axis")
@@ -1752,17 +1784,17 @@ function bindEditMenu(element, valueType, specificClass = false) {
 
         inputBeingBound.find(".multiSwitchButton").off("pointerdown.axisDirection").on("pointerdown.axisDirection", (event) => {
             if ($(event.target).val() == "Y-Axis") {
-                editComponent.currentTarget.removeClass("axis").addClass("verticalAxis")
+                editComponent.currentTarget.removeClass("axis").addClass("verticalAxis").attr("data-componentType", "verticalAxis")
                 editComponent.currentTarget.find(".axisKnob").removeClass("axisKnob").addClass("verticalAxisKnob")
             } else if ($(event.target).val() == "X-Axis") {
-                editComponent.currentTarget.removeClass("verticalAxis").addClass("axis")
+                editComponent.currentTarget.removeClass("verticalAxis").addClass("axis").attr("data-componentType", "axis")
                 editComponent.currentTarget.find(".verticalAxisKnob").removeClass("verticalAxisKnob").addClass("axisKnob")
 
             }
         })
     }
 
-    function bindMultiAdder(inputBeingBound){
+    function bindMultiAdder(inputBeingBound) {
         let foundComponentOptions = JSON.parse(editComponent.currentTarget.attr("data-componentOptions"))
 
         $(".multiAdder").children(".sidebarOption").remove()
@@ -1800,22 +1832,22 @@ function bindEditMenu(element, valueType, specificClass = false) {
         })
     }
 
-    function bindOtherData(inputBeingBound){
-         //defaults selection to all text for easy deletion
-         let boundEditing = editComponent.currentTarget.attr(inputBeingBound.attr("data-editing"))
+    function bindOtherData(inputBeingBound) {
+        //defaults selection to all text for easy deletion
+        let boundEditing = editComponent.currentTarget.attr(inputBeingBound.attr("data-editing"))
 
-         if (boundEditing === "esc-UNDEFINED-esc") {
-             boundEditing = ""
-         }
+        if (boundEditing === "esc-UNDEFINED-esc") {
+            boundEditing = ""
+        }
 
-         inputBeingBound.val(boundEditing).on(`focus.selectText`, (event) => setTimeout(() => $(event.currentTarget)[0].setSelectionRange(0, $(event.currentTarget).val().length), 100))
+        inputBeingBound.val(boundEditing).on(`focus.selectText`, (event) => setTimeout(() => $(event.currentTarget)[0].setSelectionRange(0, $(event.currentTarget).val().length), 100))
 
-         inputBeingBound.off("input.typing blur.typing").on("input.typing blur.typing", (event) => {
-             let $ct = $(event.currentTarget)
-             let $comp = editComponent.currentTarget
+        inputBeingBound.off("input.typing blur.typing").on("input.typing blur.typing", (event) => {
+            let $ct = $(event.currentTarget)
+            let $comp = editComponent.currentTarget
 
-             $comp.attr($ct.attr('data-editing'), $ct.val())
-         })
+            $comp.attr($ct.attr('data-editing'), $ct.val())
+        })
     }
 
     function bindStrings(inputBeingBound) {
@@ -1831,18 +1863,21 @@ function bindEditMenu(element, valueType, specificClass = false) {
             componentsOptions.push(newOption)
         }
 
+        if (componentsOptions.length < 1) return
+
         let newComponent
 
         if (editComponent.currentTarget.hasClass("buttonOptGroup")) {
-            newComponent = createOptGroup(eDCT.attr("data-topic"), $(".currentTab").attr("data-page"), eDCT.attr("data-color"), 0, componentsOptions).div
+            newComponent = createOptGroup(eDCT.attr("data-topic"), $(".currentTab").attr("data-page"), eDCT.attr("data-color"), 0, componentsOptions, JSON.parse(eDCT.attr("data-defaultsimilaroptions"))).div
                 .css("grid-area", eDCT.css("grid-area"))
                 .attr("data-row", eDCT.attr("data-row"))
                 .attr("data-column", eDCT.attr("data-column"))
                 .attr("data-endRow", eDCT.attr("data-endRow"))
                 .attr("data-endColumn", eDCT.attr("data-endColumn"))
                 .attr("data-componentOptions", JSON.stringify(componentsOptions))
+                
         } else {
-            newComponent = createDropdown(eDCT.attr("data-topic"), $(".currentTab").attr("data-page"), eDCT.attr("data-color"), 0, componentsOptions).div
+            newComponent = createDropdown(eDCT.attr("data-topic"), $(".currentTab").attr("data-page"), eDCT.attr("data-color"), 0, componentsOptions, JSON.parse(eDCT.attr("data-defaultsimilaroptions"))).div
                 .css("grid-area", eDCT.css("grid-area"))
                 .attr("data-row", eDCT.attr("data-row"))
                 .attr("data-column", eDCT.attr("data-column"))
@@ -1858,7 +1893,6 @@ function bindEditMenu(element, valueType, specificClass = false) {
         editComponent.currentTarget = newComponent
         editComponent.valueType = "string"
 
-        // addEditHandler(newComponent, "string", specificClass)
     }
 
 }
@@ -1886,11 +1920,11 @@ function findEndOffset(row, column, endRow, endColumn) {
 
 $(".reposistionComponent").on("pointerdown.reposComponent", (event) => {
     $(".sideBar").off("pointerup.setEdit pointermove.setEdit")
-    
+
     setCornerBorder(0, 0, 0, 0, 0, true)
     let currentDrag = clientDragHandler(event, editComponent.currentTarget)
-    console.log(editComponent.currentTarget[0].classList[0])
-    addToCurrentDrag(editComponent.currentTarget, currentDrag.x, currentDrag.y, editComponent.currentTarget[0].classList[0])
+    // console.log(editComponent.currentTarget.attr("data-componentType"))
+    addToCurrentDrag(editComponent.currentTarget, currentDrag.x, currentDrag.y, editComponent.currentTarget.attr("data-componentType"))
 })
 
 function multiSwitchButtonSet(element, optionValue) {
@@ -1908,3 +1942,34 @@ function multiSwitchButtonSet(element, optionValue) {
     option.parent().attr("data-value", option.val())
 }
 
+function setSimilarOptions(element, similarOptions = JSON.parse($(element).attr("data-defaultSimilarOptions"))) {
+
+    if (similarOptions.fill) {
+        element.addClass("fill")
+        $(".fillSpaceCheckbox")[0].checked = true
+    } else {
+        element.removeClass("fill")
+        $(".fillSpaceCheckbox")[0].checked = false
+
+    }
+
+    element.attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
+
+    changeSimilarInputs(similarOptions)
+}
+
+function changeSimilarInputs(similarOptions) {
+    if (similarOptions.fill) {
+        $(".fillSpaceCheckbox")[0].checked = true
+
+    } else {
+        $(".fillSpaceCheckbox")[0].checked = false
+
+    }
+
+}
+
+$(".fillSpaceCheckbox").on("input", () => {
+    defaultSimilarOptions.fill = $(".fillSpaceCheckbox")[0].checked
+    setSimilarOptions(editComponent.currentTarget, defaultSimilarOptions)
+})
