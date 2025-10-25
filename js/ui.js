@@ -1,5 +1,6 @@
 // import "./nt4.js"
 import { NT4_Client } from "../lib/nt4.js";
+import { serialize, deserialize } from "../lib/msgpack.js";
 import { goToNextSong } from "./jukebox.js";
 import { setFromString } from "./autoBuilder.js";
 //if removing jukebox, get rid of the gotonextsong() in the handle data callback function, remove from html, and remove import
@@ -297,8 +298,8 @@ export var nt4Client = new NT4_Client(localStorage.getItem(getHtmlFileName() + "
 );
 
 
-function topicAnnounce(topic, some) {
-    console.log(topic)
+function topicAnnounce(topic) {
+    // console.log(topic)
 }
 
 
@@ -350,6 +351,10 @@ $("#connect").on("click", () => {
     }
 })
 
+let rawDecoder = new TextDecoder('utf-8')
+let rawEncoder = new TextEncoder('utf-8')
+
+
 function handleNewData(topic, timestamp, value) {
     // console.log(topic.name)
     // console.log(value)
@@ -357,21 +362,52 @@ function handleNewData(topic, timestamp, value) {
     let topicName = topicSplit[topicSplit.length - 1]
     // console.log(topicSplit)
 
-    if (topic.name.includes(".")) {
-        return
-    }
 
-    if (topicName == "musicIsFinished") {
-        if (value == true) {
-            goToNextSong()
-        }
+    if(topic.type.includes("struct:")){
+        // console.log(topic.name)
+        console.log(topic.name, value)
+
     }
-    if ($("." + topic.name.replaceAll("/", "-Sl-Sl-Sl-")).hasClass("basicSubscription")) {
-        console.log(value)
-        $("." + (topic.name.replaceAll("/", "-Sl-Sl-Sl-"))).children(".bSValue").text(JSON.stringify(value))
-    } else if ($("." + topicName).hasClass("oneShotButton")) {
-        oneShotAnimation("." + topicName)
+    //     // let decoded = rawDecoder.decode(value)
+
+    //     let dataView = new DataView(value.buffer.slice(value.byteOffset, value.byteOffset+ value.byteLength))
+
+
+    //     console.log(topic)
+    //     console.log(value)
+
+    //     //little edian 
+    //     let outDouble = dataView.getFloat64(0,true)
+    //     console.log(outDouble)
+    // }
+   
+
+// if (topic.name.includes("/.schema/struct:Translation2d")) {
+//     console.log(topic.name)
+//     console.log(value)
+
+//     let decoded = rawDecoder.decode(value)
+
+//     console.log( decoded)
+//     console.log(decoded.split(";")[0])
+//     console.log(rawEncoder.encode(decoded.split(";")[0]))
+
+//     return
+// }
+
+if (topic.name.includes(".")) return
+
+if (topicName == "musicIsFinished") {
+    if (value == true) {
+        goToNextSong()
     }
+}
+if ($("." + topic.name.replaceAll("/", "-Sl-Sl-Sl-")).hasClass("basicSubscription")) {
+    // console.log(value)
+    $("." + (topic.name.replaceAll("/", "-Sl-Sl-Sl-"))).children(".bSValue").text(JSON.stringify(value))
+} else if ($("." + topicName).hasClass("oneShotButton")) {
+    oneShotAnimation("." + topicName)
+}
 
 }
 nt4Client.subscribe(["/touchboard/musicIsFinished"])
@@ -982,7 +1018,7 @@ function clientDragHandler(event, jQueryReference) {
             height: jQueryReference.outerHeight(true) / 2,
             width: jQueryReference.outerWidth(true) / 2,
         }
-        console.log(jQueryDimensions)
+        // console.log(jQueryDimensions)
     }
 
     clientDrag.rawX = event.pageX
@@ -1875,7 +1911,7 @@ function bindEditMenu(element, valueType, specificClass = false) {
                 .attr("data-endRow", eDCT.attr("data-endRow"))
                 .attr("data-endColumn", eDCT.attr("data-endColumn"))
                 .attr("data-componentOptions", JSON.stringify(componentsOptions))
-                
+
         } else {
             newComponent = createDropdown(eDCT.attr("data-topic"), $(".currentTab").attr("data-page"), eDCT.attr("data-color"), 0, componentsOptions, JSON.parse(eDCT.attr("data-defaultsimilaroptions"))).div
                 .css("grid-area", eDCT.css("grid-area"))
@@ -1973,3 +2009,7 @@ $(".fillSpaceCheckbox").on("input", () => {
     defaultSimilarOptions.fill = $(".fillSpaceCheckbox")[0].checked
     setSimilarOptions(editComponent.currentTarget, defaultSimilarOptions)
 })
+
+function structStorer(struct) {
+
+}
