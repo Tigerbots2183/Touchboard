@@ -308,6 +308,14 @@ SOFTWARE. -->
         <div class="uiTestTab page">
             <!-- <button class="actionButton" data-type="boolean" data-topic="TestActionButton"
             data-value="false">Action Button</button> -->
+            <div class="cameraComponent">
+                <h1>Camera Stream</h1>
+                <img src="http://192.168.0.48:1181/stream.mjpg" crossOrigin="anonymous" class="cameraStream">
+                <canvas class="encoder"></canvas>
+                <div class="cameraNav">
+                    <button class="record emojiButton">🔴</button>
+                </div>
+            </div>
 
 
         </div>
@@ -316,12 +324,14 @@ SOFTWARE. -->
 
     <div class="sideBar">
         <div class="sideBarNav">
-            <h1 class="sideBarUnderline addButtons">Input</h1>
-            <h1 class="addButtons">Output</h1>
+            <h1 class="sideBarUnderline addButtons openInput" data-sidebarClass="inputComponents">Input</h1>
+            <h1 class="addButtons openOutput" data-sidebarClass="outputComponents">Output</h1>
             <h1 class="editNavButtons editNavBack" style="display: none;">＜</h1>
             <h1 class="editNavButtons editNavName" style="display: none;"></h1>
         </div>
-        <div class="ioComponents">
+
+
+        <div class="inputComponents ioComponents">
             <!-- action button sends true as long as it is held -->
             <button class="actionButton" data-type="boolean" data-topic="TestActionButton" data-value="false">Action
                 Button</button>
@@ -375,6 +385,11 @@ SOFTWARE. -->
                 <h1 class="bSValue">Value</h1>
             </div>
         </div>
+
+        <div class="outputComponents ioComponents">
+          
+        </div>
+
         <div class="editSidebar booleanSidebar">
             <div class="sideInputDiv">
                 <p>Name:</p>
@@ -464,7 +479,6 @@ SOFTWARE. -->
                 <input type="checkbox" class="isEdit" data-editing="data-persist">
             </div>
         </div>
-
         <div class="editSidebar stringSidebar">
             <!-- <div class="sideInputDiv specificComponent optGroupSpecific">
                 <p>Name:</p>

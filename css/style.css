@@ -754,7 +754,9 @@ input[type=number] {
     transition: margin-left 300ms ease-in-out;
 }
 
-
+.outputComponents{
+    display: none;
+}
 
 @container dashboardHolder (width > 0px) {
     .tabNav {
@@ -1775,8 +1777,70 @@ input[type=number] {
         justify-content: space-evenly;
     }
 
+    .cameraComponent{
+        width: 100%;
+        height: 100%;
+        align-items: center;
+        justify-items: center;
+        grid-area: 4 / 6 / 1 / 1;
+    }
+    .cameraNav{
+        width: fit-content;
+        border-radius: 3cqh;
+        display: flex;
+        flex-wrap: wrap;
+        align-content: center;
+        justify-content: center;
+        border-radius: 3cqh;
+
+        grid-area: Nav;
+        background-color: rgba(137, 137, 137, 0.293);
+        border: rgba(255, 255, 255, 0.382) solid 0.125cqh;
+        position: relative;
+        z-index: 2;
+        bottom: 18%;
+    }
+    .cameraNav > *{
+        margin-inline: 5cqh;
+        background-color: transparent;
+    }
+
+    .cameraComponent h1{
+        position: relative;
+        z-index: 2;
+        top:10%;
+        border-radius: 3cqh;
+        color: white;
+        font-size: 3cqh;
+        padding-inline: 1cqh;
+        background-color: rgba(137, 137, 137, 0.293);
+        border: rgba(255, 255, 255, 0.382) solid 0.125cqh;
+
+    }
+
+    .cameraStream{
+        border-radius: 3cqh;
+        max-height: 100%;
+        width: 100%;
+        grid-area: Cam;
+        object-fit: contain;
+        /* display: none; */
+
+    }
+
+    .encoder{
+        border-radius: 3cqh;
+        max-height: 100%;
+        width: 100%;
+        grid-area: Cam;
+        object-fit: contain;
+        display: none;
+        
+    }
 
 }
+
+
 
 .currentDrag {
     user-select: none;
@@ -1798,6 +1862,10 @@ input[type=number] {
     pointer-events: none;
     /* width: 100%;
     height: 100%; */
+}
+
+.feauxComponent .optGroupButton{
+    opacity: 0;
 }
 
 

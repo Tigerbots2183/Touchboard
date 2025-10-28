@@ -1,4 +1,10 @@
 // import "./nt4.js"
+
+// window.onerror = function (message, url, line) {
+//     alert(message + ', ' + url + ', ' + line)
+// };
+
+
 import { NT4_Client } from "../lib/nt4.js";
 import { serialize, deserialize } from "../lib/msgpack.js";
 import { goToNextSong } from "./jukebox.js";
@@ -297,11 +303,39 @@ export var nt4Client = new NT4_Client(localStorage.getItem(getHtmlFileName() + "
     onDisconnectCb
 );
 
+let topicObject = {}
 
 function topicAnnounce(topic) {
-    // console.log(topic)
+    // console.log(topic.name, topic) 
+    topicToSidebar(topic)
+
+
 }
 
+function topicToSidebar(topic){
+    let split = topic.name.split("/")
+    split.shift();
+
+    let currentPath = topicObject
+
+    for(let i = 0; i < split.length; i++){
+        if(currentPath[split[i]]){
+            currentPath = currentPath[split[i]]
+            continue
+        } else { 
+            if (i >= split.length -1){
+                currentPath[split[i]] = topic
+                continue
+            }
+            currentPath[split[i]] = {}
+            currentPath = currentPath[split[i]]
+
+        }
+    }
+
+    // console.log(topicObject)
+
+}
 
 function doNothing() { }
 
@@ -355,61 +389,68 @@ let rawDecoder = new TextDecoder('utf-8')
 let rawEncoder = new TextEncoder('utf-8')
 
 
-function handleNewData(topic, timestamp, value) {
+function handleNewData(topic, timestamp, value, RawValue) {
     // console.log(topic.name)
     // console.log(value)
     let topicSplit = topic.name.split("/")
     let topicName = topicSplit[topicSplit.length - 1]
     // console.log(topicSplit)
 
+    topicSplit.shift()
 
-    if(topic.type.includes("struct:")){
-        // console.log(topic.name)
-        console.log(topic.name, value)
+    let currentPath = topicObject
+
+    for(let i = 0; i < topicSplit.length; i++){
+        if(i >= topicSplit.length -1){
+            // console.log(currentPath, topicName, value)
+            currentPath[topicSplit[i]]["value"] = value
+            continue
+        }
+
+        if(currentPath[topicSplit[i]]){
+            currentPath = currentPath[topicSplit[i]]
+        }
+    }
+
+    // console.log(topicObject)
+
+    if(topic.name.includes( "/DriveState/Speeds")){
+        console.log(value.vx.value, value.vy.value)
+        console.log(structuredClone(topicObject))
+        
 
     }
-    //     // let decoded = rawDecoder.decode(value)
 
-    //     let dataView = new DataView(value.buffer.slice(value.byteOffset, value.byteOffset+ value.byteLength))
-
-
-    //     console.log(topic)
-    //     console.log(value)
-
-    //     //little edian 
-    //     let outDouble = dataView.getFloat64(0,true)
-    //     console.log(outDouble)
-    // }
-   
-
-// if (topic.name.includes("/.schema/struct:Translation2d")) {
-//     console.log(topic.name)
-//     console.log(value)
-
-//     let decoded = rawDecoder.decode(value)
-
-//     console.log( decoded)
-//     console.log(decoded.split(";")[0])
-//     console.log(rawEncoder.encode(decoded.split(";")[0]))
-
-//     return
-// }
-
-if (topic.name.includes(".")) return
-
-if (topicName == "musicIsFinished") {
-    if (value == true) {
-        goToNextSong()
+    if (topic.type.includes("struct:") && topic.type.includes("Pose2d[]")) {
+        for(let i = 0; i < value.length; i++){
+            // console.log(value[i].translation.x.value, value[i].translation.y.value)
+        }
     }
-}
-if ($("." + topic.name.replaceAll("/", "-Sl-Sl-Sl-")).hasClass("basicSubscription")) {
-    // console.log(value)
-    $("." + (topic.name.replaceAll("/", "-Sl-Sl-Sl-"))).children(".bSValue").text(JSON.stringify(value))
-} else if ($("." + topicName).hasClass("oneShotButton")) {
-    oneShotAnimation("." + topicName)
-}
+
+    if (topic.type == "structschema"){
+        // console.log(topic.name, rawDecoder.decode(value))
+    }
+
+    if (topic.name.includes('streams')){
+        console.log(topic, value)
+    }
+
+    if (topic.name.includes(".")) return
+
+    if (topicName == "musicIsFinished") {
+        if (value == true) {
+            goToNextSong()
+        }
+    }
+    if ($("." + topic.name.replaceAll("/", "-Sl-Sl-Sl-")).hasClass("basicSubscription")) {
+        // console.log(value)
+        $("." + (topic.name.replaceAll("/", "-Sl-Sl-Sl-"))).children(".bSValue").text(JSON.stringify(value))
+    } else if ($("." + topicName).hasClass("oneShotButton")) {
+        oneShotAnimation("." + topicName)
+    }
 
 }
+
 nt4Client.subscribe(["/touchboard/musicIsFinished"])
 
 let $reefBtns = $(".reefPFHolder").children()
@@ -1707,8 +1748,9 @@ $(".editNavBack, .trashCan").on("pointerdown.resetEditor", () => {
     $(".allComponentOptions").css("display", "none")
     $(".specificComponent").css("display", "none")
     $(".editSidebar").css("display", "none")
-    $(".ioComponents").css("display", "flex")
-
+    $(".ioComponents").css("display", "none")
+    
+    $("." + $(".sideBarUnderline").attr("data-sidebarClass")).css("display", "flex")
 })
 
 function bindEditMenu(element, valueType, specificClass = false) {
@@ -2010,6 +2052,114 @@ $(".fillSpaceCheckbox").on("input", () => {
     setSimilarOptions(editComponent.currentTarget, defaultSimilarOptions)
 })
 
-function structStorer(struct) {
+captureMJPEG($(".cameraComponent"))
+
+function captureMJPEG(cameraComponent){
+
+    //cameraComponent
+    // <div class="cameraComponent">
+    //     <h1>Camera Stream</h1>
+    //     <img src="http://localhost:1181/stream.mjpg" class="cameraStream">
+    //     <canvas class="encoder"></canvas>
+    //     <div class="cameraNav">
+    //         <button class="record emojiButton">🔴</button>
+    //     </div>
+    //</div>
+
+    //VERY HACKY WAY OF RECORDING MJPEG STREAM
+    //Media recorder can only record mp4 and webm streams
+    //So we have to draw the current frame to a canvas
+    //and record the canvas (its dumb i know)
+    
+    let mJpegStream = cameraComponent.children(".cameraStream")
+    let encoder = cameraComponent.find(".encoder")
+    let ctx = encoder[0].getContext("2d")
+
+    let recordToggle = cameraComponent.find(".record")
+    let cameraReflect  = true
+    let mediaRecorder
+    let recordedBlob = []
+    let animationFrame
+
+    mJpegStream.on("load", ()=>{
+        encoder.attr("height", mJpegStream[0].naturalHeight).attr("width", mJpegStream[0].naturalWidth)
+
+        let currentStream = encoder[0].captureStream(30); //TODO: unhardcode this
+
+        mediaRecorder = new MediaRecorder(currentStream, {mimeType: 'video/webm; codecs=vp9'})
+
+        mediaRecorder.ondataavailable = (event) =>{
+            if (event.data.size > 0) {
+                recordedBlob.push(event.data);
+            }
+        }
+
+        mediaRecorder.onstop = () => {
+            let blob = new Blob(recordedBlob, {
+                type: 'video/mp4' //TODO: unhardcode this let the ppl use mp4 if they want fr
+            })
+
+            let downloadUrl = URL.createObjectURL(blob)
+
+            let filename = cameraComponent.attr("data-usTimestamp") + "" + cameraComponent.attr("data-streamTopic")
+
+            let $a = $("<a>").css("display", "none").attr("href", downloadUrl)
+            $a[0].download =  "video.mp4"//TODO: unhardcode this let the ppl use mp4 if they want fr
+
+            $("body").append($a)
+
+            $a[0].click();
+
+          
+
+            recordedBlob = [];
+            // cancelAnimationFrame(animationFrame);
+        }    
+         if(cameraReflect){
+            ctx.translate(encoder[0].width, 0);
+            ctx.scale(-1, 1);
+        }
+        drawToCanvas()
+
+    })
+
+    mJpegStream.on('error', ()=>{
+        //TODO: put error message in component
+    })
+
+    function drawToCanvas(){
+        ctx.drawImage(mJpegStream[0], 0, 0, encoder[0].width, encoder[0].height)
+        animationFrame = requestAnimationFrame(drawToCanvas);
+    }
+
+    recordToggle.on("pointerdown", ()=>{
+        recordToggle.toggleClass("recording")
+
+        if(recordToggle.hasClass("recording")){
+            recordToggle.text("🎬")
+            recordedBlob = []
+
+
+            mediaRecorder.start()
+        } else{
+            recordToggle.text("🔴")
+            mediaRecorder.stop()
+
+        }
+    })
 
 }
+
+$(".openOutput").on("pointerdown", (event)=>{
+    $(".outputComponents").css("display", "flex")
+    $(".inputComponents").css("display", "none")
+    $(".sideBarUnderline").removeClass("sideBarUnderline")
+    $(".openOutput").addClass("sideBarUnderline")
+})
+
+$(".openInput").on("pointerdown", (event)=>{
+    $(".outputComponents").css("display", "none")
+    $(".inputComponents").css("display", "flex")
+    $(".sideBarUnderline").removeClass("sideBarUnderline")
+    $(".openInput").addClass("sideBarUnderline")
+})
