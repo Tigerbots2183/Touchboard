@@ -1,3 +1,25 @@
+/* MIT License
+Copyright (c) 2025 Tigerbots
+https://github.com/Tigerbots2183
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE. */
+
 html {
     width: 100%;
     height: 100%;
@@ -666,7 +688,7 @@ input[type=number] {
     justify-content: center;
     font-size: 1.25vmin;
     padding: 0.5vmin;
-    background-color: rgba(157, 0, 255, 0.258);
+    background-color: #9d00ff42;
 }
 
 .select {
@@ -754,8 +776,9 @@ input[type=number] {
     transition: margin-left 300ms ease-in-out;
 }
 
-.outputComponents{
+.outputTopics{
     display: none;
+    width: 100%;
 }
 
 @container dashboardHolder (width > 0px) {
@@ -1532,14 +1555,23 @@ input[type=number] {
         border-radius: 2cqh;
         display: flex;
         height: min-content;
-        width: min-content;
+        /* max-width: 100%; */
+        width: max-content;
         flex-wrap: wrap;
-        font-size: 3.5cqmin;
+        font-size: 3.25cqmin;
+        justify-content: center;
+        align-items: center;
+        align-content: center;
+        justify-items: center;
         padding: 1cqmin;
-        background-color: rgba(157, 0, 255, 0.258);
+        background-color: #9d00ff42;
     }
 
-    .bSTopic {
+    /* .feauxComponent.basicSubscription {
+        max-width: none;
+    } */
+
+    .bSColon {
         padding-right: 1cqmin;
     }
 
@@ -2128,6 +2160,7 @@ input[type=number] {
     width: 62.5%;
     height: 4.5vh;
     margin: 0px;
+    /* opacity: 0.259; */
     background-color: rgba(0, 0, 0, 0);
 
 }
@@ -2351,6 +2384,7 @@ input[type=number] {
     height: 100%;
 }
 
+
 .fill:not(.currentDrag).select{
     height: 44.5cqmin;
     width: 100%;
@@ -2382,4 +2416,124 @@ input[type=number] {
 
 .fill:not(.currentDrag) .verticalAxisKnob{
     height: 80%;
+}
+
+.topicPathDiv h1 {
+    color: white;
+    grid-area: h1;
+    font-size: 2.5vh;
+    text-align: start;
+    line-height: 4.5vh;
+    border-top: 0.125vh rgb(28,28,28) solid;
+    border-bottom: 0.125vh rgb(28,28,28) solid;
+    margin: 0px;
+    height: 5vh;
+    align-self: flex-start;
+    justify-self: flex-start;
+    /* padding-left: 0.5vh; */
+    box-sizing: border-box;
+}
+
+.topicPathDiv img{
+    height: 4vh;
+    width: 4vh;
+    grid-area:h2;
+}
+
+.topicPathDiv h2 {
+    color: white;
+    grid-area: h2;
+    font-size: 2.5vh;
+    rotate: 90deg;
+    line-height: 4.5vh;
+    transition: rotate 500ms linear(0 0%, 0 2.27%, 0.02 4.53%, 0.04 6.8%, 0.06 9.07%, 0.1 11.33%, 0.14 13.6%, 0.25 18.15%, 0.39 22.7%, 0.56 27.25%, 0.77 31.8%, 1 36.35%, 0.89 40.9%, 0.85 43.18%, 0.81 45.45%, 0.79 47.72%, 0.77 50%, 0.75 52.27%, 0.75 54.55%, 0.75 56.82%, 0.77 59.1%, 0.79 61.38%, 0.81 63.65%, 0.85 65.93%, 0.89 68.2%, 1 72.7%, 0.97 74.98%, 0.95 77.25%, 0.94 79.53%, 0.94 81.8%, 0.94 84.08%, 0.95 86.35%, 0.97 88.63%, 1 90.9%, 0.99 93.18%, 0.98 95.45%, 0.99 97.73%, 1 100%);
+    margin: 0px;
+    width: 4.5vh;
+    text-align: center;
+
+    height: 4.5vh;
+    /* padding-left: 0.5vh; */
+    box-sizing: border-box;
+}
+
+.topicPathDiv .openArrow{
+    rotate: 180deg;
+}
+
+.topicPathDiv .h2Holder{
+    box-sizing: border-box;
+    height: 5vh;
+
+    border-top: 0.125vh rgb(28,28,28) solid;
+    border-bottom: 0.125vh rgb(28,28,28) solid;
+}
+
+.ioComponents .topicPathDiv{
+    width: 100%;
+    margin: 0px;
+    user-select: none;
+    height: auto;
+    display: grid;
+    /* grid-template-rows: 5vh auto; */
+    grid-template-columns: 5vh auto;
+    grid-template-areas: 
+    "h2 h1"
+    "subPaths subPaths";
+    align-items: center;
+    justify-items: center;
+    max-height: 5vh;
+    overflow: hidden;
+    transition: max-height 250ms ease;
+    padding-left: 0.5vh;
+}
+
+
+.topicPathDiv .subPaths{
+    align-self: flex-start;
+    justify-self: flex-start;
+    margin-left: 0.6vh;
+    grid-area: subPaths;
+    border-left: white 0.25vh solid;
+}
+
+
+.outputTopics .topicPathDiv:last-child h1{
+    border-bottom:  0.25vh rgb(28,28,28) solid;
+}
+
+.outputTopics .topicPathDiv:last-child .h2Holder{
+    border-bottom:  0.25vh rgb(28,28,28) solid;
+}
+
+.outputTopics .topicPathDiv:first-child h1{
+    border-top:  0.25vh rgb(28,28,28) solid;
+
+}
+
+.outputTopics .topicPathDiv:first-child .h2Holder{
+    border-top:  0.25vh rgb(28,28,28) solid;
+
+}
+
+.outputComponents{
+    display: none;
+}
+
+.sideBarButton{
+    width: 100%;
+    margin-inline: 5%;
+    margin-top: 1vh;
+    height: 5vh;
+    border-radius: 1vh;
+    background-color: rgb(11, 11, 11);
+    padding: 0.5vh;
+    font-size: 3vh;
+    border: rgb(47, 47, 47) solid 0.25vh;
+    color: white;
+    
+}
+
+.isntEdit{
+    width: 60%;
+    overflow-x: scroll;
 }

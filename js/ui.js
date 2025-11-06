@@ -1,8 +1,29 @@
 // import "./nt4.js"
 
-// window.onerror = function (message, url, line) {
-//     alert(message + ', ' + url + ', ' + line)
-// };
+// MIT License
+// Copyright (c) 2025 Tigerbots
+// https://github.com/Tigerbots2183
+
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+// 
+
 
 
 import { NT4_Client } from "../lib/nt4.js";
@@ -90,6 +111,10 @@ function pxToCq(container, pixels) {
     }
 
     return cqValues
+}
+
+let subscribedTopics = {
+    //"Topic": [{jQueryReference :$, parentRefernce: $, valueHandler: function()/false}]
 }
 
 if (localStorage.getItem(getHtmlFileName() + "currentPath") == null) {
@@ -303,7 +328,15 @@ export var nt4Client = new NT4_Client(localStorage.getItem(getHtmlFileName() + "
     onDisconnectCb
 );
 
-let topicObject = {}
+let topicObject = {
+    "esc-esc-$-esc-esc": $(".outputTopics")
+}
+let outputComponents = {
+    topic: "",
+    changing: false,
+    changingValidTypes: ["all"],
+    changingSidebar: "",
+}
 
 function topicAnnounce(topic) {
     // console.log(topic.name, topic) 
@@ -312,24 +345,157 @@ function topicAnnounce(topic) {
 
 }
 
-function topicToSidebar(topic){
+function topicToSidebar(topic) {
     let split = topic.name.split("/")
     split.shift();
 
     let currentPath = topicObject
-
-    for(let i = 0; i < split.length; i++){
-        if(currentPath[split[i]]){
+    console.log(topicObject)
+    for (let i = 0; i < split.length; i++) {
+        // if(i == 0 && split[i] == "touchboard") continue
+        if (currentPath[split[i]]) {
             currentPath = currentPath[split[i]]
+
             continue
-        } else { 
-            if (i >= split.length -1){
+        } else {
+            if (i >= split.length - 1) {
+                let parentDiv
+                if (i == 0) parentDiv = $("<div>").addClass("topicPathDiv").appendTo(currentPath["esc-esc-$-esc-esc"])
+                else parentDiv = $("<div>").addClass("topicPathDiv").appendTo(currentPath["esc-esc-$-esc-esc"].children(".subPaths"))
+
+                let src = ""
+                let typeString
+
+                let image = $("<img>").appendTo(parentDiv)
+                let h1 = $("<h1>").text(split[i]).appendTo(parentDiv)
                 currentPath[split[i]] = topic
+                currentPath[split[i]]["esc-esc-$-esc-esc"] = parentDiv
+
+                let $allOf = $(parentDiv).add(image).add(h1)
+
+                if (topic.type.includes('string')) {
+                    src = "TextIcon.png"
+                    typeString = 'string'
+                }
+                else if (topic.type.includes('struct')) {
+                    src = "StructIcon.png"
+                    typeString = 'struct'
+                }
+                else if (topic.type.includes('int')) {
+                    src = "IntIcon.png"
+                    typeString = 'int'
+                }
+                else if (topic.type.includes('double') || topic.type.includes('float64')) {
+                    src = "DoubleIcon.png"
+                    typeString = 'double'
+                }
+                else if (topic.type.includes('float')) {
+                    src = "FloatIcon.png"
+                    typeString = 'float'
+                }
+                else if (topic.type.includes('bool')) {
+                    src = "BoolIcon.png"
+                    typeString = 'bool'
+                }
+
+                if (topic.type.includes("[]")) {
+                    src = "Array" + src
+                    typeString = "array" + typeString
+                }
+
+                $allOf.on("pointerdown.openOutputComponents", () => {
+                    $(".ioComponents").css("display", "none")
+                    $(".editSidebar").css("display", "none")
+                    if (outputComponents.changing) {
+                        outputComponents.changingSidebar.css("display", "flex")
+
+                        console.log(subscribedTopics)
+
+
+                        if (!subscribedTopics.hasOwnProperty(topic.name)) {
+                            subscribedTopics[topic.name] = []
+                        }
+
+                        let newSubscriptionReference = subscribedTopics[editComponent.currentTarget.attr('data-topic')].slice(editComponent.currentTarget.attr("data-subscriptionIndex"), parseInt(editComponent.currentTarget.attr("data-subscriptionIndex")) + 1)
+                        subscribedTopics[topic.name].push(newSubscriptionReference[0])
+
+                        subscribedTopics[editComponent.currentTarget.attr('data-topic')][editComponent.currentTarget.attr("data-subscriptionIndex")] = false
+
+                        editComponent.currentTarget.attr("data-topic", topic.name).attr("data-subscriptionindex", subscribedTopics[editComponent.currentTarget.attr('data-topic')].length-1).find(".editThisName").text(split[i])
+
+                        if(nt4Client.serverTopics.get(topic.name)){
+                            let val = "null"
+                            if(nt4Client.serverTopics.get(topic.name).value){
+                                val = nt4Client.serverTopics.get(topic.name).value
+                            }
+                            newSubscriptionReference[0].valueHandeler(val)
+                        } else{
+                            newSubscriptionReference[0].valueHandeler("")
+                        }
+
+                        outputComponents.changingSidebar.find(".topicShower").text(topic.name)
+                        outputComponents.changingSidebar.find(".nameInput").val(split[i])
+
+
+                        setTimeout(() => {
+                            outputComponents.changing = false
+                        }, 100);
+
+                        console.log(subscribedTopics)
+                    } else {
+                        $("." + typeString + "OutputComponents").css("display", "flex")
+                    }
+
+                    outputComponents.topic = topic
+
+                })
+
+                image.attr("src", "./js/Icons/" + src)
+
                 continue
             }
-            currentPath[split[i]] = {}
-            currentPath = currentPath[split[i]]
+            let parentDiv
+            if (i == 0) {
+                parentDiv = $("<div>").addClass("topicPathDiv").appendTo(currentPath["esc-esc-$-esc-esc"])
+            }
+            else {
+                parentDiv = $("<div>").addClass("topicPathDiv").appendTo(currentPath["esc-esc-$-esc-esc"].children(".subPaths"))
+            }
+            let h2Holder = $("<div>").addClass("h2Holder").appendTo(parentDiv)
+            let h2 = $("<h2>").text("▲").appendTo(h2Holder)
 
+            let h1 = $("<h1>").text(split[i]).appendTo(parentDiv)
+
+            let subDiv = $("<div>").addClass("subPaths").appendTo(parentDiv)
+
+            let currentTimeout
+
+            h1.add(h2).add(h2Holder).on("pointerdown.open", (event) => {
+                let $ct = $(event.currentTarget).parent()
+                // console.log($ct)
+                clearTimeout(currentTimeout)
+                $ct.toggleClass("openTopic")
+                $ct.children(".h2Holder").children("h2").toggleClass("openArrow")
+
+                if ($ct.hasClass("openTopic")) {
+                    $ct.css("max-height", ($ct.children(".subPaths").outerHeight() + vh(5) + "px"))
+                    currentTimeout = setTimeout(() => {
+                        $ct.css("max-height", "unset")
+                    }, 300);
+                } else {
+                    $ct.css("max-height", $ct.children(".subPaths").outerHeight() + vh(5) + "px")
+                    $ct.offset()
+
+                    $ct.css("max-height", "5vh")
+
+                }
+            })
+
+
+            currentPath[split[i]] = {
+                "esc-esc-$-esc-esc": parentDiv
+            }
+            currentPath = currentPath[split[i]]
         }
     }
 
@@ -392,6 +558,7 @@ let rawEncoder = new TextEncoder('utf-8')
 function handleNewData(topic, timestamp, value, RawValue) {
     // console.log(topic.name)
     // console.log(value)
+    // console.log(topic)
     let topicSplit = topic.name.split("/")
     let topicName = topicSplit[topicSplit.length - 1]
     // console.log(topicSplit)
@@ -400,38 +567,29 @@ function handleNewData(topic, timestamp, value, RawValue) {
 
     let currentPath = topicObject
 
-    for(let i = 0; i < topicSplit.length; i++){
-        if(i >= topicSplit.length -1){
+    for (let i = 0; i < topicSplit.length; i++) {
+        if (i >= topicSplit.length - 1) {
             // console.log(currentPath, topicName, value)
             currentPath[topicSplit[i]]["value"] = value
             continue
         }
 
-        if(currentPath[topicSplit[i]]){
+        if (currentPath[topicSplit[i]]) {
             currentPath = currentPath[topicSplit[i]]
         }
     }
 
-    // console.log(topicObject)
-
-    if(topic.name.includes( "/DriveState/Speeds")){
-        console.log(value.vx.value, value.vy.value)
-        console.log(structuredClone(topicObject))
-        
-
-    }
-
     if (topic.type.includes("struct:") && topic.type.includes("Pose2d[]")) {
-        for(let i = 0; i < value.length; i++){
+        for (let i = 0; i < value.length; i++) {
             // console.log(value[i].translation.x.value, value[i].translation.y.value)
         }
     }
 
-    if (topic.type == "structschema"){
+    if (topic.type == "structschema") {
         // console.log(topic.name, rawDecoder.decode(value))
     }
 
-    if (topic.name.includes('streams')){
+    if (topic.name.includes('streams')) {
         console.log(topic, value)
     }
 
@@ -442,11 +600,25 @@ function handleNewData(topic, timestamp, value, RawValue) {
             goToNextSong()
         }
     }
-    if ($("." + topic.name.replaceAll("/", "-Sl-Sl-Sl-")).hasClass("basicSubscription")) {
-        // console.log(value)
-        $("." + (topic.name.replaceAll("/", "-Sl-Sl-Sl-"))).children(".bSValue").text(JSON.stringify(value))
-    } else if ($("." + topicName).hasClass("oneShotButton")) {
-        oneShotAnimation("." + topicName)
+    // if ($("." + topic.name.replaceAll("/", "esc-Sl-esc")).hasClass("basicSubscription")) {
+    //     // console.log(value)
+    //     $("." + (topic.name.replaceAll("/", "esc-Sl-esc"))).children(".bSValue").text(JSON.stringify(value))
+    // } else if ($("." + topicName).hasClass("oneShotButton")) {
+    //     oneShotAnimation("." + topicName)
+    // }
+    // console.log(topic.name, topicSplit)
+    // console.log(nt4Client.serverTopics, "test")
+
+    // console.log(topic.name, subscribedTopics)
+    if (subscribedTopics.hasOwnProperty(topic.name)) {
+
+        for (let i = 0; i < subscribedTopics[topic.name].length; i++) {
+            if (!subscribedTopics[topic.name][i]) continue;
+            // console.log(subscribedTopics[topic.name][i])
+
+
+            subscribedTopics[topic.name][i].valueHandeler(value)
+        }
     }
 
 }
@@ -632,7 +804,7 @@ function onConnectCb() {
 
                 nt4Client.subscribe([$uiElements.eq(i).attr('data-topic')])
 
-                $uiElements.eq(i).addClass($uiElements.eq(i).attr('data-topic').replaceAll("/", "Sl-Sl-Sl-"))
+                $uiElements.eq(i).addClass($uiElements.eq(i).attr('data-topic').replaceAll("/", "esc-Sl-esc").replaceAll(".", "esc-period-esc"))
             } else if ($uiElements.eq(i).hasClass("buttonOptGroup")) {
                 $uiElements.eq(i).children(".optGroupButton").on("pointerdown", (event) => {
 
@@ -800,7 +972,15 @@ $(".ioComponents").children().off().on("pointerdown.addComponent ", (event) => {
 
     let componentType = $(event.currentTarget)[0].classList[0];
 
-    let jQueryReference = createDefaultOf(componentType, ".dashboardHolder", "esc-UNDEFINED-esc")
+    let jQueryReference
+
+    if ($(event.currentTarget).parent().hasClass("outputComponents")) {
+        jQueryReference = createDefaultOf(componentType, ".dashboardHolder", outputComponents.topic.name)
+    } else {
+        jQueryReference = createDefaultOf(componentType, ".dashboardHolder", "esc-UNDEFINED-esc")
+    }
+
+    // console.log(subscribedTopics)
 
     //When fill is enabled, the element takes 100% of current container width, since it starts with no container, 
     //Current drag is exempt from this 100%, but that class wont be added to later, so we make a new element with
@@ -1146,19 +1326,21 @@ function createDefaultOf(component, append, topic = "esc-UNSET-esc") {
     } else if (component == "select") {
         return createDropdown(topic, append, 0, 0, [{ name: "Dropdown", value: "" }]).div
     } else if (component == "buttonOptGroup") {
-        return createOptGroup(topic, append, 0, 0, [{ name: "Value 1", value: "" }, { name: "Value 2", value: "" }]).div
+        return createOptGroup(topic, append, 0, 0, []).div
     } else if (component == "numberComponent") {
         return createNumberComponent("Number", topic, append).div
+    } else if (component == "basicSubscription") {
+        return createBasicSubscription(undefined, topic, append)
     }
 }
 
-function createActionButton(displayName, topic, append = false, hex = 0) {
+function createActionButton(displayName, topic, append = false, hex = "#2b00ff") {
     let actionButton = $("<button>")
         .addClass("actionButton")
         .attr("data-type", "boolean")
         .attr("data-topic", topic)
         .attr("data-value", false)
-        .attr("data-color", "#2b00ff")
+        .attr("data-color", hex)
         .attr("data-componentType", "actionButton")
         .attr("data-defaultSimilarOptions", JSON.stringify(defaultSimilarOptions))
         .text(displayName)
@@ -1174,14 +1356,14 @@ function createActionButton(displayName, topic, append = false, hex = 0) {
     return actionButton
 }
 
-function createOneShotButton(displayName, topic, append = false, hex = 0) {
+function createOneShotButton(displayName, topic, append = false, hex = "#fff200") {
     let oneShotButton = $("<button>")
         .addClass("oneShotButton")
         .addClass(topic)
         .attr("data-type", "boolean")
         .attr("data-topic", topic)
         .attr("data-value", false)
-        .attr("data-color", "#fff200")
+        .attr("data-color", hex)
         .attr("data-componentType", "oneShotButton")
         .attr("data-defaultSimilarOptions", JSON.stringify(defaultSimilarOptions))
         .text(displayName)
@@ -1197,13 +1379,13 @@ function createOneShotButton(displayName, topic, append = false, hex = 0) {
     return oneShotButton
 }
 
-function createToggleButton(displayName, topic, append = false, hex = 0, value = false) {
+function createToggleButton(displayName, topic, append = false, hex = "#ff7300", value = false) {
     let toggleButton = $("<button>")
         .addClass("toggleButton")
         .attr("data-type", "boolean")
         .attr("data-topic", topic)
         .attr("data-value", value)
-        .attr("data-color", "#ff7300")
+        .attr("data-color", hex)
         .attr("data-componentType", "toggleButton")
         .attr("data-defaultSimilarOptions", JSON.stringify(defaultSimilarOptions))
         .text(displayName)
@@ -1223,10 +1405,10 @@ function createToggleButton(displayName, topic, append = false, hex = 0, value =
     return toggleButton
 }
 
-function createAxis(displayName, topic, append = false, vertical = false, hex = 0, value = 0, min = -1, max = 1, step = 0.01, snapBack = true) {
+function createAxis(displayName, topic, append = false, vertical = false, hex = "#8a2be2", value = 0, min = -1, max = 1, step = 0.01, snapBack = true) {
     let axis = {
         div: $('<div>').attr("data-defaultSimilarOptions", JSON.stringify(defaultSimilarOptions)),
-        label: $("<h1>").addClass("axisLabel").addClass("editThisText"),
+        label: $("<h1>").addClass("axisLabel").addClass("editThisName"),
         knob: $("<input>")
     }
 
@@ -1244,7 +1426,7 @@ function createAxis(displayName, topic, append = false, vertical = false, hex = 
     axis.div.attr("data-topic", topic)
         .attr("data-value", 0)
         .attr('data-type', "double")
-        .attr('data-color', "#8a2be2")
+        .attr('data-color', hex)
 
     axis.knob.attr("type", "range")
         .attr("min", min)
@@ -1270,7 +1452,7 @@ function createNumberComponent(title, topic, append = false, hex = 0, value = 0,
         div: $("<div>").addClass("numberComponent").attr("data-type", 'double').attr("data-step", step).attr("data-min", min).attr("data-max", max).attr("data-value", value).attr("data-persist", persist).attr("data-topic", topic).attr("data-componentType", "numberComponent").attr("data-defaultSimilarOptions", JSON.stringify(defaultSimilarOptions)),
     }
 
-    numberComponent["title"] = $("<p>").addClass("numberTitle").addClass("editThisText").text(title).appendTo(numberComponent.div)
+    numberComponent["title"] = $("<p>").addClass("numberTitle").addClass("editThisName").text(title).appendTo(numberComponent.div)
     numberComponent["minus"] = $("<button>").addClass("numberMinus").addClass("animatedButton").text("-").appendTo(numberComponent.div)
     numberComponent["input"] = $("<input>").addClass("numberTextInput").attr("type", "number").attr("value", value).appendTo(numberComponent.div)
     numberComponent["plus"] = $("<button>").addClass("numberPlus").addClass("animatedButton").text("+").appendTo(numberComponent.div)
@@ -1369,6 +1551,65 @@ function createOptGroup(topic, append, hex = 0, initalOptionIndex = 0, options =
 
 }
 
+function createBasicSubscription(displayName, topic, append = false, hex = false, similarOptions = defaultSimilarOptions) {
+
+    let topicClass = topic.replaceAll(".", "esc-period-esc").replaceAll("/", "esc-Sl-esc")
+
+    if (displayName == null) {
+        let topicSplit = topic.split("/")
+        displayName = topicSplit[topicSplit.length - 1]
+    }
+    // console.log(topicClass)
+
+    let basicSubscription = $("<div>")
+        .addClass("basicSubscription")
+        .attr("data-topic", topic)
+        .attr("data-color", "#9d00ff")
+        .attr("data-componentType", "basicSubscription")
+
+    if (hex) {
+        basicSubscription.css("background-color", hex + "42").attr("data-color", hex)
+
+    }
+    $("<h1>").addClass("bSTopic").addClass("editThisName").text(displayName).appendTo(basicSubscription)
+    $("<h1>").addClass("bsColon").text(":").appendTo(basicSubscription)
+    let topicReference = $("<h1>").addClass("bSValue").text("null").appendTo(basicSubscription)
+
+    if (append) {
+        basicSubscription.appendTo(append)
+    }
+
+    setSimilarOptions(basicSubscription, similarOptions)
+    addEditHandler(basicSubscription, "subscription")
+
+    if (!subscribedTopics.hasOwnProperty(topic)) {
+        subscribedTopics[topic] = []
+    }
+
+    let basicSubscriptionHandler = (value, timestamp) => {
+        // console.log(value, "basicSubscriptionHandler")
+        topicReference.text(value)
+    }
+
+    let subscribedReference = {
+        'jQueryReference': topicReference,
+        'parentReference': basicSubscription,
+        'valueHandeler': basicSubscriptionHandler,
+    }
+
+    subscribedTopics[topic].push(subscribedReference)
+
+    basicSubscription.attr("data-subscriptionIndex", subscribedTopics[topic].length - 1)
+
+    if (nt4Client.serverTopics.get(topic)) {
+        basicSubscriptionHandler(nt4Client.serverTopics.get(topic).value)
+    }
+
+    // console.log(topic)
+
+    return basicSubscription
+
+}
 
 setGridInput(".uiTestTab")
 
@@ -1681,8 +1922,9 @@ $(".optionAdder").on("submit.addDiv", () => {
     let $sbO = $("<div>").addClass("sidebarOption").insertBefore(".optionAdder").attr("data-name", $(".newOptionName").val()).attr("data-value", $(".newOptionValue").val()).attr("data-hex", $(".hex").val()).css("border-color", $(".hex").val())
     let $ham = $("<button>").addClass("sideBarEmojiButton").addClass("hamburger").text("☰").appendTo($sbO)
     $("<p>").text($(".newOptionName").val() + ":" + $(".newOptionValue").val()).appendTo($sbO)
-    $("<div>").text("❌").addClass("sideBarEmojiButton").addClass("trashOption").appendTo($sbO).on("pointerdown.remove", (event) => {
+    let clear = $("<div>").text("❌").addClass("sideBarEmojiButton").addClass("trashOption").appendTo($sbO).on("pointerdown.remove", (event) => {
         $(event.currentTarget).parent().remove()
+
     }
     )
 
@@ -1749,13 +1991,16 @@ $(".editNavBack, .trashCan").on("pointerdown.resetEditor", () => {
     $(".specificComponent").css("display", "none")
     $(".editSidebar").css("display", "none")
     $(".ioComponents").css("display", "none")
-    
+    $(".outputComponents").css("display", "none")
+
     $("." + $(".sideBarUnderline").attr("data-sidebarClass")).css("display", "flex")
+
+
 })
 
 function bindEditMenu(element, valueType, specificClass = false) {
 
-    let inputs = $("." + valueType + "Sidebar").find(".isEdit").val("")
+    let inputs = $("." + valueType + "Sidebar").find(".isEdit, .isntEdit").val("")
 
 
     for (let i = 0; i < inputs.length; i++) {
@@ -1772,6 +2017,8 @@ function bindEditMenu(element, valueType, specificClass = false) {
             bindAxisDirection(inputBeingBound)
         } else if (inputBeingBound.attr("data-editing") == "optionArray") {
             bindMultiAdder(inputBeingBound)
+        } else if (inputBeingBound.attr("data-editing") == "changeTopic") {
+            bindChangeSubscriptionTopic(inputBeingBound)
         } else {
             bindOtherData(inputBeingBound)
         }
@@ -1792,15 +2039,19 @@ function bindEditMenu(element, valueType, specificClass = false) {
 
     function bindName(inputBeingBound) {
         //defaults selection to all text for easy deletion
-        inputBeingBound.val(editComponent.currentTarget.text()).off(`focus.selectText`).on(`focus.selectText`, (event) => setTimeout(() => $(event.currentTarget)[0].setSelectionRange(0, $(event.currentTarget).val().length), 100))
+        let nameInputText = editComponent.currentTarget.text()
+        if (editComponent.currentTarget.children(".editThisName").length > 0) {
+            nameInputText = editComponent.currentTarget.children(".editThisName").text()
+        }
+        inputBeingBound.val(nameInputText).off(`focus.selectText`).on(`focus.selectText`, (event) => setTimeout(() => $(event.currentTarget)[0].setSelectionRange(0, $(event.currentTarget).val().length), 100))
 
         inputBeingBound.off("input.typing  blur.typing").on("input.typing blur.typing", (event) => {
             let $ct = $(event.currentTarget)
             let $comp = editComponent.currentTarget
             $comp.children(".buttonWord").remove()
 
-            if ($comp.children(".editThisText").length > 0) {
-                $comp.children(".editThisText").text($ct.val())
+            if ($comp.children(".editThisName").length > 0) {
+                $comp.children(".editThisName").text($ct.val())
             } else {
                 $comp.text($ct.val())
             }
@@ -1839,7 +2090,7 @@ function bindEditMenu(element, valueType, specificClass = false) {
         inputBeingBound.off("input.coloring").on("input.coloring", (event) => {
             let $ct = $(event.currentTarget)
 
-            if (valueType == 'boolean') {
+            if (valueType == 'boolean' || valueType == "subscription") {
                 editComponent.currentTarget.css("background-color", $ct.val() + "3f").css("border-color", $ct.val()).attr("data-color", $ct.val())
 
                 if (editComponent.currentTarget.hasClass("toggleButton") && !(editComponent.currentTarget.hasClass("toggledOn"))) {
@@ -1891,7 +2142,7 @@ function bindEditMenu(element, valueType, specificClass = false) {
         }
 
         $(".trashOption").off("pointerdown.remove").on("pointerdown.remove", (event) => {
-            bindStrings(inputBeingBound)
+            // bindStrings(inputBeingBound)
             $(event.currentTarget).parent().remove()
 
         })
@@ -1918,6 +2169,10 @@ function bindEditMenu(element, valueType, specificClass = false) {
             boundEditing = ""
         }
 
+        if (inputBeingBound.hasClass("isntEdit")) {
+            inputBeingBound.text(boundEditing)
+        }
+
         inputBeingBound.val(boundEditing).on(`focus.selectText`, (event) => setTimeout(() => $(event.currentTarget)[0].setSelectionRange(0, $(event.currentTarget).val().length), 100))
 
         inputBeingBound.off("input.typing blur.typing").on("input.typing blur.typing", (event) => {
@@ -1941,7 +2196,7 @@ function bindEditMenu(element, valueType, specificClass = false) {
             componentsOptions.push(newOption)
         }
 
-        if (componentsOptions.length < 1) return
+        // if (componentsOptions.length < 1) return
 
         let newComponent
 
@@ -1970,6 +2225,19 @@ function bindEditMenu(element, valueType, specificClass = false) {
 
         editComponent.currentTarget = newComponent
         editComponent.valueType = "string"
+
+    }
+
+    function bindChangeSubscriptionTopic(inputBeingBound) {
+        inputBeingBound.val("Change")
+        let eDCT = editComponent.currentTarget
+
+        inputBeingBound.off("pointerdown.changeTopic").on("pointerdown.changeTopic", () => {
+            outputComponents.changing = true
+            outputComponents.changingSidebar = $("." + valueType + "Sidebar")
+            outputComponents.changingSidebar.css("display", "none")
+            $(".outputTopics").css("display", "flex")
+        })
 
     }
 
@@ -2052,9 +2320,9 @@ $(".fillSpaceCheckbox").on("input", () => {
     setSimilarOptions(editComponent.currentTarget, defaultSimilarOptions)
 })
 
-captureMJPEG($(".cameraComponent"))
+// captureMJPEG($(".cameraComponent"))
 
-function captureMJPEG(cameraComponent){
+function captureMJPEG(cameraComponent) {
 
     //cameraComponent
     // <div class="cameraComponent">
@@ -2070,25 +2338,25 @@ function captureMJPEG(cameraComponent){
     //Media recorder can only record mp4 and webm streams
     //So we have to draw the current frame to a canvas
     //and record the canvas (its dumb i know)
-    
+
     let mJpegStream = cameraComponent.children(".cameraStream")
     let encoder = cameraComponent.find(".encoder")
     let ctx = encoder[0].getContext("2d")
 
     let recordToggle = cameraComponent.find(".record")
-    let cameraReflect  = true
+    let cameraReflect = true
     let mediaRecorder
     let recordedBlob = []
     let animationFrame
 
-    mJpegStream.on("load", ()=>{
+    mJpegStream.on("load", () => {
         encoder.attr("height", mJpegStream[0].naturalHeight).attr("width", mJpegStream[0].naturalWidth)
 
         let currentStream = encoder[0].captureStream(30); //TODO: unhardcode this
 
-        mediaRecorder = new MediaRecorder(currentStream, {mimeType: 'video/webm; codecs=vp9'})
+        mediaRecorder = new MediaRecorder(currentStream, { mimeType: 'video/webm; codecs=vp9' })
 
-        mediaRecorder.ondataavailable = (event) =>{
+        mediaRecorder.ondataavailable = (event) => {
             if (event.data.size > 0) {
                 recordedBlob.push(event.data);
             }
@@ -2104,18 +2372,18 @@ function captureMJPEG(cameraComponent){
             let filename = cameraComponent.attr("data-usTimestamp") + "" + cameraComponent.attr("data-streamTopic")
 
             let $a = $("<a>").css("display", "none").attr("href", downloadUrl)
-            $a[0].download =  "video.mp4"//TODO: unhardcode this let the ppl use mp4 if they want fr
+            $a[0].download = "video.mp4"//TODO: unhardcode this let the ppl use mp4 if they want fr
 
             $("body").append($a)
 
             $a[0].click();
 
-          
+
 
             recordedBlob = [];
             // cancelAnimationFrame(animationFrame);
-        }    
-         if(cameraReflect){
+        }
+        if (cameraReflect) {
             ctx.translate(encoder[0].width, 0);
             ctx.scale(-1, 1);
         }
@@ -2123,25 +2391,25 @@ function captureMJPEG(cameraComponent){
 
     })
 
-    mJpegStream.on('error', ()=>{
+    mJpegStream.on('error', () => {
         //TODO: put error message in component
     })
 
-    function drawToCanvas(){
+    function drawToCanvas() {
         ctx.drawImage(mJpegStream[0], 0, 0, encoder[0].width, encoder[0].height)
         animationFrame = requestAnimationFrame(drawToCanvas);
     }
 
-    recordToggle.on("pointerdown", ()=>{
+    recordToggle.on("pointerdown", () => {
         recordToggle.toggleClass("recording")
 
-        if(recordToggle.hasClass("recording")){
+        if (recordToggle.hasClass("recording")) {
             recordToggle.text("🎬")
             recordedBlob = []
 
 
             mediaRecorder.start()
-        } else{
+        } else {
             recordToggle.text("🔴")
             mediaRecorder.stop()
 
@@ -2150,16 +2418,19 @@ function captureMJPEG(cameraComponent){
 
 }
 
-$(".openOutput").on("pointerdown", (event)=>{
-    $(".outputComponents").css("display", "flex")
-    $(".inputComponents").css("display", "none")
+$(".openOutput").on("pointerdown", (event) => {
+    $(".ioComponents").css("display", "none")
+    $(".editSidebar").css("display", "none")
+    $(".outputTopics").css("display", "flex")
     $(".sideBarUnderline").removeClass("sideBarUnderline")
     $(".openOutput").addClass("sideBarUnderline")
 })
 
-$(".openInput").on("pointerdown", (event)=>{
-    $(".outputComponents").css("display", "none")
+$(".openInput").on("pointerdown", (event) => {
+    $(".ioComponents").css("display", "none")
+    $(".editSidebar").css("display", "none")
     $(".inputComponents").css("display", "flex")
     $(".sideBarUnderline").removeClass("sideBarUnderline")
     $(".openInput").addClass("sideBarUnderline")
 })
+

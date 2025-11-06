@@ -1,6 +1,6 @@
 <!-- MIT License
-
 Copyright (c) 2025 Tigerbots
+https://github.com/Tigerbots2183
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -308,14 +308,14 @@ SOFTWARE. -->
         <div class="uiTestTab page">
             <!-- <button class="actionButton" data-type="boolean" data-topic="TestActionButton"
             data-value="false">Action Button</button> -->
-            <div class="cameraComponent">
+            <!-- <div class="cameraComponent">
                 <h1>Camera Stream</h1>
                 <img src="http://192.168.0.48:1181/stream.mjpg" crossOrigin="anonymous" class="cameraStream">
                 <canvas class="encoder"></canvas>
                 <div class="cameraNav">
                     <button class="record emojiButton">🔴</button>
                 </div>
-            </div>
+            </div> -->
 
 
         </div>
@@ -325,7 +325,7 @@ SOFTWARE. -->
     <div class="sideBar">
         <div class="sideBarNav">
             <h1 class="sideBarUnderline addButtons openInput" data-sidebarClass="inputComponents">Input</h1>
-            <h1 class="addButtons openOutput" data-sidebarClass="outputComponents">Output</h1>
+            <h1 class="addButtons openOutput" data-sidebarClass="outputTopics">Output</h1>
             <h1 class="editNavButtons editNavBack" style="display: none;">＜</h1>
             <h1 class="editNavButtons editNavName" style="display: none;"></h1>
         </div>
@@ -380,14 +380,56 @@ SOFTWARE. -->
                 <button class="numberPlus animatedButton">+</button>
             </div>
 
+
+        </div>
+
+        <div class="outputTopics ioComponents">
+            <!-- general stucture -->
+            <!-- <div class="topicPathDiv">
+                <div class="h2Holder">
+                    <h2>▲</h2>
+                </div>
+                <h1>/.Schema</h1>
+                <div class="subPaths">
+                    //self 
+                </div>
+            </div> -->
+
+        </div>
+
+        <div class="stringOutputComponents outputComponents ioComponents">
             <div class="basicSubscription" data-topic=""><!-- must be the full path -->
                 <h1 class="bSTopic">Topic:</h1>
                 <h1 class="bSValue">Value</h1>
             </div>
         </div>
 
-        <div class="outputComponents ioComponents">
-          
+        <div class="doubleOutputComponents outputComponents ioComponents">
+            <div class="basicSubscription" data-topic=""> <!-- must be the full path -->
+                <h1 class="bSTopic">Topic:</h1>
+                <h1 class="bSValue">Value</h1>
+            </div>
+        </div>
+
+        <div class="intOutputComponents outputComponents ioComponents">
+            <div class="basicSubscription" data-topic=""> <!-- must be the full path -->
+                <h1 class="bSTopic">Topic:</h1>
+                <h1 class="bSValue">Value</h1>
+            </div>
+        </div>
+
+        <div class="floatOutputComponents outputComponents ioComponents">
+            <div class="basicSubscription" data-topic=""> <!-- must be the full path -->
+                <h1 class="bSTopic">Topic:</h1>
+                <h1 class="bSValue">Value</h1>
+            </div>
+        </div>
+
+        <div class="boolOutputComponents outputComponents ioComponents">
+            <div class="basicSubscription" data-topic=""> <!-- must be the full path -->
+                <h1 class="bSTopic">Topic:</h1>
+                <h1 class="bSValue">Value</h1>
+            </div>
         </div>
 
         <div class="editSidebar booleanSidebar">
@@ -419,19 +461,37 @@ SOFTWARE. -->
                 </div>
             </div>
         </div>
+        <div class="editSidebar subscriptionSidebar">
+            <div class="sideInputDiv">
+                <p>Name:</p>
+                <input type="text" data-editing="text" class="textInput isEdit nameInput" placeholder="Unset">
+            </div>
+
+            <div class="sideInputDiv">
+                <p>Topic:</p>
+                    <p data-editing="data-topic" class="isntEdit topicShower"></p>
+                <input type="button" class="sideBarButton changeSubscriptionTopic isEdit" data-editing="changeTopic" value="Change" placeholder="Unset">
+            </div>
+
+            <div class="sideInputDiv">
+                <p>Color:</p>
+                <input type="color" data-editing="color" class="colorInput isEdit" placeholder="Unset">
+            </div>
+
+        </div>
         <div class="editSidebar doubleSidebar">
             <!-- Number and axis -->
             <div class="sideInputDiv">
                 <p>Name:</p>
                 <input type="text " class="textInput isEdit" data-editing="text" placeholder="Unset">
             </div>
-            
+
             <div class="sideInputDiv">
                 <p>Topic:</p>
                 <input type="text" class="textInput isEdit" data-editing="data-topic" placeholder="Unset">
             </div>
             <!-- // Axis ONLY -->
-            <div class="sideInputDiv specificComponent axisSpecific" >
+            <div class="sideInputDiv specificComponent axisSpecific">
                 <p>Format:</p>
                 <div class="multiSwitch isEdit" data-value="X-Axis" style="width: 60%;" data-editing="axisDirection">
                     <div class="multiSlider">
@@ -459,7 +519,8 @@ SOFTWARE. -->
 
             <div class="sideInputDiv">
                 <p>Value:</p>
-                <input type="number" class="numberTextInput value isEdit" data-editing="value" placeholder="Unset" disabled>
+                <input type="number" class="numberTextInput value isEdit" data-editing="value" placeholder="Unset"
+                    disabled>
             </div>
 
             <div class="sideInputDiv">
@@ -468,7 +529,7 @@ SOFTWARE. -->
             </div>
 
             <!-- // Axis ONLY -->
-            <div class="sideInputDiv specificComponent axisSpecific" >
+            <div class="sideInputDiv specificComponent axisSpecific">
                 <p>Snap Back?</p>
                 <input type="checkbox" class="isEdit" data-editing="data-snapBack">
             </div>
@@ -484,13 +545,13 @@ SOFTWARE. -->
                 <p>Name:</p>
                 <input type="text" data-editing="text" class="textInput isEdit" placeholder="Unset">
             </div> -->
-            
+
             <div class="sideInputDiv">
                 <p>Topic:</p>
-                <input type="text"  data-editing="data-topic" class="textInput isEdit" placeholder="Unset">
+                <input type="text" data-editing="data-topic" class="textInput isEdit" placeholder="Unset">
             </div>
 
-            <div class="multiAdder isEdit"  data-editing="optionArray">
+            <div class="multiAdder isEdit" data-editing="optionArray">
                 <p>Options:</p>
 
                 <!-- <div class="sidebarOption test1">
