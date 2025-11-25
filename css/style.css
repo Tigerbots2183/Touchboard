@@ -781,6 +781,58 @@ input[type=number] {
     width: 100%;
 }
 
+
+.basicLogger{
+    width: 20cqh;
+    height: 15cqh;
+    border-radius: 0.5vh;
+    background-color: rgb(24,24,24);
+    border-color: rgb(12,12,12);
+    border: solid 0.125cqh;
+}
+
+.basicLogger h1{
+    color: white;
+    font-size: 1.75cqh;
+    line-height: 2cqh;
+}
+
+.basicLogger .basicLoggerTitle{
+    width: 100%;
+    height: 2.5cqh;
+    line-height: 2.5cqh;
+    background-color: rgb(12,12,12);
+    text-align: center;
+}
+
+.basicLoggerValues{
+    overflow-y: scroll;
+    height: calc(100% - 2.5cqh);
+
+}
+
+.basicallyLogged{
+    display: flex;
+    flex-wrap: wrap;
+    padding: 1cqh;
+    background-color: rgb(18, 18, 18);
+    border-color: rgb(7,7,7);
+    border: 0.125cqh solid;
+    align-content: center;
+    justify-content: space-between;
+}
+
+.basicallyLogged h1{
+    padding-inline: 0.5cqh;
+}
+
+.basicallyLogged .basicLoggerTimestamp{
+    color: rgb(50, 50, 50);
+    font-size: 1cqh;
+    line-height: 2cqh;
+}
+
+
 @container dashboardHolder (width > 0px) {
     .tabNav {
         position: absolute;
@@ -1870,6 +1922,105 @@ input[type=number] {
         
     }
 
+    .basicLogger .showAll{
+        border-radius: 1cqh 0vh 0vh 0vh;
+
+        font-size: 3.5cqh;
+        width: 100%;
+        grid-area: ⏿;
+        height: 5cqh;
+        line-height: 5cqh;
+        background-color: rgb(12,12,12);
+        text-align: center;
+        pointer-events: none;
+        color: #ffffff00;
+        transition: color 300ms ease;
+    }
+
+    .basicLogger .showAllOpen{
+        font-size: 3.5cqh;
+        width: 100%;
+        grid-area: ⏿;
+        height: 5cqh;
+        line-height: 5cqh;
+        background-color: rgb(12,12,12);
+        text-align: center;
+        pointer-events: all;
+        color: #ffffff;
+        transition: color 300ms ease;
+    }
+
+    .basicLogger .basicLoggerPauser{
+        user-select: none;
+        border-radius: 0vh 1cqh 0vh 0vh;
+        grid-area: ⏸;
+        color: white;
+        font-size: 3.5cqh;
+        width: 100%;
+        height: 5cqh;
+        line-height: 5cqh;
+        background-color: rgb(12,12,12);
+        text-align: center;
+    }
+
+    .basicLogger{
+        width: 40cqh;
+        display: grid;
+        grid-template-rows: min-content 100%;
+        grid-template-areas: 
+        "⏿ T ⏸"
+        "V V V";
+        height: 60cqh;
+        border-radius: 1vh;
+        background-color: rgb(24,24,24);
+        border-color: rgb(12,12,12);
+        border: solid 0.25cqh;
+        /* margin-left: 50cqh;
+        margin-top: 50cqh; */
+    }
+    
+    .basicLogger h1{
+        color: white;
+        font-size: 3.5cqh;
+        line-height: 4cqh;
+    }
+    
+    .basicLogger .basicLoggerTitle{
+        width: 100%;
+        height: 5cqh;
+        line-height: 5cqh;
+        background-color: rgb(12,12,12);
+        text-align: center;
+    }
+    
+    .basicLoggerValues{
+        overflow-y: scroll;
+        grid-area: V;
+        height: calc(100% - 5cqh);
+    
+    }
+    
+    .basicallyLogged{
+        display: flex;
+        flex-wrap: wrap;
+        padding: 1cqh;
+        background-color: rgb(18, 18, 18);
+        border-color: rgb(7,7,7);
+        border: 0.25cqh solid;
+        align-content: center;
+        justify-content: space-between;
+    }
+    
+    .basicallyLogged h1{
+        padding-inline: 1cqh;
+    }
+    
+    .basicallyLogged .basicLoggerTimestamp{
+        color: rgb(50, 50, 50);
+        font-size: 2cqh;
+        line-height: 4cqh;
+    }
+
 }
 
 
@@ -1900,8 +2051,26 @@ input[type=number] {
     opacity: 0;
 }
 
+.feauxComponent h1{
+    background-color: #00000000;
+    color: #00000000;
+}
+
+.feauxComponent .basicLoggerTitle{
+    background-color: #00000000;
+    color: #00000000;
+}
 
 
+.feauxComponent .basicLoggerPauser{
+    background-color: #00000000;
+    color: #00000000
+}
+
+.feauxComponent .showAll{
+    background-color: #00000000;
+    color: #00000000
+}
 /* Border corner code from Temani Afif on stack overflow (was not trying to figure this out myself looks cumbersome*/
 
 .cornerBorder {
@@ -2418,6 +2587,8 @@ input[type=number] {
     height: 80%;
 }
 
+
+
 .topicPathDiv h1 {
     color: white;
     grid-area: h1;
@@ -2537,3 +2708,4 @@ input[type=number] {
     width: 60%;
     overflow-x: scroll;
 }
+

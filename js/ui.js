@@ -411,6 +411,7 @@ function topicToSidebar(topic) {
 
                         console.log(subscribedTopics)
 
+                       
 
                         if (!subscribedTopics.hasOwnProperty(topic.name)) {
                             subscribedTopics[topic.name] = []
@@ -419,19 +420,34 @@ function topicToSidebar(topic) {
                         let newSubscriptionReference = subscribedTopics[editComponent.currentTarget.attr('data-topic')].slice(editComponent.currentTarget.attr("data-subscriptionIndex"), parseInt(editComponent.currentTarget.attr("data-subscriptionIndex")) + 1)
                         subscribedTopics[topic.name].push(newSubscriptionReference[0])
 
+                        console.log(subscribedTopics)
+
                         subscribedTopics[editComponent.currentTarget.attr('data-topic')][editComponent.currentTarget.attr("data-subscriptionIndex")] = false
 
-                        editComponent.currentTarget.attr("data-topic", topic.name).attr("data-subscriptionindex", subscribedTopics[editComponent.currentTarget.attr('data-topic')].length-1).find(".editThisName").text(split[i])
+                        editComponent.currentTarget.attr("data-topic", topic.name).attr("data-subscriptionindex", subscribedTopics[editComponent.currentTarget.attr('data-topic')].length - 1).find(".editThisName").text(split[i])
 
-                        if(nt4Client.serverTopics.get(topic.name)){
+                       
+
+
+                        if (nt4Client.serverTopics.get(topic.name)) {
                             let val = "null"
-                            if(nt4Client.serverTopics.get(topic.name).value){
+                            if (nt4Client.serverTopics.get(topic.name).value) {
                                 val = nt4Client.serverTopics.get(topic.name).value
                             }
+                            if(newSubscriptionReference[0].topicChangeHandler){
+                                newSubscriptionReference[0].topicChangeHandler(topic.name, val)
+                            }
+
                             newSubscriptionReference[0].valueHandeler(val)
-                        } else{
+                        } else {
+                            if(newSubscriptionReference[0].topicChangeHandler){
+                                newSubscriptionReference[0].topicChangeHandler(topic.name, "")
+                            }
+
                             newSubscriptionReference[0].valueHandeler("")
                         }
+
+                        
 
                         outputComponents.changingSidebar.find(".topicShower").text(topic.name)
                         outputComponents.changingSidebar.find(".nameInput").val(split[i])
@@ -617,7 +633,7 @@ function handleNewData(topic, timestamp, value, RawValue) {
             // console.log(subscribedTopics[topic.name][i])
 
 
-            subscribedTopics[topic.name][i].valueHandeler(value)
+            subscribedTopics[topic.name][i].valueHandeler(value, timestamp)
         }
     }
 
@@ -1331,6 +1347,8 @@ function createDefaultOf(component, append, topic = "esc-UNSET-esc") {
         return createNumberComponent("Number", topic, append).div
     } else if (component == "basicSubscription") {
         return createBasicSubscription(undefined, topic, append)
+    } else if (component == "basicLogger") {
+        return createBasicLogger(undefined, topic, append)
     }
 }
 
@@ -1591,6 +1609,7 @@ function createBasicSubscription(displayName, topic, append = false, hex = false
         topicReference.text(value)
     }
 
+   
     let subscribedReference = {
         'jQueryReference': topicReference,
         'parentReference': basicSubscription,
@@ -1608,6 +1627,177 @@ function createBasicSubscription(displayName, topic, append = false, hex = false
     // console.log(topic)
 
     return basicSubscription
+
+}
+
+function createBasicLogger(displayName, topic, append = false, hex = false, similarOptions = defaultSimilarOptions) {
+
+    let topicClass = topic.replaceAll(".", "esc-period-esc").replaceAll("/", "esc-Sl-esc")
+
+    if (displayName == null) {
+        let topicSplit = topic.split("/")
+        displayName = topicSplit[topicSplit.length - 1]
+    }
+    // console.log(topicClass)
+
+    let basicLogger = $("<div>")
+        .addClass("basicLogger")
+        .attr("data-topic", topic)
+        .attr("data-componentType", "basicLogger")
+
+    
+    $("<h1>").addClass("basicLoggerTitle").addClass("editThisName").text(displayName).appendTo(basicLogger)
+
+    let loggerValues = $("<div>").addClass("basicLoggerValues").appendTo(basicLogger)
+
+    let pauser = $("<h1>").addClass("basicLoggerPauser").text("⏸").appendTo(basicLogger).on("pointerdown", (event) => {
+        let $ct = $(event.currentTarget);
+
+        basicLogger.offset()
+            
+        $ct.toggleClass("paused")
+        $ct.parent().children(".showAll").toggleClass("showAllOpen")
+        $ct.text("⏸").css("font-size", "3.5cqh")
+        if ($ct.hasClass("paused")){ 
+            $ct.text("▶").css("font-size", "2.5cqh")
+            return
+        }
+        $(loggerValues).empty()
+
+        let storedValues = subscribedTopics[basicLogger.attr("data-topic")][parseInt(basicLogger.attr("data-subscriptionIndex"))].storedValues
+        let storedAmount = 100
+
+        if(storedValues.length < 100){
+            storedAmount = storedValues.length
+        }
+
+        for (let i = storedAmount; i > 0; i--) {
+            
+            let currentValue = storedValues[storedValues.length - i].split("esc-timestampmarker-esc")
+
+            let basicallyLogged = document.createElement("div")
+            basicallyLogged.classList.add("basicallyLogged")
+            loggerValues[0].appendChild(basicallyLogged)
+
+            let valuer = document.createElement("h1")
+            valuer.textContent = currentValue[0]
+            basicallyLogged.appendChild(valuer)
+
+            let timestamper = document.createElement("h1")
+            timestamper.classList.add("basicLoggerTimestamp")
+            timestamper.textContent = currentValue[1]
+            basicallyLogged.appendChild(timestamper)
+        }
+
+    })
+
+    let showAll = $("<h1>").addClass("showAll").text("⏿").appendTo(basicLogger).on("pointerdown", ()=>{
+        let storedValues = subscribedTopics[basicLogger.attr("data-topic")][parseInt(basicLogger.attr("data-subscriptionIndex"))].storedValues
+
+        $(loggerValues).empty()
+
+        for (let i = 0; i < storedValues.length; i++) {
+            let currentValue = storedValues[i].split("esc-timestampmarker-esc")
+
+            let basicallyLogged = document.createElement("div")
+            basicallyLogged.classList.add("basicallyLogged")
+            loggerValues[0].appendChild(basicallyLogged)
+
+            let valuer = document.createElement("h1")
+            valuer.textContent = currentValue[0]
+            basicallyLogged.appendChild(valuer)
+
+
+            let timestamper = document.createElement("h1")
+            timestamper.classList.add("basicLoggerTimestamp")
+            timestamper.textContent = currentValue[1]
+            basicallyLogged.appendChild(timestamper)
+        }
+    })
+
+
+    if (append) {
+        basicLogger.appendTo(append)
+    }
+
+    setSimilarOptions(basicLogger, similarOptions)
+    addEditHandler(basicLogger, "subscription")
+
+    if (!subscribedTopics.hasOwnProperty(topic)) {
+        subscribedTopics[topic] = []
+    }
+
+    let basicLoggerHandler = (value, timestamp) => {
+        // console.log(value, "basicSubscriptionHandler")
+        // let basicallyLogged = $("<div>").addClass("basicallyLogged").appendTo(loggerValues)
+        // $("<h1>").text(value).appendTo(basicallyLogged)
+        // $("<h1>").text(timestamp).addClass("basicLoggerTimestamp").appendTo(basicallyLogged)
+
+        // loggerValues.scrollTop(loggerValues[0].scrollHeight)
+
+        //well try native instead of jquery for preformance
+        if (subscribedTopics[topic]) {
+            if (subscribedTopics[topic][parseInt(basicLogger.attr("data-subscriptionIndex"))]) {
+                subscribedTopics[topic][parseInt(basicLogger.attr("data-subscriptionIndex"))].storedValues.push(value + "esc-timestampmarker-esc" + timestamp)
+
+            }
+        }
+
+        if (pauser.hasClass("paused")) return
+
+        let foundChildren = loggerValues.children()
+
+        if (foundChildren.length > 100) {
+            foundChildren[0].remove()
+        }
+
+
+
+        let basicallyLogged = document.createElement("div")
+        basicallyLogged.classList.add("basicallyLogged")
+        loggerValues[0].appendChild(basicallyLogged)
+
+        let valuer = document.createElement("h1")
+        valuer.textContent = value
+        basicallyLogged.appendChild(valuer)
+
+
+        let timestamper = document.createElement("h1")
+        timestamper.classList.add("basicLoggerTimestamp")
+        timestamper.textContent = timestamp
+        basicallyLogged.appendChild(timestamper)
+
+        loggerValues.scrollTop(loggerValues[0].scrollHeight)
+
+    }
+
+    let topicChangeHandler = (newTopic, val) =>{
+        $(loggerValues).empty()
+
+        subscribedTopics[newTopic][parseInt(basicLogger.attr("data-subscriptionIndex"))]["storedValues"] = [val + "esc-timestampmarker-esc "]
+        
+    }
+
+
+    let subscribedReference = {
+        'jQueryReference': false,
+        'parentReference': basicLogger,
+        'storedValues': [],
+        'valueHandeler': basicLoggerHandler,
+        'topicChangeHandler': topicChangeHandler
+    }
+
+    subscribedTopics[topic].push(subscribedReference)
+
+    basicLogger.attr("data-subscriptionIndex", subscribedTopics[topic].length - 1)
+
+    if (nt4Client.serverTopics.get(topic)) {
+        basicLoggerHandler(nt4Client.serverTopics.get(topic).value)
+    }
+
+    // console.log(topic)
+
+    return basicLogger
 
 }
 
