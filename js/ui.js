@@ -411,7 +411,7 @@ function topicToSidebar(topic) {
 
                         console.log(subscribedTopics)
 
-                       
+
 
                         if (!subscribedTopics.hasOwnProperty(topic.name)) {
                             subscribedTopics[topic.name] = []
@@ -426,7 +426,7 @@ function topicToSidebar(topic) {
 
                         editComponent.currentTarget.attr("data-topic", topic.name).attr("data-subscriptionindex", subscribedTopics[editComponent.currentTarget.attr('data-topic')].length - 1).find(".editThisName").text(split[i])
 
-                       
+
 
 
                         if (nt4Client.serverTopics.get(topic.name)) {
@@ -434,20 +434,20 @@ function topicToSidebar(topic) {
                             if (nt4Client.serverTopics.get(topic.name).value) {
                                 val = nt4Client.serverTopics.get(topic.name).value
                             }
-                            if(newSubscriptionReference[0].topicChangeHandler){
+                            if (newSubscriptionReference[0].topicChangeHandler) {
                                 newSubscriptionReference[0].topicChangeHandler(topic.name, val)
                             }
 
                             newSubscriptionReference[0].valueHandeler(val)
                         } else {
-                            if(newSubscriptionReference[0].topicChangeHandler){
+                            if (newSubscriptionReference[0].topicChangeHandler) {
                                 newSubscriptionReference[0].topicChangeHandler(topic.name, "")
                             }
 
                             newSubscriptionReference[0].valueHandeler("")
                         }
 
-                        
+
 
                         outputComponents.changingSidebar.find(".topicShower").text(topic.name)
                         outputComponents.changingSidebar.find(".nameInput").val(split[i])
@@ -1329,26 +1329,31 @@ let editComponent = {
 }
 
 function createDefaultOf(component, append, topic = "esc-UNSET-esc") {
-    if (component == "actionButton") {
-        return createActionButton("Action Button", topic, append)
-    } else if (component == "oneShotButton") {
-        return createOneShotButton("One Shot Button", topic, append)
-    } else if (component == "toggleButton") {
-        return createToggleButton("Toggle Button", topic, append)
-    } else if (component == "axis") {
-        return createAxis("Axis", topic, append, false).div
-    } else if (component == "verticalAxis") {
-        return createAxis("Y-Axis", topic, append, true).div
-    } else if (component == "select") {
-        return createDropdown(topic, append, 0, 0, [{ name: "Dropdown", value: "" }]).div
-    } else if (component == "buttonOptGroup") {
-        return createOptGroup(topic, append, 0, 0, []).div
-    } else if (component == "numberComponent") {
-        return createNumberComponent("Number", topic, append).div
-    } else if (component == "basicSubscription") {
-        return createBasicSubscription(undefined, topic, append)
-    } else if (component == "basicLogger") {
-        return createBasicLogger(undefined, topic, append)
+    switch (component) {
+        case "actionButton":
+            return createActionButton("Action Button", topic, append)
+        case "oneShotButton":
+            return createOneShotButton("One Shot Button", topic, append)
+        case "toggleButton":
+            return createToggleButton("Toggle Button", topic, append)
+        case "axis":
+            return createAxis("Axis", topic, append, false).div
+        case "verticalAxis":
+            return createAxis("Y-Axis", topic, append, true).div
+        case "select":
+            return createDropdown(topic, append, 0, 0, [{ name: "Dropdown", value: "" }]).div
+        case "buttonOptGroup":
+            return createOptGroup(topic, append, 0, 0, []).div
+        case "numberComponent":
+            return createNumberComponent("Number", topic, append).div
+        case "basicSubscription":
+            return createBasicSubscription(undefined, topic, append)
+        case "basicLogger":
+            return createBasicLogger(undefined, topic, append)
+        case "numberLine":
+            return createNumberLine(undefined, topic, append)
+        case "radialGauge":
+            return createRadialGauge(undefined, topic, append)
     }
 }
 
@@ -1609,7 +1614,7 @@ function createBasicSubscription(displayName, topic, append = false, hex = false
         topicReference.text(value)
     }
 
-   
+
     let subscribedReference = {
         'jQueryReference': topicReference,
         'parentReference': basicSubscription,
@@ -1630,7 +1635,7 @@ function createBasicSubscription(displayName, topic, append = false, hex = false
 
 }
 
-function createBasicLogger(displayName, topic, append = false, hex = false, similarOptions = defaultSimilarOptions) {
+function createBasicLogger(displayName, topic, append = false, hex = "#0c0c0c", similarOptions = defaultSimilarOptions) {
 
     let topicClass = topic.replaceAll(".", "esc-period-esc").replaceAll("/", "esc-Sl-esc")
 
@@ -1644,8 +1649,9 @@ function createBasicLogger(displayName, topic, append = false, hex = false, simi
         .addClass("basicLogger")
         .attr("data-topic", topic)
         .attr("data-componentType", "basicLogger")
+        .css("border-color", hex)
+        .attr("data-color", hex)
 
-    
     $("<h1>").addClass("basicLoggerTitle").addClass("editThisName").text(displayName).appendTo(basicLogger)
 
     let loggerValues = $("<div>").addClass("basicLoggerValues").appendTo(basicLogger)
@@ -1654,11 +1660,11 @@ function createBasicLogger(displayName, topic, append = false, hex = false, simi
         let $ct = $(event.currentTarget);
 
         basicLogger.offset()
-            
+
         $ct.toggleClass("paused")
         $ct.parent().children(".showAll").toggleClass("showAllOpen")
         $ct.text("⏸").css("font-size", "3.5cqh")
-        if ($ct.hasClass("paused")){ 
+        if ($ct.hasClass("paused")) {
             $ct.text("▶").css("font-size", "2.5cqh")
             return
         }
@@ -1667,12 +1673,12 @@ function createBasicLogger(displayName, topic, append = false, hex = false, simi
         let storedValues = subscribedTopics[basicLogger.attr("data-topic")][parseInt(basicLogger.attr("data-subscriptionIndex"))].storedValues
         let storedAmount = 100
 
-        if(storedValues.length < 100){
+        if (storedValues.length < 100) {
             storedAmount = storedValues.length
         }
 
         for (let i = storedAmount; i > 0; i--) {
-            
+
             let currentValue = storedValues[storedValues.length - i].split("esc-timestampmarker-esc")
 
             let basicallyLogged = document.createElement("div")
@@ -1691,7 +1697,7 @@ function createBasicLogger(displayName, topic, append = false, hex = false, simi
 
     })
 
-    let showAll = $("<h1>").addClass("showAll").text("⏿").appendTo(basicLogger).on("pointerdown", ()=>{
+    let showAll = $("<h1>").addClass("showAll").text("⏿").appendTo(basicLogger).on("pointerdown", () => {
         let storedValues = subscribedTopics[basicLogger.attr("data-topic")][parseInt(basicLogger.attr("data-subscriptionIndex"))].storedValues
 
         $(loggerValues).empty()
@@ -1714,7 +1720,6 @@ function createBasicLogger(displayName, topic, append = false, hex = false, simi
             basicallyLogged.appendChild(timestamper)
         }
     })
-
 
     if (append) {
         basicLogger.appendTo(append)
@@ -1771,11 +1776,11 @@ function createBasicLogger(displayName, topic, append = false, hex = false, simi
 
     }
 
-    let topicChangeHandler = (newTopic, val) =>{
+    let topicChangeHandler = (newTopic, val) => {
         $(loggerValues).empty()
 
         subscribedTopics[newTopic][parseInt(basicLogger.attr("data-subscriptionIndex"))]["storedValues"] = [val + "esc-timestampmarker-esc "]
-        
+
     }
 
 
@@ -1798,7 +1803,184 @@ function createBasicLogger(displayName, topic, append = false, hex = false, simi
     // console.log(topic)
 
     return basicLogger
+}
 
+function createNumberLine(displayName, topic, append = false, hex = "#0c0c0c", similarOptions = defaultSimilarOptions) {
+
+    
+    let numberLine = $("<div>").addClass("numberLine")
+        .attr("data-topic", topic)
+        .attr("data-componentType", "numberLine")
+        .css("border-color", hex)
+        .attr("data-color", hex)
+        .attr("data-deriveAttributes", 'true')
+
+
+    if (append) {
+        numberLine.appendTo(append)
+    }
+
+    if (displayName == null) {
+        let topicSplit = topic.split("/")
+        displayName = topicSplit[topicSplit.length - 1]
+    }
+
+    $("<h1>").text(displayName).addClass('numberLineTitle').addClass("editThisName").appendTo(numberLine)
+
+    let numberLineMeterHolder = $("<div>").addClass("numberLineMeters").appendTo(numberLine)
+
+    createNewMeter()
+    function createNewMeter() {
+        let newMeter = $("<div>").addClass("meterHolder").appendTo(numberLineMeterHolder)
+
+        $("<div>").addClass("numberLineNoValue").appendTo(newMeter)
+        $("<meter>").addClass("numberLineHasValue").appendTo(newMeter).attr("max", "0").attr("min", "0")
+
+        return newMeter
+    }
+
+    setSimilarOptions(numberLine, similarOptions)
+    addEditHandler(numberLine, "subscription", ".numberLineSpecific")
+
+    if (!subscribedTopics.hasOwnProperty(topic)) {
+        subscribedTopics[topic] = []
+    }
+
+    let numberLineHandler = (value) => {
+        if (Array.isArray(value)) {
+
+        } else {
+            let meter = numberLineMeterHolder.children().eq(0).children('.numberLineHasValue')
+
+            if (meter.length == 0) {
+                meter = createNewMeter()
+            }
+
+            if (numberLine.attr("data-deriveAttributes") == "true") {
+                if (Math.round(value) > parseFloat(meter.attr("max"))) {
+                    meter.attr("max", Math.round(value))
+
+                    let meterTopTextChAvgLength = (("0" + Math.round(value / 4) + "" + Math.round(value / 2) + "" + Math.round(value * 0.75) + "" + Math.round(parseFloat(value))).length) / 5
+
+                    meter.attr("data-avgch", meterTopTextChAvgLength)
+                }
+
+
+            }
+
+            meter.attr("value", value)
+        }
+    }
+
+    let topicChangeHandler = () => {
+        numberLineMeterHolder.empty()
+    }
+
+    let subscribedReference = {
+        'jQueryReference': false,
+        'parentReference': numberLine,
+        'valueHandeler': numberLineHandler,
+        'topicChangeHandler': topicChangeHandler
+    }
+
+    subscribedTopics[topic].push(subscribedReference)
+
+    numberLine.attr("data-subscriptionIndex", subscribedTopics[topic].length - 1)
+
+    if (nt4Client.serverTopics.get(topic)) {
+        numberLineHandler(nt4Client.serverTopics.get(topic).value)
+    }
+
+
+    return numberLine
+}
+
+function createRadialGauge(displayName, topic, append, hex = "#0c0c0c",  maxDeg = 360, subTickCount = 5, maxNumber, minNumber, low, high, optimum, degOffset = 0, similarOptions = defaultSimilarOptions,) {
+    if (displayName == null) {
+        let topicSplit = topic.split("/")
+        displayName = topicSplit[topicSplit.length - 1]
+    }
+    let radialGauge = $("<div>").addClass("radialGauge")
+        .attr("data-topic", topic)
+        .attr("data-componentType", "radialGauge")
+        .css("border-color", hex)
+        .attr("data-color", hex)
+
+
+    if (append) {
+        radialGauge.appendTo(append)
+    }
+
+    $("<h1>").addClass("radialGaugeTitle").addClass("editThisName").text(displayName).appendTo(radialGauge)
+
+    let gauge = $("<div>").addClass("gauge").attr("data-maxDeg", maxDeg).attr("data-offsetDeg",degOffset).appendTo(radialGauge)
+
+    if(maxNumber){
+        gauge.attr("data-maxNumber", maxNumber)
+    }
+    if(minNumber){
+        gauge.attr("data-minNumber", minNumber)
+    }
+    if(low){
+        gauge.attr("data-low", low)
+    }
+    if(high){
+        gauge.attr("data-high", high)
+    }
+    if(optimum){
+        gauge.attr("data-optimum", optimum)
+    }
+
+
+    let pointer = $("<div>").addClass("pointer").appendTo(gauge)
+
+    let subTicks = $("<div>").addClass("subTicks").appendTo(pointer)
+
+    for(let i = 0; i < subTickCount; i++){
+        $("<div>").addClass("subTick").appendTo(subTicks)
+    }
+
+    setSimilarOptions(radialGauge, similarOptions)
+    addEditHandler(radialGauge, "subscription", ".radialGaugeSpecific")
+
+    if (!subscribedTopics.hasOwnProperty(topic)) {
+        subscribedTopics[topic] = []
+    }
+
+    let gaugeHandler = (value)=>{
+        let whichMax = gauge.attr("data-maxNumber")
+
+        if(!whichMax){
+            gauge.attr("data-maxDeg")
+        }
+
+        gauge[0].style.setProperty("--gaugeColor", emulateMeterColors(gauge.attr("data-minNumber"), whichMax, gauge.attr("data-low"), gauge.attr("data-high"), gauge.attr("data-optimum"), value)) 
+
+        if(gauge.attr("data-maxNumber") && gauge.attr("data-minNumber")){
+            gauge.removeAttr("data-valDeg")
+            gauge.attr("data-valNumber", value)
+
+            return
+        }
+        gauge.attr("data-valDeg", value)
+    }
+
+    let subscribedReference = {
+        'jQueryReference': false,
+        'parentReference': radialGauge,
+        'valueHandeler': gaugeHandler,
+    }
+
+    subscribedTopics[topic].push(subscribedReference)
+
+    radialGauge.attr("data-subscriptionIndex", subscribedTopics[topic].length - 1)
+
+    if (nt4Client.serverTopics.get(topic)) {
+        gaugeHandler(nt4Client.serverTopics.get(topic).value)
+    }
+
+
+    return radialGauge
 }
 
 setGridInput(".uiTestTab")
@@ -2256,8 +2438,35 @@ function bindEditMenu(element, valueType, specificClass = false) {
             boundEditing = editComponent.currentTarget.attr("data-" + inputBeingBound.attr("data-editing"))
         } else if (editComponent.currentTarget.hasClass("axis") || editComponent.currentTarget.hasClass("verticalAxis")) {
             boundEditing = editComponent.currentTarget.children(".axisKnob, .verticalAxisKnob").attr(inputBeingBound.attr('data-editing'))
+        } else if (editComponent.currentTarget.hasClass("numberLine")) {
+            if (inputBeingBound.hasClass("max")) {
+                if (editComponent.currentTarget.attr("data-deriveAttributes") == "true") {
 
+                } else {
+                    boundEditing = editComponent.currentTarget.find(".numberLineHasValue").eq(0).attr(inputBeingBound.attr("data-editing"))
+                    let meter = editComponent.currentTarget.find(".numberLineHasValue").eq(0)
+                    setExampleMeter(meter.attr("min"), meter.attr("max"), meter.attr("low"), meter.attr("high"), meter.attr("optimum"))
+                }
+            } else {
+                boundEditing = editComponent.currentTarget.find(".numberLineHasValue").eq(0).attr(inputBeingBound.attr("data-editing"))
+                let meter = editComponent.currentTarget.find(".numberLineHasValue").eq(0)
+                setExampleMeter(meter.attr("min"), meter.attr("max"), meter.attr("low"), meter.attr("high"), meter.attr("optimum"))
+            }
+        }  else if(editComponent.currentTarget.hasClass("radialGauge")){
+            boundEditing = editComponent.currentTarget.find(".gauge").eq(0).attr("data-" + inputBeingBound.attr("data-editing"))
+            let gauge = editComponent.currentTarget.find(".gauge")
+
+            let whichMax = gauge.attr("data-maxNumber")
+
+            if(!whichMax){
+                whichMax = gauge.attr("data-maxDeg")
+            }
+
+            setExampleMeter(gauge.attr("data-minNumber"), whichMax, gauge.attr("data-low"), gauge.attr("data-high"), gauge.attr("data-optimum"))
+            
         }
+
+
 
         inputBeingBound.val(boundEditing)
 
@@ -2270,6 +2479,41 @@ function bindEditMenu(element, valueType, specificClass = false) {
             } else if (editComponent.currentTarget.hasClass("axis") || editComponent.currentTarget.hasClass("verticalAxis")) {
 
                 $comp.children(".axisKnob, .verticalAxisKnob").attr($ct.attr('data-editing'), $ct.val())
+            } else if ($comp.hasClass("numberLine")) {
+                if (inputBeingBound.attr("data-editing") == "max") {
+                    if ($ct.val().length == 0) {
+                        $comp.attr("data-deriveAttributes", "true")
+                        $comp.find(".numberLineHasValue").attr("max", "0")
+                        return
+                    } else {
+                        $comp.attr("data-deriveAttributes", "false")
+                    }
+                }
+
+
+                let meter = $comp.find(".numberLineHasValue")
+                meter.attr($ct.attr("data-editing"), $ct.val())
+
+                setExampleMeter(meter.attr("min"), meter.attr("max"), meter.attr("low"), meter.attr("high"), meter.attr("optimum"))
+
+                if ($ct.val().length == 0) {
+                    meter.removeAttr($ct.attr("data-editing"))
+                }
+            } else if($comp.hasClass("radialGauge")){
+                let gauge = $comp.find(".gauge")
+
+                gauge.attr("data-" + $ct.attr('data-editing'), $ct.val())
+
+                let whichMax = gauge.attr("data-maxNumber")
+
+                if(!whichMax){
+                    whichMax = gauge.attr("data-maxDeg")
+                }
+                setExampleMeter(gauge.attr("data-minNumber"), whichMax, gauge.attr("data-low"), gauge.attr("data-high"), gauge.attr("data-optimum"))
+                
+                if ($ct.val().length == 0) {
+                    gauge.removeAttr("data-" + $ct.attr("data-editing"))
+                }
             }
         })
     }
@@ -2280,7 +2524,13 @@ function bindEditMenu(element, valueType, specificClass = false) {
         inputBeingBound.off("input.coloring").on("input.coloring", (event) => {
             let $ct = $(event.currentTarget)
 
-            if (valueType == 'boolean' || valueType == "subscription") {
+
+
+            if (editComponent.currentTarget.hasClass("basicLogger") || editComponent.currentTarget.hasClass("numberLine") ||  editComponent.currentTarget.hasClass("radialGauge")) {
+                editComponent.currentTarget.css("border-color", $ct.val()).attr("data-color", $ct.val())
+                editComponent.currentTarget[0].style.setProperty("--accent", $ct.val());
+
+            } else if (valueType == 'boolean' || valueType == "subscription") {
                 editComponent.currentTarget.css("background-color", $ct.val() + "3f").css("border-color", $ct.val()).attr("data-color", $ct.val())
 
                 if (editComponent.currentTarget.hasClass("toggleButton") && !(editComponent.currentTarget.hasClass("toggledOn"))) {
@@ -2352,7 +2602,8 @@ function bindEditMenu(element, valueType, specificClass = false) {
     }
 
     function bindOtherData(inputBeingBound) {
-        //defaults selection to all text for easy deletion
+
+        //bind components attribute which is found by the current input being bounds data-editing attribute.
         let boundEditing = editComponent.currentTarget.attr(inputBeingBound.attr("data-editing"))
 
         if (boundEditing === "esc-UNDEFINED-esc") {
@@ -2363,6 +2614,7 @@ function bindEditMenu(element, valueType, specificClass = false) {
             inputBeingBound.text(boundEditing)
         }
 
+        //defaults selection to all text for easy deletion
         inputBeingBound.val(boundEditing).on(`focus.selectText`, (event) => setTimeout(() => $(event.currentTarget)[0].setSelectionRange(0, $(event.currentTarget).val().length), 100))
 
         inputBeingBound.off("input.typing blur.typing").on("input.typing blur.typing", (event) => {
@@ -2624,3 +2876,230 @@ $(".openInput").on("pointerdown", (event) => {
     $(".openInput").addClass("sideBarUnderline")
 })
 
+
+function setExampleMeter(min = 0, max = 100, low = "", high = "", optimum = "") {
+    let meter = $(".exampleMeter")
+
+    let yellow = "#FEB902"
+    let red = "#D83B01"
+
+    meter.empty()
+
+    if (isNaN(parseFloat(min))) {
+        min = 0
+    }
+
+    min = parseFloat(min)
+    max = parseFloat(max)
+
+    let range = (max - min)
+
+    if (low != "") {
+        low = parseFloat(low)
+    }
+    if (high != "") {
+        high = parseFloat(high)
+    }
+    if (optimum != "") {
+        optimum = parseFloat(optimum)
+    } else {
+        optimum = max / 2
+    }
+
+    console.log(min, max, range)
+
+    let division1 = $("<div>").addClass("exampleMeterDivision").appendTo(meter);
+    let division2 = $("<div>").addClass("exampleMeterDivision").appendTo(meter);
+    let division3 = $("<div>").addClass("exampleMeterDivision").appendTo(meter);
+
+    if (low && high == "") {
+        division3.css("display", "none")
+
+        let division1Width = ((low - min) / range) * 100
+
+
+        division1.css("width", division1Width + "%")
+        division2.css("width", 100 - division1Width + "%")
+
+        if (optimum < low) {
+            division2.css("background-color", yellow)
+        } else {
+            division1.css("background-color", yellow)
+        }
+
+    }
+    if (low == "" && high) {
+        division3.css("display", "none")
+
+        let division1Width = ((high - min) / range) * 100
+
+
+        division1.css("width", division1Width + "%")
+        division2.css("width", 100 - division1Width + "%")
+
+        if (optimum < high) {
+            division2.css("background-color", yellow)
+        } else {
+            division1.css("background-color", yellow)
+        }
+
+    }
+    if (low && high) {
+        if (high < low) {
+
+            division3.css("display", "none")
+
+            let division1Width = ((low - min) / range) * 100
+
+            division1.css("width", division1Width + "%")
+            division2.css("width", 100 - division1Width + "%")
+
+            if (optimum < low) {
+                division2.css("background-color", red)
+            } else {
+                division1.css("background-color", red)
+
+            }
+            return
+        }
+
+        let division1Width = ((low - min) / range) * 100
+        let division2Width = (((high - low)) / range) * 100
+        let division3Width = 100 - division2Width - division1Width
+
+        division1.css("width", division1Width + "%")
+        division2.css("width", division2Width + "%")
+        division3.css("width", division3Width + "%")
+
+        if (optimum < low) {
+            division2.css("background-color", yellow)
+            division3.css("background-color", red)
+            return
+        }
+        if (optimum < high) {
+            division1.css("background-color", yellow)
+            division3.css("background-color", yellow)
+            return
+        }
+        division1.css("background-color", red)
+        division2.css("background-color", yellow)
+
+    }
+
+}
+
+
+function emulateMeterColors( min = 0, max = 360, low = "", high = "", optimum = "", val) {
+    let green = "#0E7C10"
+    let yellow = "#FEB902"
+    let red = "#D83B01"
+
+
+    if (isNaN(parseFloat(min))) {
+        min = 0
+    }
+
+    min = parseFloat(min)
+    max = parseFloat(max)
+
+    let range = (max - min)
+
+    if (low != "") {
+        low = parseFloat(low)
+    }
+    if (high != "") {
+        high = parseFloat(high)
+    }
+    if (optimum != "") {
+        optimum = parseFloat(optimum)
+    } else {
+        optimum = max / 2
+    }
+
+    console.log(min,max,low,high,optimum,val)
+
+    val = parseFloat(((val - min) / range) * 100)
+
+    let division1 = { percent: 0, color: green };
+    let division2 = { percent: 0, color: green };;
+    let division3 = { percent: 0, color: green };
+
+    if (low && high == "") {
+        division3.percent = 101
+
+        division1.percent = ((low - min) / range) * 100
+        division2.percent = 100
+
+        if (optimum < low) {
+            division2.color = yellow
+        } else {
+            division1.color = yellow
+        }
+
+        return getColor()
+    }
+    if (low == "" && high) {
+        division3.percent = 101;
+
+        division1.percent = ((high - min) / range) * 100
+        division2.percent = 100
+
+        if (optimum < high) {
+            division2.color = yellow
+        } else {
+            division1.color = yellow
+        }
+
+    }
+    if (low && high) {
+        if (high < low) {
+            division3.percent = 101;
+
+            division1.percent = ((low - min) / range) * 100
+            division2.percent = 100
+
+
+            if (optimum < low) {
+                division2.color = red
+            } else {
+                division1.color = red
+
+            }
+
+            return getColor()
+        }
+
+        division1.percent = ((low - min) / range) * 100
+        division2.percent = (((high - low)) / range) * 100 + division1.percent
+        division3.percent = 100
+
+
+        if (optimum < low) {
+            division2.color = yellow
+            division3.color = red
+            return getColor()
+        }
+        if (optimum < high) {
+            division1.color = yellow
+            division3.color = yellow
+            return getColor()
+        }
+        division1.color = red
+        division2.color = yellow
+
+        return getColor()
+    } else {
+        return green
+    }
+
+    function getColor() {
+        if (val <= division1.percent) {
+            return division1.color
+        } else if (val <= division2.percent) {
+            return division2.color
+        } else {
+            return division3.color
+        }
+    }
+
+}
