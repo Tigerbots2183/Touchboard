@@ -364,10 +364,10 @@ function drawPath() {
 }
 
 
-function moveTo(x, y) {
+export function moveTo(x, y) {
     finishedPath = finishedPath + ` M ${x} ${y} `
 }
-function lineTo(x, y) {
+export function lineTo(x, y) {
     finishedPath = finishedPath + ` L ${x} ${y} `
 
 }

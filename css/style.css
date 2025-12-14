@@ -892,7 +892,7 @@ input[type=number] {
 .radialGauge {
 
     overflow: hidden;
-    width:18cqh;
+    width: 18cqh;
     height: 12cqh;
     background-color: rgb(24, 24, 24);
     border-color: rgb(12, 12, 12);
@@ -940,11 +940,11 @@ input[type=number] {
     /* --valDeg: calc(attr(data-valdeg deg, 70deg) - 180deg); */
 
     /* Gets data-valDeg first, If not avaliable, looks for percentage val is of min and max number */
-    --minNumber:attr(data-minNumber type(<number>), 0);
-    --maxNumber:attr(data-maxNumber type(<number>), var(--rawMaxDeg));
-    --valNumber:attr(data-valNumber type(<number>), 85);
+    --minNumber: attr(data-minNumber type(<number>), 0);
+    --maxNumber: attr(data-maxNumber type(<number>), var(--rawMaxDeg));
+    --valNumber: attr(data-valNumber type(<number>), 85);
 
-    --valDeg: calc( attr(data-valdeg deg, calc( ( ((var(--valNumber) - var(--minNumber)) / (var(--maxNumber) - var(--minNumber)) ) * var(--rawMaxDeg)) *1deg ) ) - 180deg);
+    --valDeg: calc(attr(data-valdeg deg, calc((((var(--valNumber) - var(--minNumber)) / (var(--maxNumber) - var(--minNumber))) * var(--rawMaxDeg)) *1deg)) - 180deg);
     --difDeg: calc(attr(data-maxdeg deg, 180deg) - attr(data-mindeg deg, 0deg));
 
 }
@@ -1075,7 +1075,7 @@ input[type=number] {
     border-radius: 9000vh;
     position: relative;
     /* background-color: rgb(166, 166, 166); */
-    background: radial-gradient(circle,  rgba(166, 166, 166, 1) 50%, rgba(105, 105, 105, 1) 50%);
+    background: radial-gradient(circle, rgba(166, 166, 166, 1) 50%, rgba(105, 105, 105, 1) 50%);
     display: block;
     width: 10%;
     height: 10%;
@@ -1111,8 +1111,8 @@ input[type=number] {
 
     position: relative;
 
-    top: calc((sin(calc(((var(--difDeg) * (sibling-index() - 1)) / (sibling-count() - 1)) + 180deg)) * 29%) );
-    left: calc((cos(calc(((var(--difDeg) * (sibling-index() - 1)) / (sibling-count() - 1)) + 180deg)) * 29%) );
+    top: calc((sin(calc(((var(--difDeg) * (sibling-index() - 1)) / (sibling-count() - 1)) + 180deg)) * 29%));
+    left: calc((cos(calc(((var(--difDeg) * (sibling-index() - 1)) / (sibling-count() - 1)) + 180deg)) * 29%));
 
 }
 
@@ -1128,7 +1128,7 @@ input[type=number] {
     margin-bottom: -100%;
     position: relative;
     z-index: 7;
-    transform: rotate(calc(( ((sibling-index() - 1) * var(--tickOffset)) + var(--rawOffsetDeg)) * -1deg));
+    transform: rotate(calc((((sibling-index() - 1) * var(--tickOffset)) + var(--rawOffsetDeg)) * -1deg));
 
 
 }
@@ -2344,7 +2344,7 @@ input[type=number] {
     .numberLine {
         --w: 40cqh;
         width: var(--w);
-        --accent:"#0E7C10";
+        --accent: #0E7C10;
         background-color: rgb(24, 24, 24);
         border-color: rgb(12, 12, 12);
         border: solid 0.25cqh;
@@ -2380,7 +2380,8 @@ input[type=number] {
     .meterHolder:has(meter:not([value])) {
         --noValueDisplay: block;
     }
-    .numberLineHasValue:not([low]):not([high])::-webkit-meter-optimum-value{
+
+    .numberLineHasValue:not([low]):not([high])::-webkit-meter-optimum-value {
         background-color: var(--accent);
     }
 
@@ -2516,11 +2517,11 @@ input[type=number] {
         /* --valDeg: calc(attr(data-valdeg deg, 70deg) - 180deg); */
 
         /* Gets data-valDeg first, If not avaliable, looks for percentage val is of min and max number */
-        --minNumber:attr(data-minNumber type(<number>), 0);
-        --maxNumber:attr(data-maxNumber type(<number>), var(--rawMaxDeg));
-        --valNumber:attr(data-valNumber type(<number>), 85);
+        --minNumber: attr(data-minNumber type(<number>), 0);
+        --maxNumber: attr(data-maxNumber type(<number>), var(--rawMaxDeg));
+        --valNumber: attr(data-valNumber type(<number>), 85);
 
-        --valDeg: calc( attr(data-valdeg deg, calc( ( ((var(--valNumber) - var(--minNumber)) / (var(--maxNumber) - var(--minNumber)) ) * var(--rawMaxDeg)) *1deg ) ) - 180deg);
+        --valDeg: calc(attr(data-valdeg deg, calc((((var(--valNumber) - var(--minNumber)) / (var(--maxNumber) - var(--minNumber))) * var(--rawMaxDeg)) *1deg)) - 180deg);
         --difDeg: calc(attr(data-maxdeg deg, 180deg) - attr(data-mindeg deg, 0deg));
 
     }
@@ -2609,7 +2610,7 @@ input[type=number] {
 
     }
 
-    .gauge:not([data-low]):not([data-high])::before{
+    .gauge:not([data-low]):not([data-high])::before {
         background-color: var(--accent);
 
     }
@@ -2656,7 +2657,7 @@ input[type=number] {
         border-radius: 9000vh;
         position: relative;
         /* background-color: rgb(166, 166, 166); */
-        background: radial-gradient(circle,  rgba(166, 166, 166, 1) 50%, rgba(105, 105, 105, 1) 50%);
+        background: radial-gradient(circle, rgba(166, 166, 166, 1) 50%, rgba(105, 105, 105, 1) 50%);
         display: block;
         width: 10%;
         height: 10%;
@@ -2671,7 +2672,7 @@ input[type=number] {
         /* background-color: rgba(69, 69, 69, 0.457); */
         width: 100%;
         height: 100%;
-        --lastDisplay:unset;
+        --lastDisplay: unset;
 
 
     }
@@ -2697,8 +2698,8 @@ input[type=number] {
 
         position: relative;
 
-        top: calc((sin(calc(((var(--difDeg) * (sibling-index() - 1)) / (sibling-count() - 1)) + 180deg)) * 29%) );
-        left: calc((cos(calc(((var(--difDeg) * (sibling-index() - 1)) / (sibling-count() - 1)) + 180deg)) * 29%) );
+        top: calc((sin(calc(((var(--difDeg) * (sibling-index() - 1)) / (sibling-count() - 1)) + 180deg)) * 29%));
+        left: calc((cos(calc(((var(--difDeg) * (sibling-index() - 1)) / (sibling-count() - 1)) + 180deg)) * 29%));
 
     }
 
@@ -2715,9 +2716,9 @@ input[type=number] {
         margin-bottom: -100%;
         position: relative;
         z-index: 7;
-        transform: rotate(calc(( ((sibling-index() - 1) * var(--tickOffset)) + var(--rawOffsetDeg)) * -1deg));
+        transform: rotate(calc((((sibling-index() - 1) * var(--tickOffset)) + var(--rawOffsetDeg)) * -1deg));
 
-        background: radial-gradient(circle, rgb(24,24,24) 5%, rgba(0,0,0,0) 5%);
+        background: radial-gradient(circle, rgb(24, 24, 24) 5%, rgba(0, 0, 0, 0) 5%);
 
     }
 
@@ -2741,7 +2742,226 @@ input[type=number] {
 
     } */
 
+    .graph {
+        overflow: hidden;
 
+        margin-top: 60cqh;
+        margin-left: 120cqh;
+
+        border-radius: 1cqh;
+
+        width: 120cqh;
+        height: 80cqh;
+
+        background-color: rgb(24, 24, 24);
+
+        border-color: rgb(12, 12, 12);
+        border: solid 0.25cqh;
+
+        grid-template-rows: min-content 1fr min-content min-content min-content;
+        grid-template-columns: min-content min-content 1fr min-content min-content;
+
+        grid-template-areas:
+            "C T T T E"
+            "A L G R B"
+            ". . W . ."
+            ". . Z . ."
+            "D D D D D";
+
+
+
+        display: grid;
+    }
+
+    .leftButtons {
+        grid-area: C;
+        height: 5cqh;
+        width: 5cqh;
+    }
+
+    .graphTitle {
+        grid-area: T;
+        font-size: 3cqh;
+        color: white;
+        height: 5cqh;
+        line-height: 5cqh;
+        text-align: center;
+    }
+
+    .rightButtons {
+        grid-area: E;
+        height: 5cqh;
+        width: 5cqh;
+    }
+
+    .leftSuperSlider {
+        grid-area: A;
+    }
+
+    .leftTicks {
+        grid-area: L;
+        width: 5cqh;
+    }
+
+    .graphHolder {
+        grid-area: G;
+        width: 100%;
+        height: 100%;
+        margin: 0px;
+        padding: 0px;
+        outline: 0.25cqh rgb(255, 255, 255) solid ;
+
+        overflow: hidden;
+    }
+
+    .rightTicks {
+        grid-area: R;
+        width: 5cqh;
+
+    }
+
+    .rightSuperSlider {
+        grid-area: B;
+        width: 5cqh;
+    }
+
+    .bottomTicks {
+        grid-area: W;
+        height: 5cqh;
+    }
+
+    .bottomSuperSlider {
+        grid-area: Z;
+        height: 5cqh;
+    }
+
+    .bottomDrawer {
+        grid-area: D;
+        height: 5cqh;
+    }
+
+    .graph>* {
+        /* background-color: red; */
+        /* border: solid rgb(102, 102, 102) 0.25cqh; */
+    }
+
+
+
+    .leftTicks, .rightTicks,  .bottomTicks {
+        user-select: none;
+
+        --tickMin: attr(data-tickMin type(<number>), 0);
+        --tickMax: attr(data-tickMax type(<number>), 1);
+        --tickSpacing: attr(data-tickSpacing type(<number>), 0.1);
+
+        --absMin: attr(data-absMin type(<number>), 0);
+        --min: attr(data-min type(<number>), var(--absMin));
+
+        --absMax: attr(data-absMax type(<number>), 1);
+        --max: attr(data-max type(<number>), var(--absMax));
+
+        --startOffset: calc( (var(--tickMin) - var(--min)) / (var(--max) - var(--min)));
+        --lineColor:rgb(62,62,62);
+
+        --graphWidth: attr(data-graphWidth cqh, 0cqh);
+        --graphHeight: attr(data-graphHeight cqh, 0cqh);
+
+    }
+
+    .graphLeftTick::before{
+        height: 0.25cqh;
+        width: 100%;
+        display: block;
+        content: '';
+        background-color: var(--lineColor);
+        position: relative;
+        margin-bottom: -0.25cqh;
+        top:50%;
+        left: 100%;
+
+        width: var(--graphWidth);
+    }
+
+
+    .graphLeftTick,  .graphRightTick {
+        /* background-color: white; */
+        width: 100%;
+        color: white;
+        height: 1.25cqh;
+        font-size: 1.25cqh;
+        text-align: center;
+
+
+        margin-bottom: -1.25cqh;
+
+
+
+        --tickValue: calc((var(--tickSpacing) * ((sibling-count() - 1) - (sibling-index() - 1))) );
+
+        --topValue: calc( (var(--tickValue)) / (var(--max) - var(--min)));
+
+
+        top: calc(100% - ((var(--startOffset) + var(--topValue)) * 100%));
+
+        transform: translateY(-50%);
+
+        position: relative;
+    }
+
+
+
+    .graphRightTick::before{
+        height: 0.25cqh;
+        width: 100%;
+        display: block;
+        content: '';
+        /* background-color: var(--lineColor); */
+        position: relative;
+        margin-bottom: -0.25cqh;
+        top:50%;
+        left: calc( var(--graphWidth) * -1) ;
+        background-color: var(--lineColor);
+
+        width:var(--graphWidth) ;
+    }
+
+
+    .graphBottomTick::before{
+        width: 0.25cqh;
+        display: block;
+        content: '';
+        background-color: var(--lineColor);
+        position: relative;
+        margin-bottom: -0.25cqh;
+        /* top:50%; */
+        /* left: calc( var(--graphWidth) * -1) ; */
+        left: 50%;
+        height:var(--graphHeight) ;
+    }
+
+
+    .graphBottomTick {
+        /* background-color: white; */
+        width:20cqh;
+        color: white;
+        height: 5cqh;
+        line-height: 5cqh;
+        font-size: 1.25cqh;
+        text-align: center;
+        margin-bottom: -5cqh;
+
+        --tickValue: calc((var(--tickSpacing) * ((sibling-count() - 1) - (sibling-index() - 1))) );
+
+        --topValue: calc( (var(--tickValue)) / (var(--max) - var(--min)));
+
+        right: calc(0% - ((var(--startOffset) + var(--topValue)) * 100%));
+
+        transform: translate(-50%,0%);
+        top: calc(var(--graphHeight) *-1 );
+
+
+        position: relative;
+    }
 }
 
 

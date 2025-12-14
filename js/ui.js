@@ -29,7 +29,8 @@
 import { NT4_Client } from "../lib/nt4.js";
 import { serialize, deserialize } from "../lib/msgpack.js";
 import { goToNextSong } from "./jukebox.js";
-import { setFromString } from "./autoBuilder.js";
+import { setFromString, moveTo, lineTo } from "./autoBuilder.js";
+
 //if removing jukebox, get rid of the gotonextsong() in the handle data callback function, remove from html, and remove import
 export function getHtmlFileName() {
     let path = window.location.pathname;
@@ -38,6 +39,8 @@ export function getHtmlFileName() {
     // Get the last element of the array, which is the filename
     return fileName.slice(0, -5);
 }
+
+function clamp(num, min = 0, max = 1){ return Math.min(Math.max(num, min), max) };
 
 let defaultSimilarOptions = {
     fill: false,
@@ -1807,7 +1810,7 @@ function createBasicLogger(displayName, topic, append = false, hex = "#0c0c0c", 
 
 function createNumberLine(displayName, topic, append = false, hex = "#0c0c0c", similarOptions = defaultSimilarOptions) {
 
-    
+
     let numberLine = $("<div>").addClass("numberLine")
         .attr("data-topic", topic)
         .attr("data-componentType", "numberLine")
@@ -1895,7 +1898,7 @@ function createNumberLine(displayName, topic, append = false, hex = "#0c0c0c", s
     return numberLine
 }
 
-function createRadialGauge(displayName, topic, append, hex = "#0c0c0c",  maxDeg = 360, subTickCount = 5, maxNumber, minNumber, low, high, optimum, degOffset = 0, similarOptions = defaultSimilarOptions,) {
+function createRadialGauge(displayName, topic, append, hex = "#0c0c0c", maxDeg = 360, subTickCount = 5, maxNumber, minNumber, low, high, optimum, degOffset = 0, similarOptions = defaultSimilarOptions,) {
     if (displayName == null) {
         let topicSplit = topic.split("/")
         displayName = topicSplit[topicSplit.length - 1]
@@ -1913,21 +1916,21 @@ function createRadialGauge(displayName, topic, append, hex = "#0c0c0c",  maxDeg 
 
     $("<h1>").addClass("radialGaugeTitle").addClass("editThisName").text(displayName).appendTo(radialGauge)
 
-    let gauge = $("<div>").addClass("gauge").attr("data-maxDeg", maxDeg).attr("data-offsetDeg",degOffset).appendTo(radialGauge)
+    let gauge = $("<div>").addClass("gauge").attr("data-maxDeg", maxDeg).attr("data-offsetDeg", degOffset).appendTo(radialGauge)
 
-    if(maxNumber){
+    if (maxNumber) {
         gauge.attr("data-maxNumber", maxNumber)
     }
-    if(minNumber){
+    if (minNumber) {
         gauge.attr("data-minNumber", minNumber)
     }
-    if(low){
+    if (low) {
         gauge.attr("data-low", low)
     }
-    if(high){
+    if (high) {
         gauge.attr("data-high", high)
     }
-    if(optimum){
+    if (optimum) {
         gauge.attr("data-optimum", optimum)
     }
 
@@ -1936,7 +1939,7 @@ function createRadialGauge(displayName, topic, append, hex = "#0c0c0c",  maxDeg 
 
     let subTicks = $("<div>").addClass("subTicks").appendTo(pointer)
 
-    for(let i = 0; i < subTickCount; i++){
+    for (let i = 0; i < subTickCount; i++) {
         $("<div>").addClass("subTick").appendTo(subTicks)
     }
 
@@ -1947,16 +1950,16 @@ function createRadialGauge(displayName, topic, append, hex = "#0c0c0c",  maxDeg 
         subscribedTopics[topic] = []
     }
 
-    let gaugeHandler = (value)=>{
+    let gaugeHandler = (value) => {
         let whichMax = gauge.attr("data-maxNumber")
 
-        if(!whichMax){
+        if (!whichMax) {
             gauge.attr("data-maxDeg")
         }
 
-        gauge[0].style.setProperty("--gaugeColor", emulateMeterColors(gauge.attr("data-minNumber"), whichMax, gauge.attr("data-low"), gauge.attr("data-high"), gauge.attr("data-optimum"), value)) 
+        gauge[0].style.setProperty("--gaugeColor", emulateMeterColors(gauge.attr("data-minNumber"), whichMax, gauge.attr("data-low"), gauge.attr("data-high"), gauge.attr("data-optimum"), value))
 
-        if(gauge.attr("data-maxNumber") && gauge.attr("data-minNumber")){
+        if (gauge.attr("data-maxNumber")) {
             gauge.removeAttr("data-valDeg")
             gauge.attr("data-valNumber", value)
 
@@ -2452,18 +2455,18 @@ function bindEditMenu(element, valueType, specificClass = false) {
                 let meter = editComponent.currentTarget.find(".numberLineHasValue").eq(0)
                 setExampleMeter(meter.attr("min"), meter.attr("max"), meter.attr("low"), meter.attr("high"), meter.attr("optimum"))
             }
-        }  else if(editComponent.currentTarget.hasClass("radialGauge")){
+        } else if (editComponent.currentTarget.hasClass("radialGauge")) {
             boundEditing = editComponent.currentTarget.find(".gauge").eq(0).attr("data-" + inputBeingBound.attr("data-editing"))
             let gauge = editComponent.currentTarget.find(".gauge")
 
             let whichMax = gauge.attr("data-maxNumber")
 
-            if(!whichMax){
+            if (!whichMax) {
                 whichMax = gauge.attr("data-maxDeg")
             }
 
             setExampleMeter(gauge.attr("data-minNumber"), whichMax, gauge.attr("data-low"), gauge.attr("data-high"), gauge.attr("data-optimum"))
-            
+
         }
 
 
@@ -2499,18 +2502,18 @@ function bindEditMenu(element, valueType, specificClass = false) {
                 if ($ct.val().length == 0) {
                     meter.removeAttr($ct.attr("data-editing"))
                 }
-            } else if($comp.hasClass("radialGauge")){
+            } else if ($comp.hasClass("radialGauge")) {
                 let gauge = $comp.find(".gauge")
 
                 gauge.attr("data-" + $ct.attr('data-editing'), $ct.val())
 
                 let whichMax = gauge.attr("data-maxNumber")
 
-                if(!whichMax){
+                if (!whichMax) {
                     whichMax = gauge.attr("data-maxDeg")
                 }
                 setExampleMeter(gauge.attr("data-minNumber"), whichMax, gauge.attr("data-low"), gauge.attr("data-high"), gauge.attr("data-optimum"))
-                
+
                 if ($ct.val().length == 0) {
                     gauge.removeAttr("data-" + $ct.attr("data-editing"))
                 }
@@ -2526,7 +2529,7 @@ function bindEditMenu(element, valueType, specificClass = false) {
 
 
 
-            if (editComponent.currentTarget.hasClass("basicLogger") || editComponent.currentTarget.hasClass("numberLine") ||  editComponent.currentTarget.hasClass("radialGauge")) {
+            if (editComponent.currentTarget.hasClass("basicLogger") || editComponent.currentTarget.hasClass("numberLine") || editComponent.currentTarget.hasClass("radialGauge")) {
                 editComponent.currentTarget.css("border-color", $ct.val()).attr("data-color", $ct.val())
                 editComponent.currentTarget[0].style.setProperty("--accent", $ct.val());
 
@@ -2989,7 +2992,7 @@ function setExampleMeter(min = 0, max = 100, low = "", high = "", optimum = "") 
 }
 
 
-function emulateMeterColors( min = 0, max = 360, low = "", high = "", optimum = "", val) {
+function emulateMeterColors(min = 0, max = 360, low = "", high = "", optimum = "", val) {
     let green = "#0E7C10"
     let yellow = "#FEB902"
     let red = "#D83B01"
@@ -3016,7 +3019,6 @@ function emulateMeterColors( min = 0, max = 360, low = "", high = "", optimum = 
         optimum = max / 2
     }
 
-    console.log(min,max,low,high,optimum,val)
 
     val = parseFloat(((val - min) / range) * 100)
 
@@ -3102,4 +3104,441 @@ function emulateMeterColors( min = 0, max = 360, low = "", high = "", optimum = 
         }
     }
 
+}
+absAsBackup($(".leftTicks"), "min")
+
+let testScale = findNiceScale(absAsBackup($(".leftTicks"), "min"), absAsBackup($(".leftTicks"), "max"))
+
+setTickScale(testScale, $(".leftTicks"))
+// setTickScale(findDependantScale($(".rightTicks").attr("data-min"), $(".rightTicks").attr("data-max"), testScale), $(".rightTicks"))
+let testSync = findRelativeScale(absAsBackup($(".rightTicks"), "min"), (absAsBackup($(".rightTicks"), "max")), testScale)
+// let testSync = findNiceScale($(".rightTicks").attr("data-min"), ($(".rightTicks").attr("data-max")))
+
+let viewableZoomedUnits = 14
+let rightZoomedOffset = 0
+
+let offsetY = 0
+
+console.log(testSync)
+
+setMinMax(setTickScale(testSync, $(".rightTicks")))
+
+
+
+setInterval(() => {
+
+
+    // $(".bottomTicks").attr("data-max", nt4Client.getServerTime_us() / 1000000.0)
+
+    // $(".bottomTicks").attr("data-min", (nt4Client.getServerTime_us() / 1000000.0) - viewableZoomedUnits)
+    if ($(".bottomTicks").attr("data-max") == "false") {
+        $(".bottomTicks").attr("data-min", (nt4Client.getServerTime_us() / 1000000.0) - viewableZoomedUnits)
+        $(".bottomTicks").attr("data-absmax", (nt4Client.getServerTime_us() / 1000000.0))
+    }
+
+
+    let yscale = findNiceScale(absAsBackup($(".bottomTicks"), "min"), absAsBackup($(".bottomTicks"), "max"))
+
+    setTickScale(yscale, $(".bottomTicks"))
+
+}, 1);
+
+
+$(".graph").on("wheel", (event) => {
+    zoomHandler(event, $(".graph"))
+})
+
+let initiatedScrollAxis = ''
+let currentResetTimeout;
+
+function zoomHandler(event, graph) {
+    // console.log(event)
+    // console.log(event)
+
+    let tolerance = 4
+
+    let bottomTicks = graph.children(".bottomTicks")
+    let rightTicks = graph.children(".rightTicks")
+    let leftTicks = graph.children(".leftTicks")
+    let holder = graph.children(".graphHolder")
+
+    let pointer = {
+        absX:event.pageX,
+        absY:event.pageY,
+        x: event.pageX - holder.offset().left,
+        y: event.pageY - holder.offset().top,
+        xP:0,
+        yP:0
+    }
+
+
+    pointer.xP = clamp(pointer.x / holder.width())
+    pointer.yP = clamp(pointer.y / holder.height())
+
+    if ((event.originalEvent.deltaY > tolerance || event.originalEvent.deltaY < -tolerance) && !initiatedScrollAxis) {
+        initiatedScrollAxis = "Y"
+    }
+    else if ((event.originalEvent.deltaX > tolerance || event.originalEvent.deltaX < -tolerance) && !initiatedScrollAxis) {
+        initiatedScrollAxis = "X"
+    }
+
+    if (event.ctrlKey) {
+        initiatedScrollAxis = "Y"
+    }
+
+    if (initiatedScrollAxis == "Y" && offsetY == 0) {
+        event.preventDefault()
+
+        if (event.ctrlKey) { viewableZoomedUnits += event.originalEvent.deltaY / 50 }
+        else { viewableZoomedUnits += event.originalEvent.deltaY }
+
+        if (viewableZoomedUnits <= 0.5) {
+            viewableZoomedUnits = 0.5
+        }
+
+        if (bottomTicks.attr("data-max") != "false") {
+            let oldVal = parseFloat(bottomTicks.attr("data-max"))
+
+            bottomTicks.attr("data-max", oldVal)
+            bottomTicks.attr("data-min", oldVal - viewableZoomedUnits)
+        }
+
+        let yscale = findNiceScale(absAsBackup(bottomTicks, "min"), absAsBackup(bottomTicks, "max"))
+
+        console.log(viewableZoomedUnits)
+
+        setTickScale(yscale, bottomTicks)
+
+        clearTimeout(currentResetTimeout);
+
+        currentResetTimeout = setTimeout(() => {
+            initiatedScrollAxis = ''
+        }, 100);
+
+
+
+    } else if(initiatedScrollAxis == "Y"){
+        event.preventDefault()
+
+        
+
+
+        if (event.ctrlKey) { 
+            viewableZoomedUnits += event.originalEvent.deltaY / 50 
+        }
+        else { 
+            viewableZoomedUnits += event.originalEvent.deltaY
+        }
+
+        if (viewableZoomedUnits <= 0.05) {
+            viewableZoomedUnits = 0.05
+        }
+
+        if (bottomTicks.attr("data-max") != "false") {
+            let oldValMax = parseFloat(bottomTicks.attr("data-max"))
+            let oldValMin = parseFloat(bottomTicks.attr("data-min"))
+
+            let range = oldValMax - oldValMin;
+
+            // let min = viewableZoomedUnits * (pointer.xP)
+            // let max = viewableZoomedUnits * (1-pointer.xP)
+
+            bottomTicks.attr("data-min", viewableZoomedUnits * (pointer.xP))
+            bottomTicks.attr("data-max", viewableZoomedUnits * (1-pointer.xP))
+        }
+        console.log(viewableZoomedUnits)
+
+        console.log(bottomTicks.attr("data-min"), bottomTicks.attr("data-max"))
+
+        let yscale = findNiceScale(absAsBackup(bottomTicks, "min"), absAsBackup(bottomTicks, "max"))
+
+        setTickScale(yscale, bottomTicks)
+
+        clearTimeout(currentResetTimeout);
+
+        currentResetTimeout = setTimeout(() => {
+            initiatedScrollAxis = ''
+        }, 100);
+
+    }
+
+
+    if (initiatedScrollAxis == "X") {
+        event.preventDefault()
+
+        if (event.ctrlKey) { offsetY = event.originalEvent.deltaX / -50 }
+        else { offsetY = -event.originalEvent.deltaX }
+
+        if (bottomTicks.attr("data-max") == "false") {
+            bottomTicks.attr("data-max", bottomTicks.attr("data-absMax"))
+            console.log(bottomTicks.attr("data-absMax"))
+        }
+
+        let oldVal = parseFloat(bottomTicks.attr("data-max"))
+
+        if (oldVal > parseFloat(bottomTicks.attr("data-absmax"))) {
+            bottomTicks.attr("data-max", "false")
+
+            offsetY = 0
+            initiatedScrollAxis = 'paused'
+
+            clearTimeout(currentResetTimeout);
+
+            currentResetTimeout = setTimeout(() => {
+                initiatedScrollAxis = ''
+            }, 1000);
+
+            return
+        }
+
+        // console.log(oldVal)
+
+        bottomTicks.attr("data-max", oldVal - offsetY)
+        bottomTicks.attr("data-min", oldVal - offsetY - viewableZoomedUnits)
+
+        let yscale = findNiceScale(absAsBackup(bottomTicks, "min"), absAsBackup(bottomTicks, "max"))
+
+        setTickScale(yscale, bottomTicks)
+
+        clearTimeout(currentResetTimeout);
+
+        currentResetTimeout = setTimeout(() => {
+            initiatedScrollAxis = ''
+        }, 100);
+    }
+}
+
+
+
+function setTickScale(foundNiceScale, element) {
+
+    // element.attr("data-min", foundNiceScale.minimum)
+    // element.attr("data-max", foundNiceScale.maximum)
+    element.attr("data-tickMin", foundNiceScale.niceMinimum)
+    element.attr("data-tickMax", foundNiceScale.niceMaximum)
+    element.attr("data-tickSpacing", foundNiceScale.tickSpacing)
+    element.attr("data-amountOfTicks", foundNiceScale.amountOfTicksNeeded)
+    element.attr("data-graphWidth", pxToCq($($(".currentTab").attr("data-page")), element.parent().children(".graphHolder").width()).cqh)
+    element.attr("data-graphHeight", pxToCq($($(".currentTab").attr("data-page")), element.parent().children(".graphHolder").height()).cqh)
+
+
+    let children = element.children()
+
+
+
+    for (let i = 0; i < children.length; i++) {
+        let eq = children.eq(i)
+
+        //set text from computed css text 
+        if (children.length - 1 - i > foundNiceScale.amountOfTicksNeeded - 1) {
+            eq.text("")
+            eq[0].style.setProperty("--lineColor", "transparent")
+            continue
+        }
+
+
+        eq[0].style.setProperty("--lineColor", "inherit")
+
+        eq.text(parseFloat((foundNiceScale.niceMinimum + ((children.length - 1 - i) * foundNiceScale.tickSpacing)).toFixed(foundNiceScale.percision)));
+    }
+
+    foundNiceScale.element = element
+
+    return foundNiceScale
+
+}
+
+function findNiceScale(minimum, maximum, percision = 8) {
+    var minPoint;
+    var maxPoint;
+    var maxTicks = 9;
+    var tickSpacing;
+    var range;
+    var niceMin;
+    var niceMax;
+
+
+    minimum = parseFloat(minimum)
+    maximum = parseFloat(maximum)
+    //Found from stack overflow
+
+    /**
+     * Instantiates a new instance of the NiceScale class.
+     *
+     *  min the minimum data point on the axis
+     *  max the maximum data point on the axis
+     */
+    function niceScale(min, max) {
+        minPoint = min;
+        maxPoint = max;
+        calculate();
+
+
+        niceMax = parseFloat(niceMax.toFixed(percision));
+        niceMin = parseFloat(niceMin.toFixed(percision));
+        tickSpacing = parseFloat(tickSpacing.toFixed(percision));
+
+        let amountOfTicks = (niceMax - niceMin) / tickSpacing
+
+        amountOfTicks = parseFloat(amountOfTicks.toFixed(percision));
+
+        return {
+            amountOfTicksNeeded: amountOfTicks,
+            tickSpacing: tickSpacing,
+            niceMinimum: niceMin,
+            niceMaximum: niceMax,
+            minimum: minimum,
+            maximum: maximum,
+            percision: percision,
+        };
+    }
+
+
+
+    /**
+     * Calculate and update values for tick spacing and nice
+     * minimum and maximum data points on the axis.
+     */
+    function calculate() {
+        range = niceNum(maxPoint - minPoint, false);
+        tickSpacing = niceNum(range / (maxTicks - 1), true);
+        niceMin =
+            Math.ceil(minPoint / tickSpacing) * tickSpacing;
+        niceMax =
+            Math.ceil(maxPoint / tickSpacing) * tickSpacing;
+    }
+
+    let currentScale = niceScale(minimum, maximum)
+
+
+    // console.log(startString, currentScale)
+
+    return niceScale(minimum, maximum)
+
+
+}
+
+function findRelativeScale(min, max, niceScale, displacement = 1) {
+
+    let numTicks = niceScale.amountOfTicksNeeded
+    let percision = niceScale.percision
+
+    min = parseFloat(min) * displacement
+    max = parseFloat(max) * displacement
+
+    if (min === max) {
+        // Handle the edge case where the min and max are the same (e.g., all data points are identical)
+        const range = Math.abs(min * 0.1) || 1; // Use 10% of the value, or 1 if value is 0
+        min -= range;
+        max += range;
+    }
+
+    const range = max - min;
+    const initialTickSpacing = range / (numTicks > 1 ? numTicks : 5); // Ensure numTicks is at least 1 or 5 for safety
+
+    // --- Step 1: Determine the exponent/power of 10 for the range
+    const exponent = Math.floor(Math.log10(initialTickSpacing));
+    const powerOf10 = Math.pow(10, exponent);
+
+    // --- Step 2: Determine the "nice" fractional part of the tick spacing
+    const fractionalSpacing = initialTickSpacing / powerOf10;
+
+    // Nice numbers are 1, 2, or 5 (multiplied by a power of 10)
+    let niceFractional;
+    if (fractionalSpacing < 1.75) {
+        niceFractional = 1.5;
+    } else if (fractionalSpacing < 2.75) {
+        niceFractional = 2.5;
+    } else if (fractionalSpacing < 3.5) {
+        niceFractional = 3;
+    } else if (fractionalSpacing < 4.5) {
+        niceFractional = 4;
+    } else if (fractionalSpacing < 7.5) {
+        niceFractional = 5; // Fallback to 5 if the range dictates
+    } else {
+        niceFractional = 10; // Increase power of 10
+    }
+
+    // --- Step 3: Calculate the final "nice" tick spacing
+    const niceSpacing = (niceFractional * powerOf10) / displacement;
+
+    // --- Step 4: Calculate the new rounded min and max values
+    // The new min is the largest multiple of niceSpacing less than or equal to the original min
+    const niceMin = (Math.floor(min / niceSpacing) * niceSpacing) / displacement;
+
+    // The new max is the smallest multiple of niceSpacing greater than or equal to the original max
+    const niceMax = Math.ceil(max / niceSpacing) * niceSpacing;
+
+    let actualNiceMax = (niceMin + ((numTicks) * niceSpacing))
+
+
+
+    let fullRange = (niceScale.maximum - niceScale.minimum)
+    let ratioPadding = (niceScale.niceMinimum - niceScale.minimum) / fullRange;
+    let ratioVisible = (niceScale.niceMaximum - niceScale.niceMinimum) / fullRange;
+
+    let newRange = (actualNiceMax - niceMin) / ratioVisible
+
+    let newMinimum = niceMin - (newRange * ratioPadding)
+    let newMaximum = newMinimum + newRange
+
+
+    return {
+        amountOfTicksNeeded: numTicks,
+        tickSpacing: niceSpacing,
+        niceMinimum: niceMin,
+        niceMaximum: (niceMin + ((numTicks - 1) * niceSpacing)),
+        percision: percision,
+        minimum: newMinimum,
+        maximum: newMaximum,
+    };
+
+
+}
+
+
+function niceNum(localRange, round) {
+    var exponent; /** exponent of localRange */
+    var fraction; /** fractional part of localRange */
+    var niceFraction; /** nice, rounded fraction */
+
+    exponent = Math.floor(Math.log10(localRange));
+    fraction = localRange / Math.pow(10, exponent);
+
+    if (round) {
+        if (fraction < 1.5)
+            niceFraction = 1;
+        else if (fraction < 3)
+            niceFraction = 2;
+        else if (fraction < 7)
+            niceFraction = 5;
+        else
+            niceFraction = 10;
+    } else {
+        if (fraction <= 1)
+            niceFraction = 1;
+        else if (fraction <= 2)
+            niceFraction = 2;
+        else if (fraction <= 5)
+            niceFraction = 5;
+        else
+            niceFraction = 10;
+    }
+
+    return niceFraction * Math.pow(10, exponent);
+}
+
+function absAsBackup(element, attr) {
+    let val = element.attr("data-" + attr)
+
+
+    if (val == "false") {
+        return element.attr("data-abs" + attr)
+    }
+
+    return val
+}
+
+function setMinMax(scaleObject) {
+    scaleObject.element.attr("data-min", scaleObject.minimum).attr("data-max", scaleObject.maximum)
 }
