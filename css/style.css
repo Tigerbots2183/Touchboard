@@ -2768,7 +2768,7 @@ input[type=number] {
             ". . Z . ."
             "D D D D D";
 
-
+        
 
         display: grid;
     }
@@ -2810,10 +2810,72 @@ input[type=number] {
         margin: 0px;
         padding: 0px;
         outline: 0.25cqh rgb(255, 255, 255) solid ;
-
+        position: relative;
         overflow: hidden;
+        z-index: 3;
+
     }
 
+    .graphSvg{
+        width: 100%;
+        height: 100%;
+        margin: 0px;
+        border: none;
+    }
+
+    @property --gEndPos {
+        syntax: "<percentage>";
+        inherits: true;
+        initial-value: 40%;
+    }
+
+    @property --gStartColor {
+        syntax: "<color>";
+        inherits: true;
+        initial-value: rgba(255,255,255,1);
+    }
+
+    .graphEffectorOverlay{
+        width: 100%;
+        height: 100%;
+
+        --gEndPos:100%;
+        --gStartColor: rgba(255,255,255,1);
+
+        background:linear-gradient(90deg,rgba(255, 255, 255, 0) var(--gEndPos), var(--gStartColor) 100%);
+
+        position: absolute;
+        top: 0px;
+        margin: 0px;
+        padding: 0px;
+        z-index: 4;
+        border: none;
+        pointer-events: none;
+
+     
+        /* background-color: green; */
+     
+    }
+
+    .graphEffectorflushAnimaiton{
+        animation-duration: 500ms;
+        animation-timing-function:ease-out;
+        animation-name: gradientFlush;
+        animation-iteration-count: 1;
+    }
+
+    @keyframes gradientFlush {
+        0%{
+            --gEndPos:100%;
+            --gStartColor: rgba(255,255,255,1);
+        }
+
+        100%{
+            --gEndPos:85%;
+            --gStartColor: rgb(255, 255, 255,0);
+        }
+    }
+    
     .rightTicks {
         grid-area: R;
         width: 5cqh;
@@ -2827,15 +2889,93 @@ input[type=number] {
 
     .bottomTicks {
         grid-area: W;
-        height: 5cqh;
+        height: 2.5cqh;
     }
 
     .bottomSuperSlider {
         grid-area: Z;
         height: 5cqh;
+        position: relative;
+
+    }
+
+    .midSlider{
+        --thumbColor:white;
+        --thumbHeight:2.5cqh;
+
+        --absMin:attr(data-absmin type(<number>), 0);
+        --absMax:attr(data-absmax type(<number>), 100);
+        --min:attr(data-min type(<number>), var(--absMin) );
+        --max:attr(data-max type(<number>), var(--absMax) );
+/* 
+        --absmin:0;
+        --absmax:1000;
+        --min:0;
+        --max:100; */
+
+        --range: calc(var(--max) - var(--min));
+        --absRange : calc(var(--absMax) - var(--absMin));
+
+        --thumbWidth: calc((var(--range) / var(--absRange)) * 100cqh);
+        --thumbOffsetAmount: calc((var(--min) - var(--absMin)));
+
+        --thumbOffset: calc( ((var(--thumbOffsetAmount) - var(--absMin)) / (var(--absRange))) * 100cqh);
+
+        /* --thumbWidth:25cqh; */
+        background-color: rgb(46, 46, 46);
+
+    }
+
+    .superSliderBottom{
+        --thumbColor:red;
+        --thumbHeight:2.5cqh;
+        --thumbWidth:2.5cqh;
+        background-color: transparent;
+        cursor: grab;
+
+    }
+
+    .superSliderTop{
+        --thumbColor:blue;
+        --thumbHeight:2.5cqh;
+        --thumbWidth:2.5cqh;
+        background-color: transparent;
+        cursor: grab;
+
+    }
+
+    .superSliderPart{
+        width: 100%;
+        margin: 1.25cqh;
+        padding: 0px;
+        height: 2.5cqh;
+        position: absolute;
+        pointer-events: none;
+        appearance: none;
+        border-radius: 99cqh;
+    }
+    .bottomSuperSlider .superSliderPart::-webkit-slider-thumb {
+        pointer-events: all;
+        appearance: none;
+        display: block;
+        width: var(--thumbWidth);
+        height: var(--thumbHeight);
+    }
+    .sliderThumb{
+        cursor:ew-resize;
+        pointer-events: all;
+        border-radius: 99cqh;
+        position: relative;
+
+        left: var(--thumbOffset);
+
+        width: var(--thumbWidth);
+        height: var(--thumbHeight);
+        background-color: var(--thumbColor);
     }
 
     .bottomDrawer {
+        margin-top: -5cqh;
         grid-area: D;
         height: 5cqh;
     }

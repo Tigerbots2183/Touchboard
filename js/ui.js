@@ -40,7 +40,7 @@ export function getHtmlFileName() {
     return fileName.slice(0, -5);
 }
 
-function clamp(num, min = 0, max = 1){ return Math.min(Math.max(num, min), max) };
+function clamp(num, min = 0, max = 1) { return Math.min(Math.max(num, min), max) };
 
 let defaultSimilarOptions = {
     fill: false,
@@ -1703,6 +1703,8 @@ function createBasicLogger(displayName, topic, append = false, hex = "#0c0c0c", 
     let showAll = $("<h1>").addClass("showAll").text("⏿").appendTo(basicLogger).on("pointerdown", () => {
         let storedValues = subscribedTopics[basicLogger.attr("data-topic")][parseInt(basicLogger.attr("data-subscriptionIndex"))].storedValues
 
+        console.log(basicLogger.attr("data-topic"))
+
         $(loggerValues).empty()
 
         for (let i = 0; i < storedValues.length; i++) {
@@ -1744,9 +1746,11 @@ function createBasicLogger(displayName, topic, append = false, hex = "#0c0c0c", 
         // loggerValues.scrollTop(loggerValues[0].scrollHeight)
 
         //well try native instead of jquery for preformance
-        if (subscribedTopics[topic]) {
-            if (subscribedTopics[topic][parseInt(basicLogger.attr("data-subscriptionIndex"))]) {
-                subscribedTopics[topic][parseInt(basicLogger.attr("data-subscriptionIndex"))].storedValues.push(value + "esc-timestampmarker-esc" + timestamp)
+        let $topic = basicLogger.attr("data-topic")
+
+        if (subscribedTopics[$topic]) {
+            if (subscribedTopics[$topic][parseInt(basicLogger.attr("data-subscriptionIndex"))]) {
+                subscribedTopics[$topic][parseInt(basicLogger.attr("data-subscriptionIndex"))].storedValues.push(value + "esc-timestampmarker-esc" + timestamp)
 
             }
         }
@@ -3105,7 +3109,6 @@ function emulateMeterColors(min = 0, max = 360, low = "", high = "", optimum = "
     }
 
 }
-absAsBackup($(".leftTicks"), "min")
 
 let testScale = findNiceScale(absAsBackup($(".leftTicks"), "min"), absAsBackup($(".leftTicks"), "max"))
 
@@ -3114,25 +3117,26 @@ setTickScale(testScale, $(".leftTicks"))
 let testSync = findRelativeScale(absAsBackup($(".rightTicks"), "min"), (absAsBackup($(".rightTicks"), "max")), testScale)
 // let testSync = findNiceScale($(".rightTicks").attr("data-min"), ($(".rightTicks").attr("data-max")))
 
-let viewableZoomedUnits = 14
-let rightZoomedOffset = 0
+let viewableZoomedUnitsX = 14;
+let viewableZoomedUnitsY = false;
 
+let offsetX = 0
 let offsetY = 0
 
 console.log(testSync)
 
-setMinMax(setTickScale(testSync, $(".rightTicks")))
+setAbsMinMax(setTickScale(testSync, $(".rightTicks")))
 
 
 
 setInterval(() => {
 
-
+    
     // $(".bottomTicks").attr("data-max", nt4Client.getServerTime_us() / 1000000.0)
 
-    // $(".bottomTicks").attr("data-min", (nt4Client.getServerTime_us() / 1000000.0) - viewableZoomedUnits)
+    // $(".bottomTicks").attr("data-min", (nt4Client.getServerTime_us() / 1000000.0) - viewableZoomedUnitsX)
     if ($(".bottomTicks").attr("data-max") == "false") {
-        $(".bottomTicks").attr("data-min", (nt4Client.getServerTime_us() / 1000000.0) - viewableZoomedUnits)
+        $(".bottomTicks").attr("data-min", (nt4Client.getServerTime_us() / 1000000.0) - viewableZoomedUnitsX)
         $(".bottomTicks").attr("data-absmax", (nt4Client.getServerTime_us() / 1000000.0))
     }
 
@@ -3144,15 +3148,18 @@ setInterval(() => {
 }, 1);
 
 
-$(".graph").on("wheel", (event) => {
-    zoomHandler(event, $(".graph"))
+$(".graphHolder").on("wheel", (event) => {
+    zoomAndPanHandler(event, $(".graph"))
+})
+
+dragPsuedoEvent($(".graphHolder"), (event) => {
+    zoomAndPanHandler(event, $(".graph"))
 })
 
 let initiatedScrollAxis = ''
 let currentResetTimeout;
 
-function zoomHandler(event, graph) {
-    // console.log(event)
+function zoomAndPanHandler(event, graph) {
     // console.log(event)
 
     let tolerance = 4
@@ -3163,111 +3170,237 @@ function zoomHandler(event, graph) {
     let holder = graph.children(".graphHolder")
 
     let pointer = {
-        absX:event.pageX,
-        absY:event.pageY,
+        absX: event.pageX,
+        absY: event.pageY,
         x: event.pageX - holder.offset().left,
         y: event.pageY - holder.offset().top,
-        xP:0,
-        yP:0
+        xP: 0,
+        yP: 0
     }
 
 
     pointer.xP = clamp(pointer.x / holder.width())
-    pointer.yP = clamp(pointer.y / holder.height())
+    pointer.yP = clamp((holder.height() - pointer.y) / holder.height())
 
-    if ((event.originalEvent.deltaY > tolerance || event.originalEvent.deltaY < -tolerance) && !initiatedScrollAxis) {
-        initiatedScrollAxis = "Y"
+    if ((event.originalEvent.deltaY > tolerance || event.originalEvent.deltaY < -tolerance) && !initiatedScrollAxis && !event.isPsuedoEvent) {
+        initiatedScrollAxis = "ZOOMX"
     }
-    else if ((event.originalEvent.deltaX > tolerance || event.originalEvent.deltaX < -tolerance) && !initiatedScrollAxis) {
-        initiatedScrollAxis = "X"
+    else if ((event.originalEvent.deltaX > tolerance || event.originalEvent.deltaX < -tolerance) && !initiatedScrollAxis && !event.isPsuedoEvent) {
+        initiatedScrollAxis = "OFFSETX"
+    }
+    //These are triggered by the dragPseudoEvent which also executes this function. None of the other cases can be called though for multiple reasons. Pseudoevent dosent have origional event but the !event.isPsudeoEvent is there as a failsafe.
+    else if(((event.deltaX > tolerance *8) || event.deltaX < -(tolerance*8)) && (event.deltaY > tolerance *8 || event.deltaY < -(tolerance*8)) && (!initiatedScrollAxis || initiatedScrollAxis == "OFFSETX" || initiatedScrollAxis == "OFFSETY")){
+        initiatedScrollAxis = "OFFSETXY"
+    }
+    else if((event.deltaX > tolerance *8) || event.deltaX < -(tolerance*8) && !initiatedScrollAxis){
+        initiatedScrollAxis = "OFFSETX"
+    } else if((event.deltaY > tolerance *8) || event.deltaY < -(tolerance*8) && !initiatedScrollAxis){
+        initiatedScrollAxis = "OFFSETY"
+    
     }
 
-    if (event.ctrlKey) {
-        initiatedScrollAxis = "Y"
+
+    if (event.ctrlKey && !event.isPsuedoEvent) {
+        initiatedScrollAxis = "ZOOMY"
     }
 
-    if (initiatedScrollAxis == "Y" && offsetY == 0) {
+    if (initiatedScrollAxis == "ZOOMX" && bottomTicks.attr("data-max") == "false") {
+
         event.preventDefault()
 
-        if (event.ctrlKey) { viewableZoomedUnits += event.originalEvent.deltaY / 50 }
-        else { viewableZoomedUnits += event.originalEvent.deltaY }
+        viewableZoomedUnitsX += event.originalEvent.deltaY
 
-        if (viewableZoomedUnits <= 0.5) {
-            viewableZoomedUnits = 0.5
+        if (viewableZoomedUnitsX <= 0.5) {
+            viewableZoomedUnitsX = 0.5
         }
 
-        if (bottomTicks.attr("data-max") != "false") {
-            let oldVal = parseFloat(bottomTicks.attr("data-max"))
+        let absMax = parseFloat(bottomTicks.attr("data-absMax"))
+        let absMin = parseFloat(bottomTicks.attr("data-absMin"))
 
-            bottomTicks.attr("data-max", oldVal)
-            bottomTicks.attr("data-min", oldVal - viewableZoomedUnits)
+        let offset = absMax - viewableZoomedUnitsX
+
+        if (offset < absMin) {
+            offset = absMin
+            viewableZoomedUnitsX = absMax - absMin
         }
 
-        let yscale = findNiceScale(absAsBackup(bottomTicks, "min"), absAsBackup(bottomTicks, "max"))
+        bottomTicks.attr("data-min", offset)
 
-        console.log(viewableZoomedUnits)
+        let xscale = findNiceScale(absAsBackup(bottomTicks, "min"), absAsBackup(bottomTicks, "max"))
 
-        setTickScale(yscale, bottomTicks)
+        setTickScale(xscale, bottomTicks)
 
-        clearTimeout(currentResetTimeout);
-
-        currentResetTimeout = setTimeout(() => {
-            initiatedScrollAxis = ''
-        }, 100);
-
-
-
-    } else if(initiatedScrollAxis == "Y"){
+    } else if (initiatedScrollAxis == "ZOOMX") {
         event.preventDefault()
 
-        
+        viewableZoomedUnitsX += event.originalEvent.deltaY
 
-
-        if (event.ctrlKey) { 
-            viewableZoomedUnits += event.originalEvent.deltaY / 50 
-        }
-        else { 
-            viewableZoomedUnits += event.originalEvent.deltaY
-        }
-
-        if (viewableZoomedUnits <= 0.05) {
-            viewableZoomedUnits = 0.05
+        if (viewableZoomedUnitsX <= 0.05) {
+            viewableZoomedUnitsX = 0.05
         }
 
         if (bottomTicks.attr("data-max") != "false") {
             let oldValMax = parseFloat(bottomTicks.attr("data-max"))
             let oldValMin = parseFloat(bottomTicks.attr("data-min"))
 
+            let absMax = parseFloat(bottomTicks.attr("data-absMax"))
+            let absMin = parseFloat(bottomTicks.attr("data-absMin"))
+
             let range = oldValMax - oldValMin;
 
-            // let min = viewableZoomedUnits * (pointer.xP)
-            // let max = viewableZoomedUnits * (1-pointer.xP)
+            let center = (pointer.xP * range) + oldValMin;
 
-            bottomTicks.attr("data-min", viewableZoomedUnits * (pointer.xP))
-            bottomTicks.attr("data-max", viewableZoomedUnits * (1-pointer.xP))
+            // console.log(center, pointer.xP , "offsetam", (viewableZoomedUnitsX * pointer.xP) + center, (viewableZoomedUnitsX * (1-pointer.xP)) + center)
+
+            let min = center - (viewableZoomedUnitsX * pointer.xP)
+            let max = center + (viewableZoomedUnitsX * (1 - pointer.xP))
+
+            if (absMax < max && absMin > min) {
+                min = absMin
+                max = absMax
+                viewableZoomedUnitsX = range;
+            } else if (absMax < max) {
+                max = absMax - 1
+                min = absMax - viewableZoomedUnitsX
+            } else if (absMin > min) {
+                min = absMin
+                max = absMin + viewableZoomedUnitsX
+            }
+
+
+
+            bottomTicks.attr("data-min", min).attr("data-max", max)
+
+            // bottomTicks.offset()
+            // let min = viewableZoomedUnitsX * (pointer.xP)
+            // let max = viewableZoomedUnitsX * (1-pointer.xP)
+
         }
-        console.log(viewableZoomedUnits)
-
-        console.log(bottomTicks.attr("data-min"), bottomTicks.attr("data-max"))
-
-        let yscale = findNiceScale(absAsBackup(bottomTicks, "min"), absAsBackup(bottomTicks, "max"))
-
-        setTickScale(yscale, bottomTicks)
-
-        clearTimeout(currentResetTimeout);
-
-        currentResetTimeout = setTimeout(() => {
-            initiatedScrollAxis = ''
-        }, 100);
-
-    }
 
 
-    if (initiatedScrollAxis == "X") {
+        let xscale = findNiceScale(absAsBackup(bottomTicks, "min"), absAsBackup(bottomTicks, "max"))
+
+        setTickScale(xscale, bottomTicks)
+
+    } else if (initiatedScrollAxis == "ZOOMY") {
         event.preventDefault()
 
-        if (event.ctrlKey) { offsetY = event.originalEvent.deltaX / -50 }
-        else { offsetY = -event.originalEvent.deltaX }
+        let oldLeftValMax = absAsBackup(leftTicks, "max")
+        let oldLeftValMin = absAsBackup(leftTicks, "min")
+
+        let absLeftMax = parseFloat(leftTicks.attr("data-absMax"))
+        let absLeftMin = parseFloat(leftTicks.attr("data-absMin"))
+
+        let range = oldLeftValMax - oldLeftValMin;
+
+        let center = (pointer.yP * range) + oldLeftValMin;
+
+        if (viewableZoomedUnitsY == false) {
+            viewableZoomedUnitsY = range;
+        } else if (viewableZoomedUnitsY + event.originalEvent.deltaY < 0.005) {
+            viewableZoomedUnitsY = 0.005
+        } else {
+            viewableZoomedUnitsY += event.originalEvent.deltaY
+        }
+
+
+        let min = center - (viewableZoomedUnitsY * pointer.yP)
+        let max = center + (viewableZoomedUnitsY * (1 - pointer.yP))
+        // console.log(viewableZoomedUnitsY)
+
+        if (absLeftMax < max && absLeftMin > min) {
+            min = absLeftMin
+            max = absLeftMax
+            viewableZoomedUnitsY = range;
+        } else if (absLeftMax < max) {
+            max = absLeftMax - 1
+            min = absLeftMax - viewableZoomedUnitsY
+        } else if (absLeftMin > min) {
+            min = absLeftMin
+            max = absLeftMin + viewableZoomedUnitsY
+        }
+
+        let primaryAxisScale = findNiceScale(min, max)
+
+        setMinMax(setTickScale(primaryAxisScale, leftTicks))
+
+        let secondaryAxisScale = findRelativeScale(absAsBackup(rightTicks, "idealMin"), (absAsBackup(rightTicks, "idealMax")), primaryAxisScale)
+
+        setMinMax(setTickScale(secondaryAxisScale, rightTicks))
+
+    }
+    
+    if (initiatedScrollAxis == "OFFSETXY" || initiatedScrollAxis == "OFFSETY") {
+        event.preventDefault()
+
+        let currentTicks = leftTicks
+        let secondaryTicks = rightTicks
+
+        viewableZoomedUnitsY = absAsBackup(currentTicks, "max") - absAsBackup(currentTicks, "min")
+
+        if(event.isPsuedoEvent){
+
+            offsetY = - (clamp(event.deltaYfromLastMove / holder.height(), -1) * viewableZoomedUnitsY)
+
+            // console.log(clamp(event.deltaX / holder.width(), -1) * viewableZoomedUnitsX, viewableZoomedUnitsX)
+
+            // /(viewableZoomedUnitsX*1000)
+        }else{
+            offsetY = - event.originalEvent.deltaY
+        }
+
+    
+
+        if (currentTicks.attr("data-max") == "false") {
+            currentTicks.attr("data-max", currentTicks.attr("data-absMax"))
+            console.log(currentTicks.attr("data-absMax"))
+        }
+
+        let oldVal = parseFloat(currentTicks.attr("data-max"))
+
+        let absMin = parseFloat(currentTicks.attr("data-absMin"))
+        let absMax = parseFloat(currentTicks.attr("data-absMax"))
+
+        if (oldVal - offsetY - viewableZoomedUnitsY < absMin) {
+            offsetY = 0//oldVal + absMin - viewableZoomedUnitsY
+        }
+
+        if(oldVal - offsetY > absMax){
+            offsetY = 0
+        }
+
+
+        // console.log(oldVal)
+
+
+        currentTicks.attr("data-max", oldVal - offsetY)
+        currentTicks.attr("data-min", oldVal - offsetY - viewableZoomedUnitsY)
+
+        let xscale = findNiceScale(absAsBackup(currentTicks, "min"), absAsBackup(currentTicks, "max"))
+
+        setTickScale(xscale, currentTicks)
+
+        let secondaryScale = findRelativeScale(absAsBackup(secondaryTicks, "idealMin"), absAsBackup(secondaryTicks, "idealMax"), xscale)
+
+        console.log(secondaryScale)
+
+        setMinMax(setTickScale(secondaryScale, secondaryTicks))
+    }
+
+    if (initiatedScrollAxis == "OFFSETXY" || initiatedScrollAxis == "OFFSETX" ) {
+        event.preventDefault()
+        if(event.isPsuedoEvent){
+
+            offsetX = (clamp(event.deltaXfromLastMove / holder.width(), -1) * viewableZoomedUnitsX)
+
+            // console.log(clamp(event.deltaX / holder.width(), -1) * viewableZoomedUnitsX, viewableZoomedUnitsX)
+
+            // /(viewableZoomedUnitsX*1000)
+        }else{
+            offsetX = - event.originalEvent.deltaX
+        }
+
+    
 
         if (bottomTicks.attr("data-max") == "false") {
             bottomTicks.attr("data-max", bottomTicks.attr("data-absMax"))
@@ -3276,10 +3409,24 @@ function zoomHandler(event, graph) {
 
         let oldVal = parseFloat(bottomTicks.attr("data-max"))
 
+        let absMin = parseFloat(bottomTicks.attr("data-absMin"))
+
+        if (oldVal - offsetX - viewableZoomedUnitsX < absMin) {
+            offsetX = oldVal + absMin - viewableZoomedUnitsX
+        }
+
         if (oldVal > parseFloat(bottomTicks.attr("data-absmax"))) {
+
+            if (absMin > parseFloat(bottomTicks.attr("data-absMax")) - viewableZoomedUnitsX) {
+                viewableZoomedUnitsX = parseFloat(bottomTicks.attr("data-absMax")) - absMin
+            }
+
+
+            triggerGraphEffector(graph.find(".graphEffectorOverlay"), "flushAnimaiton")
+
             bottomTicks.attr("data-max", "false")
 
-            offsetY = 0
+            offsetX = 0
             initiatedScrollAxis = 'paused'
 
             clearTimeout(currentResetTimeout);
@@ -3293,19 +3440,21 @@ function zoomHandler(event, graph) {
 
         // console.log(oldVal)
 
-        bottomTicks.attr("data-max", oldVal - offsetY)
-        bottomTicks.attr("data-min", oldVal - offsetY - viewableZoomedUnits)
+
+        bottomTicks.attr("data-max", oldVal - offsetX)
+        bottomTicks.attr("data-min", oldVal - offsetX - viewableZoomedUnitsX)
 
         let yscale = findNiceScale(absAsBackup(bottomTicks, "min"), absAsBackup(bottomTicks, "max"))
 
         setTickScale(yscale, bottomTicks)
 
-        clearTimeout(currentResetTimeout);
-
-        currentResetTimeout = setTimeout(() => {
-            initiatedScrollAxis = ''
-        }, 100);
     }
+
+    clearTimeout(currentResetTimeout);
+
+    currentResetTimeout = setTimeout(() => {
+        initiatedScrollAxis = ''
+    }, 50);
 }
 
 
@@ -3321,6 +3470,10 @@ function setTickScale(foundNiceScale, element) {
     element.attr("data-graphWidth", pxToCq($($(".currentTab").attr("data-page")), element.parent().children(".graphHolder").width()).cqh)
     element.attr("data-graphHeight", pxToCq($($(".currentTab").attr("data-page")), element.parent().children(".graphHolder").height()).cqh)
 
+    if (foundNiceScale.hasOwnProperty("idealMin")) {
+        element.attr("data-idealMin", foundNiceScale.idealMin)
+        element.attr("data-idealMax", foundNiceScale.idealMax)
+    }
 
     let children = element.children()
 
@@ -3332,6 +3485,9 @@ function setTickScale(foundNiceScale, element) {
         //set text from computed css text 
         if (children.length - 1 - i > foundNiceScale.amountOfTicksNeeded - 1) {
             eq.text("")
+            //Display all text for debuh
+            // eq.text(parseFloat((foundNiceScale.niceMinimum + ((children.length - 1 - i) * foundNiceScale.tickSpacing)).toFixed(foundNiceScale.percision)));
+
             eq[0].style.setProperty("--lineColor", "transparent")
             continue
         }
@@ -3420,30 +3576,25 @@ function findNiceScale(minimum, maximum, percision = 8) {
 
 function findRelativeScale(min, max, niceScale, displacement = 1) {
 
+    //this code is so cursed sometimes it goes way above tick count and i have to manually fix it this is why i dont use ai bc it makes stuff like this i had to do the last half manually
+
     let numTicks = niceScale.amountOfTicksNeeded
     let percision = niceScale.percision
+
+    let idealMin = min
+    let idealMax = max
 
     min = parseFloat(min) * displacement
     max = parseFloat(max) * displacement
 
-    if (min === max) {
-        // Handle the edge case where the min and max are the same (e.g., all data points are identical)
-        const range = Math.abs(min * 0.1) || 1; // Use 10% of the value, or 1 if value is 0
-        min -= range;
-        max += range;
-    }
-
     const range = max - min;
-    const initialTickSpacing = range / (numTicks > 1 ? numTicks : 5); // Ensure numTicks is at least 1 or 5 for safety
+    const initialTickSpacing = range / (numTicks > 1 ? numTicks : 5);
 
-    // --- Step 1: Determine the exponent/power of 10 for the range
     const exponent = Math.floor(Math.log10(initialTickSpacing));
     const powerOf10 = Math.pow(10, exponent);
 
-    // --- Step 2: Determine the "nice" fractional part of the tick spacing
     const fractionalSpacing = initialTickSpacing / powerOf10;
 
-    // Nice numbers are 1, 2, or 5 (multiplied by a power of 10)
     let niceFractional;
     if (fractionalSpacing < 1.75) {
         niceFractional = 1.5;
@@ -3459,19 +3610,36 @@ function findRelativeScale(min, max, niceScale, displacement = 1) {
         niceFractional = 10; // Increase power of 10
     }
 
-    // --- Step 3: Calculate the final "nice" tick spacing
-    const niceSpacing = (niceFractional * powerOf10) / displacement;
 
-    // --- Step 4: Calculate the new rounded min and max values
+    let niceSpacing = (niceFractional * powerOf10) / displacement;
+
+    let tickCalc = 0
+
     // The new min is the largest multiple of niceSpacing less than or equal to the original min
-    const niceMin = (Math.floor(min / niceSpacing) * niceSpacing) / displacement;
+    let niceMin = (Math.floor(min / niceSpacing) * niceSpacing) / displacement;
+
 
     // The new max is the smallest multiple of niceSpacing greater than or equal to the original max
-    const niceMax = Math.ceil(max / niceSpacing) * niceSpacing;
+    let niceMax = Math.ceil(max / niceSpacing) * niceSpacing;
+
+    for (let i = 0; i < 11; i++) {
+
+        if ((niceMin + (i * niceSpacing)) <= niceMax) {
+            tickCalc = i + 1
+        } else {
+            break
+        }
+    }
+
+    console.log(numTicks, tickCalc)
+
+    if (tickCalc > numTicks) {
+        niceMin += niceSpacing
+    } else if (numTicks > tickCalc) {
+        niceMin -= niceSpacing
+    }
 
     let actualNiceMax = (niceMin + ((numTicks) * niceSpacing))
-
-
 
     let fullRange = (niceScale.maximum - niceScale.minimum)
     let ratioPadding = (niceScale.niceMinimum - niceScale.minimum) / fullRange;
@@ -3491,6 +3659,8 @@ function findRelativeScale(min, max, niceScale, displacement = 1) {
         percision: percision,
         minimum: newMinimum,
         maximum: newMaximum,
+        idealMin: idealMin,
+        idealMax: idealMax
     };
 
 
@@ -3531,14 +3701,162 @@ function niceNum(localRange, round) {
 function absAsBackup(element, attr) {
     let val = element.attr("data-" + attr)
 
-
-    if (val == "false") {
-        return element.attr("data-abs" + attr)
+    if (val == "false" && attr.includes("ideal")) {
+        console.log("esc")
+        return parseFloat(element.attr("data-abs" + attr.replace("/\bideal\b/gi", '').toLowerCase()))
     }
 
-    return val
+    if (val == "false") {
+        return parseFloat(element.attr("data-abs" + attr))
+    }
+
+    return parseFloat(val)
 }
 
 function setMinMax(scaleObject) {
     scaleObject.element.attr("data-min", scaleObject.minimum).attr("data-max", scaleObject.maximum)
+}
+
+function setAbsMinMax(scaleObject) {
+    scaleObject.element.attr("data-absmin", scaleObject.minimum).attr("data-absmax", scaleObject.maximum)
+}
+
+function triggerGraphEffector(graphEffector, animationClass) {
+    if (graphEffector.hasClass("graphEffector" + animationClass)) return
+
+    graphEffector.removeClass("graphEffector" + animationClass)
+    graphEffector.offset()
+    graphEffector.addClass("graphEffector" + animationClass)
+
+    setTimeout(() => {
+        graphEffector.removeClass("graphEffector" + animationClass)
+
+    }, 1000);
+
+}
+
+
+
+function dragPsuedoEvent($elementBound, fn, fireEndOnLeave = true, executeFnOnLeave = false, storeNativeEvents = false) {
+    //storeNativeEvents prevents logging of event argument
+
+    let psuedoEvent = {
+        isPsuedoEvent: true,
+        psudeoEventType: "drag",
+        originalEvent: {},
+        preventDefault: ()=>{},
+    }
+
+    let startDrag = false
+
+    $elementBound.on("pointerdown", (event) => {
+        startDrag = true
+
+        psuedoEvent.pageX = event.pageX
+        psuedoEvent.pageY = event.pageY
+
+        psuedoEvent.startPageX = event.pageX
+        psuedoEvent.startPageY = event.pageY
+
+        psuedoEvent.dirSwitchPageX = event.pageX
+        psuedoEvent.dirSwitchPageY = event.pageY
+
+        psuedoEvent.deltaAbs = 0
+        psuedoEvent.deltaX = 0
+        psuedoEvent.deltaY = 0
+
+        if (storeNativeEvents) {
+            psuedoEvent.startEvent = event
+        }
+
+        psuedoEvent.startCtrlKey = event.ctrlKey
+        psuedoEvent.startShiftKey = event.shiftKey
+
+        psuedoEvent.ctrlKey = event.ctrlKey
+        psuedoEvent.shiftKey = event.shiftKey
+    })
+
+    let endFunc = () => {
+        startDrag = false
+
+        psuedoEvent.pageX = 0
+        psuedoEvent.pageY = 0
+
+        psuedoEvent.startPageX = 0
+        psuedoEvent.startPageY = 0
+
+        psuedoEvent.dirSwitchPageX = 0
+        psuedoEvent.dirSwitchPageY = 0
+
+        psuedoEvent.deltaAbs = 0
+        psuedoEvent.deltaX = 0
+        psuedoEvent.deltaY = 0
+
+        psuedoEvent.startEvent = false
+        psuedoEvent.moveEvent = false
+        psuedoEvent.dragglessMoveEvent = false
+
+        psuedoEvent.startCtrlKey = false
+        psuedoEvent.startShiftKey = false
+
+        psuedoEvent.ctrlKey = false
+        psuedoEvent.shiftKey = false
+
+        if (executeFnOnLeave) {
+            fn(psuedoEvent)
+        }
+    }
+
+    if (fireEndOnLeave) {
+        $elementBound.on("pointerup pointercancel pointerleave", endFunc)
+    } else {
+        $elementBound.on("pointerup pointercancel", endFunc)
+    }
+
+    $elementBound.on("pointermove", (event) => {
+
+        if(Math.sign(parseFloat((event.pageX - psuedoEvent.pageX))) == Math.sign(parseFloat(psuedoEvent.deltaXfromLastMove))){
+
+        } else{
+            psuedoEvent.dirSwitchPageX = parseFloat(event.pageX)
+
+        }
+
+        if(Math.sign(parseFloat((event.pageY - psuedoEvent.pageY))) == Math.sign(parseFloat(psuedoEvent.deltaYfromLastMove))){
+            
+        } else{
+            psuedoEvent.dirSwitchPageY = parseFloat(event.pageY)
+
+        }
+
+
+        psuedoEvent.deltaXfromLastMove = parseFloat((event.pageX - psuedoEvent.pageX))
+        psuedoEvent.deltaYfromLastMove = parseFloat((event.pageY - psuedoEvent.pageY))
+
+        psuedoEvent.deltaX = event.pageX - psuedoEvent.dirSwitchPageX
+        psuedoEvent.deltaY = event.pageY - psuedoEvent.dirSwitchPageY
+
+        psuedoEvent.deltaAbs = Math.sqrt(psuedoEvent.deltaX ** 2 + psuedoEvent.deltaY ** 2)
+
+        psuedoEvent.ctrlKey = event.ctrlKey
+        psuedoEvent.shiftKey = event.shiftKey
+
+        psuedoEvent.pageX = event.pageX
+        psuedoEvent.pageY = event.pageY
+
+        if (startDrag) {
+            if (storeNativeEvents) {
+                psuedoEvent.moveEvent = event
+            }
+
+            fn(psuedoEvent)
+            return
+        }
+        if (storeNativeEvents) {
+            psuedoEvent.dragglessMoveEvent = event
+        }
+
+
+
+    })
 }
