@@ -1,5 +1,24 @@
-import { pxToCq, nt4Client, clamp } from "./ui.js"
-import { Application, Assets, Container, Sprite } from '../lib/';
+import { pxToCq, nt4Client, clamp } from "./ui.js";
+
+let app;
+
+(async () => {
+    // Create a new application
+    app = new PIXI.Application()
+    
+    let canvas = document.getElementById("testMain")
+
+    // Initialize the application
+    await app.init({preference: "webgpu", background: 'rgba(0, 0, 0)',backgroundAlpha:0, canvas: canvas, width:canvas.clientWidth, height:canvas.clientHeight, resizeTo: "HTMLElement", });
+
+    // Append the application canvas to the document body
+
+    // let graphics = new PIXI.Graphics().setStrokeStyle(5).moveTo(0,0).lineTo(canvas.clientWidth, canvas.clientHeight).stroke(0xff0000)
+
+    // app.stage.addChild(graphics)
+    }
+)();
+
 
 
 let testScale = findNiceScale(absAsBackup($(".leftTicks"), "min"), absAsBackup($(".leftTicks"), "max"))
@@ -37,10 +56,13 @@ const CONVERSIONRATE = 1000000.0
 // let sinTestKeys = []
 // let sinTestValues = []
 //Test interval
+
+setTimeout(() => {
+    
 setInterval(() => {
     setCanvasesToTicks($(".graph"))
 
-    let currentTimestamp = nt4Client.getServerTime_us() 
+    let currentTimestamp = nt4Client.getServerTime_us()
 
     // sinTestKeys.push(currentTimestamp.toString())
     // sinTestValues.push(Math.sin(nt4Client.getServerTime_us() / 1000000.0))
@@ -75,6 +97,7 @@ setInterval(() => {
     setTickScale(yscale, $(".bottomTicks"))
 
 }, 1);
+}, 3000);
 
 
 
@@ -1053,12 +1076,12 @@ $(".linkButton").on("pointerdown", (event) => {
 
 })
 
-setTimeout(() => {
-    $(".graphCanvasPrimary").attr("width", $(".graphCanvasPrimary").width())
-    $(".graphCanvasPrimary").attr("height", $(".graphCanvasPrimary").height())
-    $(".graphCanvasSecondary").attr("width", $(".graphCanvasPrimary").width())
-    $(".graphCanvasSecondary").attr("height", $(".graphCanvasPrimary").height())
-}, 5000);
+// setTimeout(() => {
+//     $(".graphCanvasPrimary").attr("width", $(".graphCanvasPrimary").width())
+//     $(".graphCanvasPrimary").attr("height", $(".graphCanvasPrimary").height())
+//     $(".graphCanvasSecondary").attr("width", $(".graphCanvasPrimary").width())
+//     $(".graphCanvasSecondary").attr("height", $(".graphCanvasPrimary").height())
+// }, 5000);
 
 
 function setCanvasesToTicks(graph) {
@@ -1144,15 +1167,15 @@ function setCanvasesToTicks(graph) {
 createTopicAttributes($(".graphCanvasPrimary"), "test")
 
 export function drawNewData(graph, topic, akeys, avalues, timestamp) {
- 
+
 
     let attributeStart = "data-" + topic
     let graphHolder = graph.children(".graphHolder");
     let primaryAxis = graphHolder.children(".graphCanvasPrimary")
     let secondaryAxis = graphHolder.children(".graphCanvasSecondary")
 
-    drawToAxis(primaryAxis)
-    drawToAxis(secondaryAxis)
+    // drawToAxis(primaryAxis)
+    // drawToAxis(secondaryAxis)
 
 
     function drawToAxis(axis) {
@@ -1169,26 +1192,26 @@ export function drawNewData(graph, topic, akeys, avalues, timestamp) {
 
         let keys = new Float64Array(akeys)
         let values = new Float32Array(avalues)
-    
+
         // console.log(keys.indexOf(timestamp))
 
-        let startIndex =  keys.indexOf(timestamp)
+        let startIndex = keys.indexOf(timestamp)
 
-        ctx.clearRect(0,0,axis.width(), axis.height())
-        ctx.moveTo(xValueToPixels(keys[startIndex]/ CONVERSIONRATE), yValueToPixels(values[startIndex]))
+        ctx.clearRect(0, 0, axis.width(), axis.height())
+        ctx.moveTo(xValueToPixels(keys[startIndex] / CONVERSIONRATE), yValueToPixels(values[startIndex]))
 
         // console.log("startIndex", startIndex, "endCase", keys[startIndex] / CONVERSIONRATE, "endtop", parseFloat(axis.attr("data-xViewMax")))
-        for(let i = startIndex; keys[i] / CONVERSIONRATE > parseFloat(axis.attr("data-xViewMin")); i-- ){
+        for (let i = startIndex; keys[i] / CONVERSIONRATE > parseFloat(axis.attr("data-xViewMin")); i--) {
             console.log(xValueToPixels(keys[i] / CONVERSIONRATE), yValueToPixels(values[i]))
-             ctx.lineTo(xValueToPixels(keys[i] / CONVERSIONRATE), yValueToPixels(values[i]))
+            ctx.lineTo(xValueToPixels(keys[i] / CONVERSIONRATE), yValueToPixels(values[i]))
         }
 
-        
+
 
         // ctx.lineTo(xValueToPixels(timestamp / CONVERSIONRATE) - 500, yValueToPixels(data))
         // ctx.lineTo(0,0)
-        
-        ctx.lineWidth = axis.height()/ 750
+
+        ctx.lineWidth = axis.height() / 750
         ctx.strokeStyle = "red"
 
         ctx.stroke();
@@ -1221,45 +1244,3 @@ function createTopicAttributes(axis, topic) {
 }
 
 
-(async () => {
-  // Create a new application
-  const app = new Application();
-
-  // Initialize the application
-  await app.init({ background: '#1099bb', resizeTo: window });
-
-  // Append the application canvas to the document body
-  document.body.appendChild(app.canvas);
-
-  // Create and add a container to the stage
-  const container = new Container();
-
-  app.stage.addChild(container);
-
-  // Load the bunny texture
-  const texture = await Assets.load('https://pixijs.com/assets/bunny.png');
-
-  // Create a 5x5 grid of bunnies in the container
-  for (let i = 0; i < 25; i++) {
-    const bunny = new Sprite(texture);
-
-    bunny.x = (i % 5) * 40;
-    bunny.y = Math.floor(i / 5) * 40;
-    container.addChild(bunny);
-  }
-
-  // Move the container to the center
-  container.x = app.screen.width / 2;
-  container.y = app.screen.height / 2;
-
-  // Center the bunny sprites in local container coordinates
-  container.pivot.x = container.width / 2;
-  container.pivot.y = container.height / 2;
-
-  // Listen for animate update
-  app.ticker.add((time) => {
-    // Continuously rotate the container!
-    // * use delta to create frame-independent transform *
-    container.rotation -= 0.01 * time.deltaTime;
-  });
-})();
