@@ -1311,7 +1311,7 @@ input[type=number] {
     .slider.round {
         transition-property: transform;
 
-        border-radius: 34px;
+        border-radius: 34vh;
     }
 
     .slider.round:before {
@@ -2748,6 +2748,8 @@ input[type=number] {
         margin-top: 60cqh;
         margin-left: 120cqh;
 
+        user-select: none;
+
         border-radius: 1cqh;
 
         width: 120cqh;
@@ -2762,13 +2764,13 @@ input[type=number] {
         grid-template-columns: min-content min-content 1fr min-content min-content;
 
         grid-template-areas:
-            "C T T T E"
+            ". T T T ."
             "A L G R B"
             ". . W . ."
-            ". . Z . ."
+            "C . Z . E"
             "D D D D D";
 
-        
+
 
         display: grid;
     }
@@ -2777,6 +2779,32 @@ input[type=number] {
         grid-area: C;
         height: 5cqh;
         width: 5cqh;
+        user-select: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .linkButton {
+        height: 3.5cqh;
+        width: 3.5cqh;
+        background-color: rgb(32, 32, 32);
+        text-align: center;
+        line-height: 3.6cqh;
+        border-radius: 0.5cqh;
+        font-size: 1.5cqh;
+        /* margin-right: -2.5cqh; */
+        border: 0.25cqh solid rgb(12, 12, 12);
+    }
+
+    .linkButtonOn {
+        height: 3.5cqh;
+        width: 3.5cqh;
+        background-color: rgb(0, 42, 53);
+        text-align: center;
+        line-height: 3.6cqh;
+        border-radius: 0.5cqh;
+        border: 0.25cqh solid rgb(0, 87, 168);
     }
 
     .graphTitle {
@@ -2786,21 +2814,29 @@ input[type=number] {
         height: 5cqh;
         line-height: 5cqh;
         text-align: center;
+        user-select: none;
+
     }
 
     .rightButtons {
         grid-area: E;
         height: 5cqh;
         width: 5cqh;
+        user-select: none;
+
     }
 
     .leftSuperSlider {
         grid-area: A;
+        user-select: none;
+
     }
 
     .leftTicks {
         grid-area: L;
         width: 5cqh;
+        user-select: none;
+
     }
 
     .graphHolder {
@@ -2809,17 +2845,20 @@ input[type=number] {
         height: 100%;
         margin: 0px;
         padding: 0px;
-        outline: 0.25cqh rgb(255, 255, 255) solid ;
+        outline: 0.25cqh rgb(255, 255, 255) solid;
         position: relative;
         overflow: hidden;
         z-index: 3;
+        user-select: none;
 
     }
 
-    .graphSvg{
+    .graphCanvas {
         width: 100%;
+        user-select: none;
         height: 100%;
         margin: 0px;
+        position: absolute;
         border: none;
     }
 
@@ -2832,17 +2871,18 @@ input[type=number] {
     @property --gStartColor {
         syntax: "<color>";
         inherits: true;
-        initial-value: rgba(255,255,255,1);
+        initial-value: rgba(255, 255, 255, 1);
     }
 
-    .graphEffectorOverlay{
+    .graphEffectorOverlay {
         width: 100%;
         height: 100%;
 
-        --gEndPos:100%;
-        --gStartColor: rgba(255,255,255,1);
+        --gEndPos: 100%;
+        --gStartColor: rgba(255, 255, 255, 1);
+        --gRot: 90deg;
 
-        background:linear-gradient(90deg,rgba(255, 255, 255, 0) var(--gEndPos), var(--gStartColor) 100%);
+        background: linear-gradient(var(--gRot), rgba(255, 255, 255, 0) var(--gEndPos), var(--gStartColor) 100%);
 
         position: absolute;
         top: 0px;
@@ -2852,30 +2892,57 @@ input[type=number] {
         border: none;
         pointer-events: none;
 
-     
+
         /* background-color: green; */
-     
+
     }
 
-    .graphEffectorflushAnimaiton{
+    .graphEffectorflushAnimaiton {
         animation-duration: 500ms;
-        animation-timing-function:ease-out;
+        animation-timing-function: ease-out;
         animation-name: gradientFlush;
         animation-iteration-count: 1;
     }
 
+    .graphEffectorrevFlushAnimaiton {
+        animation-duration: 500ms;
+        animation-timing-function: ease-out;
+        animation-name: gradientFlush;
+        --gRot: 270deg;
+        animation-iteration-count: 1;
+    }
+
+    .graphEffectorupFlushAnimaiton {
+        animation-duration: 500ms;
+        animation-timing-function: ease-out;
+        animation-name: gradientFlush;
+        --gRot: 0deg;
+        animation-iteration-count: 1;
+    }
+
+    .graphEffectordownFlushAnimaiton {
+        animation-duration: 500ms;
+        animation-timing-function: ease-out;
+        animation-name: gradientFlush;
+        --gRot: 180deg;
+        animation-iteration-count: 1;
+    }
+
+
+
     @keyframes gradientFlush {
-        0%{
-            --gEndPos:100%;
-            --gStartColor: rgba(255,255,255,1);
+        0% {
+            --gEndPos: 100%;
+            --gStartColor: rgba(255, 255, 255, 1);
         }
 
-        100%{
-            --gEndPos:85%;
-            --gStartColor: rgb(255, 255, 255,0);
+        100% {
+            --gEndPos: 85%;
+            --gStartColor: rgb(255, 255, 255, 0);
         }
     }
-    
+
+
     .rightTicks {
         grid-area: R;
         width: 5cqh;
@@ -2892,59 +2959,7 @@ input[type=number] {
         height: 2.5cqh;
     }
 
-    .bottomSuperSlider {
-        grid-area: Z;
-        height: 5cqh;
-        position: relative;
-
-    }
-
-    .midSlider{
-        --thumbColor:white;
-        --thumbHeight:2.5cqh;
-
-        --absMin:attr(data-absmin type(<number>), 0);
-        --absMax:attr(data-absmax type(<number>), 100);
-        --min:attr(data-min type(<number>), var(--absMin) );
-        --max:attr(data-max type(<number>), var(--absMax) );
-/* 
-        --absmin:0;
-        --absmax:1000;
-        --min:0;
-        --max:100; */
-
-        --range: calc(var(--max) - var(--min));
-        --absRange : calc(var(--absMax) - var(--absMin));
-
-        --thumbWidth: calc((var(--range) / var(--absRange)) * 100cqh);
-        --thumbOffsetAmount: calc((var(--min) - var(--absMin)));
-
-        --thumbOffset: calc( ((var(--thumbOffsetAmount) - var(--absMin)) / (var(--absRange))) * 100cqh);
-
-        /* --thumbWidth:25cqh; */
-        background-color: rgb(46, 46, 46);
-
-    }
-
-    .superSliderBottom{
-        --thumbColor:red;
-        --thumbHeight:2.5cqh;
-        --thumbWidth:2.5cqh;
-        background-color: transparent;
-        cursor: grab;
-
-    }
-
-    .superSliderTop{
-        --thumbColor:blue;
-        --thumbHeight:2.5cqh;
-        --thumbWidth:2.5cqh;
-        background-color: transparent;
-        cursor: grab;
-
-    }
-
-    .superSliderPart{
+    .superSliderPart {
         width: 100%;
         margin: 1.25cqh;
         padding: 0px;
@@ -2954,28 +2969,259 @@ input[type=number] {
         appearance: none;
         border-radius: 99cqh;
     }
-    .bottomSuperSlider .superSliderPart::-webkit-slider-thumb {
-        pointer-events: all;
-        appearance: none;
-        display: block;
-        width: var(--thumbWidth);
-        height: var(--thumbHeight);
+
+
+
+    .bottomSuperSlider {
+        --absMin: attr(data-absmin type(<number>), 0);
+        --absMax: attr(data-absmax type(<number>), 100);
+        --min: attr(data-min type(<number>), var(--absMin));
+        --max: attr(data-max type(<number>), var(--absMax));
+        --datamax: attr(data-max raw-string, "false");
+        --dataabsmin: attr(data-absmin raw-string, "0");
+        --datamin: attr(data-min raw-string, --dataabsmin);
+
+        grid-area: Z;
+        height: 5cqh;
+        position: relative;
+
     }
-    .sliderThumb{
-        cursor:ew-resize;
+
+    .bottomSuperSlider .midSlider {
+        margin-inline: 0px;
+        border-left: rgb(12, 12, 12) 2.5cqh solid;
+        border-right: rgb(12, 12, 12) 2.5cqh solid;
+
+        transform: translateX(-2.5cqh);
+
+        --cursorType: ew-resize;
+
+        --thumbBG: rgb(46, 46, 46);
+        --thumbHeight: 2.5cqh;
+
+        --thumbHandleWidth: 2.5cqh;
+
+        --borderRadiusAmount: 0cqh;
+
+        --range: calc(var(--max) - var(--min));
+        --absRange: calc(var(--absMax) - var(--absMin));
+
+        --thumbWidth: calc(((var(--range) / var(--absRange)) * 100%) + var(--thumbHandleWidth));
+        --thumbOffsetAmount: calc((var(--min) - var(--absMin)));
+
+        --thumbOffset: calc(((var(--thumbOffsetAmount) / var(--absRange)) * 100%) - (var(--thumbHandleWidth) / 2));
+
+        /* --thumbWidth:25cqh; */
+        background-color: rgb(12, 12, 12);
+
+        /* background-color: rgb(46, 46, 46); */
+
+
+    }
+
+    .bottomSuperSlider .bottomSlider {
+        background-color: rgba(0, 0, 0, 0);
+
+
+
+        margin-inline: 0px;
+
+        --cursorType: grab;
+
+        --borderRadiusAmount: 99cqh;
+
+        /* --thumbBG: radial-gradient(circle, rgba(46, 46, 46, 1) 30%, rgba(128, 128, 128, 1) 30%, rgba(128, 128, 128, 1) 45%, rgba(46, 46, 46, 1) 45%); */
+
+        --thumbBG: if(style(--datamin:var(--dataabsmin)): radial-gradient(circle, rgba(46, 46, 46, 1) 25%, rgba(255, 255, 255, 1) 30%, rgba(255, 255, 255, 1) 45%, rgba(46, 46, 46, 1) 50%);
+                else: radial-gradient(circle, rgba(46, 46, 46, 1) 25%, rgba(128, 128, 128, 1) 30%, rgba(128, 128, 128, 1) 45%, rgba(46, 46, 46, 1) 50%);
+            );
+
+        --thumbHeight: 2.5cqh;
+
+        --range: calc(var(--max) - var(--min));
+        --absRange: calc(var(--absMax) - var(--absMin));
+
+        --thumbWidth: 2.5cqh;
+        --thumbOffsetAmount: calc((var(--min) - var(--absMin)));
+
+        --thumbOffset: calc(((var(--thumbOffsetAmount) / (var(--absRange))) * 100%) - var(--thumbWidth));
+    }
+
+    .bottomSuperSlider .topSlider {
+        background-color: rgba(0, 0, 0, 0);
+        margin-inline: 0px;
+
+        --cursorType: grab;
+
+        --borderRadiusAmount: 99cqh;
+        --thumbBG: if(style(--datamax:"false"): radial-gradient(circle, rgba(46, 46, 46, 1) 25%, rgba(255, 255, 255, 1) 30%, rgba(255, 255, 255, 1) 45%, rgba(46, 46, 46, 1) 50%);
+                else: radial-gradient(circle, rgba(46, 46, 46, 1) 25%, rgba(128, 128, 128, 1) 30%, rgba(128, 128, 128, 1) 45%, rgba(46, 46, 46, 1) 50%);
+            );
+        /* --thumbBG: radial-gradient(circle, rgba(46, 46, 46, 1) 30%, rgba(128, 128, 128, 1) 30%, rgba(128, 128, 128, 1) 45%, rgba(46, 46, 46, 1) 45%); */
+        --thumbHeight: 2.5cqh;
+
+        --range: calc(var(--max) - var(--min));
+        --absRange: calc(var(--absMax) - var(--absMin));
+
+        --thumbWidth: 2.5cqh;
+        --thumbOffsetAmount: calc((var(--min) - var(--absMin)));
+
+        --thumbOffset: calc(((var(--thumbOffsetAmount) / (var(--absRange))) * 100%) + (calc((var(--range) / var(--absRange)) * 100%)));
+    }
+
+
+
+    .bottomSuperSlider .sliderThumb {
+        cursor: var(--cursorType);
         pointer-events: all;
-        border-radius: 99cqh;
+        border-radius: var(--borderRadiusAmount);
         position: relative;
 
         left: var(--thumbOffset);
 
         width: var(--thumbWidth);
         height: var(--thumbHeight);
-        background-color: var(--thumbColor);
+        background: var(--thumbBG);
     }
 
+    .verticalSuperSlider {
+        --absMin: attr(data-absmin type(<number>), 0);
+        --absMax: attr(data-absmax type(<number>), 100);
+        --min: attr(data-min type(<number>), var(--absMin));
+        --max: attr(data-max type(<number>), var(--absMax));
+
+        --datamax: attr(data-max raw-string, "false");
+        --dataabsmin: attr(data-absmin raw-string, "0");
+        --datamin: attr(data-min raw-string, --dataabsmin);
+
+        position: relative;
+    }
+
+    .verticalSuperSlider .superSliderPart {
+        width: 2.5cqh;
+        margin: 1.25cqh;
+        margin-top: 0px;
+        margin-bottom: 0px;
+        padding: 0px;
+        height: 100%;
+        position: absolute;
+        pointer-events: none;
+        box-sizing: border-box;
+        appearance: none;
+        border-radius: 99cqh;
+        rotate: 180deg;
+
+
+
+
+    }
+
+    .verticalSuperSlider .midSlider {
+        --cursorType: ns-resize;
+
+        border-top: rgb(12, 12, 12) 2.5cqh solid;
+        border-bottom: rgb(12, 12, 12) 2.5cqh solid;
+
+        height: calc(100% + 5cqh);
+
+        transform: translateY(2.5cqh);
+
+
+        --thumbBG: rgb(46, 46, 46);
+        --thumbWidth: 2.5cqh;
+
+        --thumbHandleHeight: 2.5cqh;
+
+        --borderRadiusAmount: 0cqh;
+
+        --range: calc(var(--max) - var(--min));
+        --absRange: calc(var(--absMax) - var(--absMin));
+
+        --thumbHeight: calc(((var(--range) / var(--absRange)) * 100%) + var(--thumbHandleHeight));
+        --thumbOffsetAmount: calc((var(--min) - var(--absMin)));
+
+        --thumbOffset: calc((((var(--thumbOffsetAmount) / var(--absRange)) * 100%) - (var(--thumbHandleHeight) / 2)));
+
+        /* --thumbWidth:25cqh; */
+        background-color: rgb(12, 12, 12);
+
+        /* background-color: rgb(46, 46, 46); */
+
+    }
+
+    /* .verticalSuperSlider .topSlider::after {
+        content: var(--datamax);
+    } */
+
+    .verticalSuperSlider .bottomSlider {
+        background-color: rgba(0, 0, 0, 0);
+
+
+
+
+        --cursorType: grab;
+
+        --borderRadiusAmount: 99cqh;
+
+        --thumbBG: if(style(--datamin:var(--dataabsmin)): radial-gradient(circle, rgba(46, 46, 46, 1) 25%, rgba(255, 255, 255, 1) 30%, rgba(255, 255, 255, 1) 45%, rgba(46, 46, 46, 1) 50%);
+                else: radial-gradient(circle, rgba(46, 46, 46, 1) 25%, rgba(128, 128, 128, 1) 30%, rgba(128, 128, 128, 1) 45%, rgba(46, 46, 46, 1) 50%);
+            );
+
+
+        --thumbHeight: 2.5cqh;
+
+        --range: calc(var(--max) - var(--min));
+        --absRange: calc(var(--absMax) - var(--absMin));
+
+        --thumbWidth: 2.5cqh;
+        --thumbOffsetAmount: calc((var(--min) - var(--absMin)));
+
+        --thumbOffset: calc((((var(--thumbOffsetAmount) / (var(--absRange))) * 100%) - var(--thumbHeight)));
+    }
+
+
+    .verticalSuperSlider .topSlider {
+        background-color: rgba(0, 0, 0, 0);
+        /* 
+        --thumbBG: if(style(--datamax:"false"): red;
+                else: blue
+            ); */
+        --thumbBG: if(style(--datamax:"false"): radial-gradient(circle, rgba(46, 46, 46, 1) 25%, rgba(255, 255, 255, 1) 30%, rgba(255, 255, 255, 1) 45%, rgba(46, 46, 46, 1) 50%);
+                else: radial-gradient(circle, rgba(46, 46, 46, 1) 25%, rgba(128, 128, 128, 1) 30%, rgba(128, 128, 128, 1) 45%, rgba(46, 46, 46, 1) 50%);
+            );
+
+        --cursorType: grab;
+
+        --borderRadiusAmount: 99cqh;
+
+        /* --thumbBG: radial-gradient(circle, rgba(46, 46, 46, 1) 30%, rgba(128, 128, 128, 1) 30%, rgba(128, 128, 128, 1) 45%, rgba(46, 46, 46, 1) 45%); */
+        --thumbHeight: 2.5cqh;
+
+        --range: calc(var(--max) - var(--min));
+        --absRange: calc(var(--absMax) - var(--absMin));
+
+        --thumbWidth: 2.5cqh;
+        --thumbOffsetAmount: calc((var(--min) - var(--absMin)));
+
+        --thumbOffset: calc((((var(--thumbOffsetAmount) / (var(--absRange))) * 100%) + (calc((var(--range) / var(--absRange)) * 100%))));
+    }
+
+    .verticalSuperSlider .sliderThumb {
+        cursor: var(--cursorType);
+        pointer-events: all;
+        border-radius: var(--borderRadiusAmount);
+        position: relative;
+
+        top: var(--thumbOffset);
+
+        width: var(--thumbWidth);
+        height: var(--thumbHeight);
+        background: var(--thumbBG);
+    }
+
+
     .bottomDrawer {
-        margin-top: -5cqh;
+        /* margin-top: 5cqh; */
         grid-area: D;
         height: 5cqh;
     }
@@ -2987,7 +3233,9 @@ input[type=number] {
 
 
 
-    .leftTicks, .rightTicks,  .bottomTicks {
+    .leftTicks,
+    .rightTicks,
+    .bottomTicks {
         user-select: none;
 
         --tickMin: attr(data-tickMin type(<number>), 0);
@@ -3000,15 +3248,20 @@ input[type=number] {
         --absMax: attr(data-absMax type(<number>), 1);
         --max: attr(data-max type(<number>), var(--absMax));
 
-        --startOffset: calc( (var(--tickMin) - var(--min)) / (var(--max) - var(--min)));
-        --lineColor:rgb(62,62,62);
+        --startOffset: calc((var(--tickMin) - var(--min)) / (var(--max) - var(--min)));
+        --lineColor: rgb(62, 62, 62);
 
         --graphWidth: attr(data-graphWidth cqh, 0cqh);
         --graphHeight: attr(data-graphHeight cqh, 0cqh);
 
     }
 
-    .graphLeftTick::before{
+    .rightTicks {
+        --lineColor: rgba(255, 255, 255, 0);
+
+    }
+
+    .graphLeftTick::before {
         height: 0.25cqh;
         width: 100%;
         display: block;
@@ -3016,14 +3269,15 @@ input[type=number] {
         background-color: var(--lineColor);
         position: relative;
         margin-bottom: -0.25cqh;
-        top:50%;
+        top: 50%;
         left: 100%;
 
         width: var(--graphWidth);
     }
 
 
-    .graphLeftTick,  .graphRightTick {
+    .graphLeftTick,
+    .graphRightTick {
         /* background-color: white; */
         width: 100%;
         color: white;
@@ -3036,9 +3290,9 @@ input[type=number] {
 
 
 
-        --tickValue: calc((var(--tickSpacing) * ((sibling-count() - 1) - (sibling-index() - 1))) );
+        --tickValue: calc((var(--tickSpacing) * ((sibling-count() - 1) - (sibling-index() - 1))));
 
-        --topValue: calc( (var(--tickValue)) / (var(--max) - var(--min)));
+        --topValue: calc((var(--tickValue)) / (var(--max) - var(--min)));
 
 
         top: calc(100% - ((var(--startOffset) + var(--topValue)) * 100%));
@@ -3050,7 +3304,7 @@ input[type=number] {
 
 
 
-    .graphRightTick::before{
+    .graphRightTick::before {
         height: 0.25cqh;
         width: 100%;
         display: block;
@@ -3058,31 +3312,32 @@ input[type=number] {
         /* background-color: var(--lineColor); */
         position: relative;
         margin-bottom: -0.25cqh;
-        top:50%;
-        left: calc( var(--graphWidth) * -1) ;
+        top: 50%;
+        left: calc(var(--graphWidth) * -1);
         background-color: var(--lineColor);
 
-        width:var(--graphWidth) ;
+        width: var(--graphWidth);
     }
 
 
-    .graphBottomTick::before{
+    .graphBottomTick::before {
         width: 0.25cqh;
         display: block;
         content: '';
         background-color: var(--lineColor);
         position: relative;
         margin-bottom: -0.25cqh;
+        pointer-events: none;
         /* top:50%; */
         /* left: calc( var(--graphWidth) * -1) ; */
         left: 50%;
-        height:var(--graphHeight) ;
+        height: var(--graphHeight);
     }
 
 
     .graphBottomTick {
         /* background-color: white; */
-        width:20cqh;
+        width: 20cqh;
         color: white;
         height: 5cqh;
         line-height: 5cqh;
@@ -3090,14 +3345,16 @@ input[type=number] {
         text-align: center;
         margin-bottom: -5cqh;
 
-        --tickValue: calc((var(--tickSpacing) * ((sibling-count() - 1) - (sibling-index() - 1))) );
+        pointer-events: none;
 
-        --topValue: calc( (var(--tickValue)) / (var(--max) - var(--min)));
+        --tickValue: calc((var(--tickSpacing) * ((sibling-count() - 1) - (sibling-index() - 1))));
+
+        --topValue: calc((var(--tickValue)) / (var(--max) - var(--min)));
 
         right: calc(0% - ((var(--startOffset) + var(--topValue)) * 100%));
 
-        transform: translate(-50%,0%);
-        top: calc(var(--graphHeight) *-1 );
+        transform: translate(-50%, 0%);
+        top: calc(var(--graphHeight) *-1);
 
 
         position: relative;
@@ -3363,6 +3620,7 @@ meter:not([value]) {
     user-select: none;
     padding-top: 5%;
     padding-bottom: 5%;
+    font-size: 3vh;
     /* background-color: rgb(32, 32, 32); */
 }
 

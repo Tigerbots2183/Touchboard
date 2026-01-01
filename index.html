@@ -32,6 +32,8 @@ SOFTWARE. -->
     <title>Touchboard</title>
     <link rel="stylesheet" href="./css/style.css">
     <script src="./lib/jquery.js"></script>
+    <script src="./lib/pixi.min.js" type="module"></script>
+
 </head>
 
 <body>
@@ -194,7 +196,7 @@ SOFTWARE. -->
                     <path
                         d="m -2680.1835,-14979.487 -124.0025,214.78 124.0025,214.775 h 248.0051 l 124.0024,-214.775 -124.0024,-214.78 z"
                         style="fill:none;stroke:none;stroke-width:5" id="path109" />
-                    <path onclick="alert('worked')"
+                    <path
                         d="m -2209.9261,-14110.15 a 36.872604,36.872604 0 0 0 0,-73.745 36.872604,36.872604 0 0 0 0,73.745 z"
                         style="fill:#008080;stroke:#ffffff;stroke-width:5;stroke-dasharray:none" id="path45" />
                     <path id="path70-1" style="fill:#333333;stroke:#333333;stroke-width:4.97527;stroke-dasharray:none"
@@ -367,7 +369,7 @@ SOFTWARE. -->
                     </div>
                 </div>
             </div> -->
-<!-- 
+            <!-- 
             <div class="radialGauge">
                 <h1 class="radialGaugeTitle editThisName">Name</h1>
                 <div class="gauge"  data-maxDeg="180" data-minNumber="-50" data-maxNumber="50" data-valNumber="40" data-low="-25" data-high="25" data-optimum="0">
@@ -387,12 +389,24 @@ SOFTWARE. -->
                 </div>
             </div> -->
 
-            <div class="graph">
-                <div class="leftButtons"></div>
+            <div class="graph" data-linkAxis="false">
+                <div class="leftButtons">
+                    <div class="linkButton">🔗</div>
+                </div>
                 <h1 class="graphTitle">Name</h1>
                 <div class="rightButtons"></div>
-                <div class="leftSuperSlider"></div>
-                <div class="leftTicks" data-max="false" data-min="false" data-absmax="100" data-absmin="-100">
+                <div class="leftSuperSlider verticalSuperSlider" data-max="false" data-absmax="255" data-absmin="245">
+                    <div class="midSlider superSliderPart">
+                        <div class="sliderThumb"></div>
+                    </div>
+                    <div class="bottomSlider superSliderPart">
+                        <div class="sliderThumb"></div>
+                    </div>
+                    <div class="topSlider superSliderPart">
+                        <div class="sliderThumb"></div>
+                    </div>
+                </div>
+                <div class="leftTicks" data-max="false" data-min="false" data-absmax="255" data-absmin="245">
                     <div class="graphLeftTick">1</div>
                     <div class="graphLeftTick">0.9</div>
                     <div class="graphLeftTick">0.8</div>
@@ -407,10 +421,11 @@ SOFTWARE. -->
 
                 </div>
                 <div class="graphHolder">
-                    <svg class="graphSvg"></svg>
-                    <div class="graphEffectorOverlay">
-                        
-                    </div>
+                    <canvas width="1920" height="1080" class="graphCanvas graphCanvasSecondary" draggable="false"></canvas>
+
+                    <canvas class="graphCanvas graphCanvasPrimary" id="testMain" width="1920" height="1080"> </canvas>
+
+                    <div class="graphEffectorOverlay" draggable="false"> </div>
                 </div>
                 <div class="rightTicks" data-max="false" data-min="false" data-absmax="1" data-absmin="-1">
                     <div class="graphRightTick">1</div>
@@ -426,7 +441,16 @@ SOFTWARE. -->
                     <div class="graphRightTick">0</div>
 
                 </div>
-                <div class="rightSuperSlider">
+                <div class="rightSuperSlider verticalSuperSlider" data-max="false" data-absmax="1" data-absmin="-1">
+                    <div class="midSlider superSliderPart">
+                        <div class="sliderThumb"></div>
+                    </div>
+                    <div class="bottomSlider superSliderPart">
+                        <div class="sliderThumb"></div>
+                    </div>
+                    <div class="topSlider superSliderPart">
+                        <div class="sliderThumb"></div>
+                    </div>
                 </div>
                 <div class="bottomTicks" data-max="false" data-absMin="0" data-absMax="1">
                     <div class="graphBottomTick">1</div>
@@ -441,13 +465,16 @@ SOFTWARE. -->
                     <div class="graphBottomTick">0.1</div>
                     <div class="graphBottomTick">0</div>
                 </div>
-                <div class="bottomSuperSlider">
-                    <div class="midSlider superSliderPart" data-min="0" data-max="100" data-absmin="0" data-absmax="1000">
+                <div class="bottomSuperSlider" data-absmin="0" data-absmax="1000">
+                    <div class="midSlider superSliderPart">
                         <div class="sliderThumb"></div>
                     </div>
-                    <input type="range" step="0.005" class="superSliderBottom superSliderPart">
-                    <input type="range" step="0.005" class="superSliderTop superSliderPart">
-
+                    <div class="bottomSlider superSliderPart">
+                        <div class="sliderThumb"></div>
+                    </div>
+                    <div class="topSlider superSliderPart">
+                        <div class="sliderThumb"></div>
+                    </div>
                 </div>
                 <div class="bottomDrawer"></div>
             </div>
@@ -583,7 +610,8 @@ SOFTWARE. -->
 
             <div class="radialGauge">
                 <h1 class="radialGaugeTitle editThisName">Name</h1>
-                <div class="gauge"  data-maxDeg="180" data-minNumber="-50" data-maxNumber="50" data-valNumber="-50" data-low="-25" data-high="25" data-optimum="0">
+                <div class="gauge" data-maxDeg="180" data-minNumber="-50" data-maxNumber="50" data-valNumber="-50"
+                    data-low="-25" data-high="25" data-optimum="0">
                     <div class="pointer">
                         <div class="subTicks">
                             <div class="subTick"></div>
@@ -629,7 +657,8 @@ SOFTWARE. -->
 
             <div class="radialGauge">
                 <h1 class="radialGaugeTitle editThisName">Name</h1>
-                <div class="gauge"  data-maxDeg="180" data-minNumber="-50" data-maxNumber="50" data-valNumber="-50" data-low="-25" data-high="25" data-optimum="0">
+                <div class="gauge" data-maxDeg="180" data-minNumber="-50" data-maxNumber="50" data-valNumber="-50"
+                    data-low="-25" data-high="25" data-optimum="0">
                     <div class="pointer">
                         <div class="subTicks">
                             <div class="subTick"></div>
@@ -676,7 +705,8 @@ SOFTWARE. -->
 
             <div class="radialGauge">
                 <h1 class="radialGaugeTitle editThisName">Name</h1>
-                <div class="gauge"  data-maxDeg="180" data-minNumber="-50" data-maxNumber="50" data-valNumber="-50" data-low="-25" data-high="25" data-optimum="0">
+                <div class="gauge" data-maxDeg="180" data-minNumber="-50" data-maxNumber="50" data-valNumber="-50"
+                    data-low="-25" data-high="25" data-optimum="0">
                     <div class="pointer">
                         <div class="subTicks">
                             <div class="subTick"></div>
@@ -797,7 +827,7 @@ SOFTWARE. -->
             <div class="sideInputDiv specificComponent numberLineSpecific radialGaugeSpecific">
                 <p class="sideExampleText">Example:</p>
                 <div class="exampleMeter">
-                    
+
                 </div>
             </div>
 
@@ -945,9 +975,10 @@ SOFTWARE. -->
         <button class="trashCan">🗑</button>
     </div>
 
-    
+
     <script src="./js/ui.js" type="module"></script>
     <script src="./js/autoBuilder.js" type="module"></script>
+    <script src="./js/graph.js" type="module"></script>
     <script src="./js/jukebox.js" type="module"></script>
 </body>
 
