@@ -1,25 +1,31 @@
+import { NT4_Client } from "../lib/nt4.js";
 import { pxToCq, nt4Client, clamp } from "./ui.js";
+
 
 let app;
 
+let canvas = document.getElementById("testMain");
 (async () => {
     // Create a new application
     app = new PIXI.Application()
-    
-    let canvas = document.getElementById("testMain")
 
+    console.log(canvas.clientHeight)
     // Initialize the application
-    await app.init({preference: "webgpu", background: 'rgba(0, 0, 0)',backgroundAlpha:0, canvas: canvas, width:canvas.clientWidth, height:canvas.clientHeight, resizeTo: "HTMLElement", });
+    await app.init({ preference: "webgpu", background: 'rgba(0, 0, 0)', backgroundAlpha: 0, canvas: canvas, width: canvas.clientWidth, height: canvas.clientHeight, resizeTo: "HTMLElement", });
 
     // Append the application canvas to the document body
 
     // let graphics = new PIXI.Graphics().setStrokeStyle(5).moveTo(0,0).lineTo(canvas.clientWidth, canvas.clientHeight).stroke(0xff0000)
 
     // app.stage.addChild(graphics)
-    }
+
+    console.log(app.renderer)
+}
 )();
 
-
+let graphics = new PIXI.Graphics()//.setStrokeStyle(50).stroke(0xff0000)
+let transforms = new PIXI.Transform()
+app.stage.addChild(graphics);
 
 let testScale = findNiceScale(absAsBackup($(".leftTicks"), "min"), absAsBackup($(".leftTicks"), "max"))
 
@@ -53,50 +59,50 @@ setAbsMinMax(setTickScale(testSync, $(".rightTicks")))
 const CONVERSIONRATE = 1000000.0
 
 // let sinTest = {}
-// let sinTestKeys = []
-// let sinTestValues = []
+let sinTestKeys = []
+let sinTestValues = []
 //Test interval
 
 setTimeout(() => {
-    
-setInterval(() => {
-    setCanvasesToTicks($(".graph"))
 
-    let currentTimestamp = nt4Client.getServerTime_us()
+    setInterval(() => {
+        setCanvasesToTicks($(".graph"))
 
-    // sinTestKeys.push(currentTimestamp.toString())
-    // sinTestValues.push(Math.sin(nt4Client.getServerTime_us() / 1000000.0))
+        // let currentTimestamp = nt4Client.getServerTime_us()
 
-    // drawNewData($(".graph"), "test", sinTestKeys, sinTestValues, currentTimestamp)
+        // sinTestKeys.push(currentTimestamp.toString())
+        // sinTestValues.push(Math.sin(nt4Client.getServerTime_us() / 1000000.0))
 
-    let absMax = (nt4Client.getServerTime_us() / 1000000.0)
-    $(".bottomTicks").attr("data-absmax", absMax)
-    $(".bottomSuperSlider").attr("data-absmax", absMax)
-    $(".superSliderBottom").attr("max", absMax)
-    $(".superSliderTop").attr("max", absMax)
+        // drawNewData($(".graph"), "test", sinTestKeys, sinTestValues, currentTimestamp)
 
-    if ($(".bottomTicks").attr("data-max") == "false" && $(".bottomTicks").attr("data-min") != "false") {
-        let min = (nt4Client.getServerTime_us() / 1000000.0) - viewableZoomedUnitsX
-        let absMin = 0
-
-        $(".bottomTicks").attr("data-min", min)
+        let absMax = (nt4Client.getServerTime_us() / 1000000.0)
         $(".bottomTicks").attr("data-absmax", absMax)
-
-        $(".bottomSuperSlider").attr("data-min", min)
         $(".bottomSuperSlider").attr("data-absmax", absMax)
+        $(".superSliderBottom").attr("max", absMax)
+        $(".superSliderTop").attr("max", absMax)
+
+        if ($(".bottomTicks").attr("data-max") == "false" && $(".bottomTicks").attr("data-min") != "false") {
+            let min = (nt4Client.getServerTime_us() / 1000000.0) - viewableZoomedUnitsX
+            let absMin = 0
+
+            $(".bottomTicks").attr("data-min", min)
+            $(".bottomTicks").attr("data-absmax", absMax)
+
+            $(".bottomSuperSlider").attr("data-min", min)
+            $(".bottomSuperSlider").attr("data-absmax", absMax)
 
 
-        $(".superSliderBottom").attr("max", absMax).attr("min", absMin).val(min)
-        $(".superSliderTop").attr("max", absMax).attr("min", absMin)
+            $(".superSliderBottom").attr("max", absMax).attr("min", absMin).val(min)
+            $(".superSliderTop").attr("max", absMax).attr("min", absMin)
 
-    }
+        }
 
 
-    let yscale = findNiceScale(absAsBackup($(".bottomTicks"), "min"), absAsBackup($(".bottomTicks"), "max"))
+        let yscale = findNiceScale(absAsBackup($(".bottomTicks"), "min"), absAsBackup($(".bottomTicks"), "max"))
 
-    setTickScale(yscale, $(".bottomTicks"))
+        setTickScale(yscale, $(".bottomTicks"))
 
-}, 1);
+    }, 1);
 }, 3000);
 
 
@@ -1166,75 +1172,202 @@ function setCanvasesToTicks(graph) {
 
 createTopicAttributes($(".graphCanvasPrimary"), "test")
 
-export function drawNewData(graph, topic, akeys, avalues, timestamp) {
+
+let strokestyle = { color: 0xff0000, width: (canvas.clientHeight / 100) * 0.3, cap: 'round' }
 
 
-    let attributeStart = "data-" + topic
+function drawData(graph, topics, timestamp) {
+
+    //topics[ topic {axis, hue, name"", keyArray[], valArray[],}, ]
+
     let graphHolder = graph.children(".graphHolder");
-    let primaryAxis = graphHolder.children(".graphCanvasPrimary")
-    let secondaryAxis = graphHolder.children(".graphCanvasSecondary")
+    let primaryCanvas = graphHolder.children(".graphCanvasPrimary")
+    let secondaryCanvas = graphHolder.children(".graphCanvasSecondary")
 
-    // drawToAxis(primaryAxis)
-    // drawToAxis(secondaryAxis)
+    drawDataToCanvas(primaryCanvas)
 
-
-    function drawToAxis(axis) {
-        if (axis.attr(attributeStart + "Color")) {
-
-        } else {
+    function drawDataToCanvas(canvas) {
+        if (canvas.attr("data-drawInfo") !== undefined) {
+            scanAndDraw(canvas, JSON.parse(canvas.attr("data-drawInfo")))
             return
         }
 
+        let drawInfo = {}
 
-        let ctx = axis[0].getContext("2d")
+        drawInfo.minX = parseFloat(canvas.attr("data-xViewMin"))
+        drawInfo.width = parseFloat(canvas.attr("data-xViewWidth"))
+        drawInfo.maxX = parseFloat(canvas.attr("data-xViewMax"))
 
-        ctx.beginPath();
+        drawInfo.minY = parseFloat(canvas.attr("data-yViewMin"))
+        drawInfo.height = parseFloat(canvas.attr("data-yViewHeight"))
+        drawInfo.maxY = parseFloat(canvas.attr("data-yViewMax"))
 
-        let keys = new Float64Array(akeys)
-        let values = new Float32Array(avalues)
+        canvas.attr("data-drawInfo", JSON.stringify(drawInfo))
+        // scanAndDraw(canvas, drawInfo)
+    }
 
-        // console.log(keys.indexOf(timestamp))
+    function scanAndDraw(canvas, drawInfo) {
+        let currentBounds = {}
 
-        let startIndex = keys.indexOf(timestamp)
+        currentBounds.minX = parseFloat(canvas.attr("data-xViewMin"))
+        currentBounds.width = parseFloat(canvas.attr("data-xViewWidth"))
+        currentBounds.maxX = parseFloat(canvas.attr("data-xViewMax"))
 
-        ctx.clearRect(0, 0, axis.width(), axis.height())
-        ctx.moveTo(xValueToPixels(keys[startIndex] / CONVERSIONRATE), yValueToPixels(values[startIndex]))
+        currentBounds.minY = parseFloat(canvas.attr("data-yViewMin"))
+        currentBounds.height = parseFloat(canvas.attr("data-yViewHeight"))
+        currentBounds.maxY = parseFloat(canvas.attr("data-yViewMax"))
 
-        // console.log("startIndex", startIndex, "endCase", keys[startIndex] / CONVERSIONRATE, "endtop", parseFloat(axis.attr("data-xViewMax")))
-        for (let i = startIndex; keys[i] / CONVERSIONRATE > parseFloat(axis.attr("data-xViewMin")); i--) {
-            console.log(xValueToPixels(keys[i] / CONVERSIONRATE), yValueToPixels(values[i]))
-            ctx.lineTo(xValueToPixels(keys[i] / CONVERSIONRATE), yValueToPixels(values[i]))
+
+        compareAndTransform(drawInfo, currentBounds)
+
+        for (let i in topics) {
+            //We need to scan in reverse since the current timestamp is the
+            //only one we know is logged
+            let keys = new Int32Array(topics[i].keyArray)
+            let values = new Float32Array(topics[i].valArray)
+
+            // console.log(keys)
+            // console.log(keys[keys.length-1], values[values.length-1])
+
+            // console.log(topics[i])
+
+            let startIndex = keys.indexOf(timestamp)
+
+            let gx = graphics.position.x 
+            let gy = graphics.position.y 
+
+            graphics.moveTo(xValueToPixels(keys[startIndex] / CONVERSIONRATE) - gx, yValueToPixels(values[startIndex]) - gy).stroke(strokestyle);
+            graphics.lineTo(xValueToPixels(keys[startIndex-1] / CONVERSIONRATE) - gx, yValueToPixels(values[startIndex-1]) - gy)
+
+
+            for(let j = startIndex-1; keys[j] / CONVERSIONRATE > drawInfo.maxX; j--){
+                console.log(keys[j] / CONVERSIONRATE, drawInfo.maxX, drawInfo)
+
+                graphics.lineTo(xValueToPixels(keys[j] / CONVERSIONRATE) - gx, yValueToPixels(values[j]) - gy)
+                
+            }
+
+            // graphics.lineTo(xValueToPixels(keys[startIndex-1] / CONVERSIONRATE) - gx, yValueToPixels(values[startIndex-1]) - gy).stroke(strokestyle)
+            // graphics.lineTo(0,0).stroke(strokestyle)
+            // for (let j = startIndex; keys[j] / CONVERSIONRATE > currentBounds.minX; j--) {
+            //     // if(keys[j])
+            // }
+            keys = null
+            values = null
         }
 
+        canvas.attr("data-drawInfo", JSON.stringify(currentBounds))
 
+        function compareAndTransform(oldBounds, newBounds) {
+            if (compareFloat(oldBounds.width, newBounds.width)) {
+                //Scale X code
+            }
 
-        // ctx.lineTo(xValueToPixels(timestamp / CONVERSIONRATE) - 500, yValueToPixels(data))
-        // ctx.lineTo(0,0)
+            if (compareFloat(oldBounds.height, newBounds.height)) {
+                //Scale Y code
+            }
 
-        ctx.lineWidth = axis.height() / 750
-        ctx.strokeStyle = "red"
+            if (!compareFloat(oldBounds.minX, newBounds.minX)) {
+                //Traslate X code
 
-        ctx.stroke();
+                let diffPixels = xValueToPixels(newBounds.minX) - xValueToPixels(oldBounds.minX)
 
-        // axis.attr(attributeStart + "prevX", timestamp / CONVERSIONRATE)
-        // axis.attr(attributeStart + "prevY", data)
+                // graphics.position.set()
+                // graphics.position.set(-diff, diff) // -= diff
+                
+                graphics.position.x -= diffPixels
+
+            }
+
+            if (compareFloat(oldBounds.minY, newBounds.minY)) {
+                //Translate Y Code
+            }
+        }
 
         function xValueToPixels(value) {
             value = parseFloat(value)
-            let percent = (value - parseFloat(axis.attr("data-xViewMin"))) / parseFloat(axis.attr("data-xViewWidth"))
+            let percent = (value - parseFloat(canvas.attr("data-xViewMin"))) / parseFloat(canvas.attr("data-xViewWidth"))
             // console.log(percent)
-            return percent * axis.width()
+            return percent * canvas.width()
         }
         function yValueToPixels(value) {
             value = parseFloat(value)
-            let percent = (value - parseFloat(axis.attr("data-yViewMin"))) / parseFloat(axis.attr("data-yViewHeight"))
-            return (percent * axis.height() * -1) + axis.height()
+            let percent = (value - parseFloat(canvas.attr("data-yViewMin"))) / parseFloat(canvas.attr("data-yViewHeight"))
+            return (percent * canvas.height() * -1) + canvas.height()
         }
-
     }
 
 
 }
+
+export function drawNewData(graph, topic, akeys, avalues, timestamp) {
+    drawData(graph,[{keyArray:akeys, valArray:avalues}], timestamp)
+}
+
+// export function drawNewData(graph, topic, akeys, avalues, timestamp) {
+
+//     console.log(topic)
+
+//     let attributeStart = "data-" + topic
+//     let graphHolder = graph.children(".graphHolder");
+//     let primaryAxis = graphHolder.children(".graphCanvasPrimary")
+//     let secondaryAxis = graphHolder.children(".graphCanvasSecondary")
+
+//     drawToAxis(primaryAxis)
+//     // drawToAxis(secondaryAxis)
+
+
+//     function drawToAxis(axis) {
+//         // if (axis.attr(attributeStart + "Color")) {
+
+//         // } else {
+//         //     return
+//         // }
+
+
+//         // graphics.moveTo(0, 0).stroke({color:0xff0000, width: 40});
+//         // graphics.lineTo(canvas.clientWidth, canvas.clientHeight)
+//         // graphics.lineTo(900, 900);
+
+//         // graphics.moveTo(canvas.clientWidth, canvas.clientHeight).lineTo(canvas.clientWidth, 990)
+
+//         let keys = new Float64Array(akeys)
+//         let values = new Float32Array(avalues)
+
+//         let startIndex = keys.indexOf(timestamp)
+
+//         // ctx.clearRect(0, 0, axis.width(), axis.height())
+//         // ctx.moveTo(xValueToPixels(keys[startIndex] / CONVERSIONRATE), yValueToPixels(values[startIndex]))
+//         graphics.clear()
+
+//         graphics.stroke(strokestyle);
+//         graphics.moveTo(xValueToPixels(keys[startIndex] / CONVERSIONRATE), yValueToPixels(values[startIndex])).stroke(strokestyle);
+
+//         for (let i = startIndex; keys[i] / CONVERSIONRATE > parseFloat(axis.attr("data-xViewMin")); i--) {
+//             // ctx.lineTo(xValueToPixels(keys[i] / CONVERSIONRATE), yValueToPixels(values[i]))
+
+//             graphics.lineTo(xValueToPixels(keys[i] / CONVERSIONRATE), yValueToPixels(values[i])).stroke(strokestyle)
+//         }
+
+//         // axis.attr(attributeStart + "prevX", timestamp / CONVERSIONRATE)
+//         // axis.attr(attributeStart + "prevY", data)
+
+//         function xValueToPixels(value) {
+//             value = parseFloat(value)
+//             let percent = (value - parseFloat(axis.attr("data-xViewMin"))) / parseFloat(axis.attr("data-xViewWidth"))
+//             // console.log(percent)
+//             return percent * axis.width()
+//         }
+//         function yValueToPixels(value) {
+//             value = parseFloat(value)
+//             let percent = (value - parseFloat(axis.attr("data-yViewMin"))) / parseFloat(axis.attr("data-yViewHeight"))
+//             return (percent * axis.height() * -1) + axis.height()
+//         }
+
+//     }
+
+
+// }
 
 function createTopicAttributes(axis, topic) {
     let attributeStart = "data-" + topic
@@ -1243,4 +1376,101 @@ function createTopicAttributes(axis, topic) {
 
 }
 
+addMusicDropHandler($(".graph"))
 
+function addMusicDropHandler(graph) {
+    let audio = graph.children("#audio")[0];
+    let linkedMusic = false;
+
+    graph.on("drop", (event) => {
+        event.preventDefault()
+
+        event = event.originalEvent
+
+        let files = event.dataTransfer.files;
+
+        if (files.length > 0) {
+
+            handleFile(files[0])
+
+        }
+
+    })
+
+    function handleFile(file) {
+        if (!file.type.startsWith("audio/")) {
+            return false
+        }
+
+        let reader = new FileReader();
+
+        reader.onload = (event) => {
+            audio.src = event.target.result;
+            audio.play().catch(error => {
+                console.warn("Playback Failed", error)
+            })
+
+            graphSong()
+        }
+
+        reader.readAsDataURL(file)
+    }
+
+    function graphSong() {
+        if (linkedMusic) {
+            return
+        }
+
+        let songKeys = []
+        let songValues = []
+        let songValuesLow = [];
+
+        let context = new AudioContext();
+        let audioSrc = context.createMediaElementSource(audio)
+        let analyser = context.createAnalyser()
+
+        analyser.fftSize = 2048
+        audioSrc.connect(analyser)
+        analyser.connect(context.destination)
+
+        let dataArray = new Float32Array(analyser.fftSize)
+
+
+        function convertToAmplitude() {
+            analyser.getFloatTimeDomainData(dataArray)
+
+            let sumSquares = 0;
+
+            for (let amplitude of dataArray) {
+                sumSquares += amplitude * amplitude
+            }
+
+            return Math.sqrt(sumSquares / analyser.fftSize);
+        }
+
+        setInterval(sendAmplitude, 1)
+
+        function sendAmplitude() {
+            let currentTimestamp = nt4Client.getServerTime_us()
+
+
+            songKeys.push(currentTimestamp)
+            songValues.push(convertToAmplitude())
+            songValuesLow.push(convertToAmplitude() * -1)
+
+            // console.log(songValues, audio.src)
+            drawNewData($(".graph"), "Audio File", songKeys, songValuesLow, currentTimestamp)
+
+            drawNewData($(".graph"), "Audio File", songKeys, songValues, currentTimestamp)
+        }
+        linkedMusic = true
+    }
+}
+
+function compareFloat(val1, val2) {
+    return Math.abs(val1 - val2) < 0.00000001;
+}
+
+setTimeout(() => {
+    graphics.position.set(0,0)
+}, 5000);

@@ -41,6 +41,9 @@ export function getHtmlFileName() {
     return fileName.slice(0, -5);
 }
 
+document.body.addEventListener("drop", (event)=>{event.preventDefault(); event.stopPropagation()}, false)
+document.body.addEventListener("dragover", (event)=>{event.preventDefault()}, false)
+
 export function clamp(num, min = 0, max = 1) { return Math.min(Math.max(num, min), max) };
 
 let defaultSimilarOptions = {
@@ -577,6 +580,12 @@ let rawEncoder = new TextEncoder('utf-8')
 
 let OdometryFrequencyKeys = []
 let OdometryFrequencyValues = []
+let currentodomts
+
+setInterval(()=>{
+        drawNewData($(".graph"), "test", OdometryFrequencyKeys, OdometryFrequencyValues, currentodomts)
+
+},1)
 
 function handleNewData(topic, timestamp, value, RawValue) {
     // console.log(topic.name)
@@ -610,8 +619,10 @@ function handleNewData(topic, timestamp, value, RawValue) {
 
     if(topic.name.includes("OdometryFrequency") && timestamp % 10 == 0){
         OdometryFrequencyKeys.push(timestamp)
-        OdometryFrequencyValues.push(value)
-        drawNewData($(".graph"), "test", OdometryFrequencyKeys, OdometryFrequencyValues, timestamp)
+        OdometryFrequencyValues.push(value - 250)
+        currentodomts = timestamp
+
+        
     } 
 
     if (topic.name.includes('streams')) {

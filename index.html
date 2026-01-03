@@ -29,6 +29,7 @@ SOFTWARE. -->
     <base href="." />
     <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
     <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover, minimum-scale=1">
+    
     <title>Touchboard</title>
     <link rel="stylesheet" href="./css/style.css">
     <script src="./lib/jquery.js"></script>
@@ -40,12 +41,11 @@ SOFTWARE. -->
     <div class="dashboardHolder">
         <div class="tabNav">
             <!-- Insert tab buttons after this or between existing buttons after here -->
-            <div class="tab currentTab" data-page=".autonomus">PosePlotter</div>
+            <div class="tab " data-page=".autonomus">PosePlotter</div>
 
             <div class="tab tabConnection" data-page=".jukeBox">Jukebox</div>
 
-            <div class="tab tabConnection" data-page=".uiTestTab">Ui Test</div>
-
+            <div class="tab tabConnection currentTab" data-page=".uiTestTab">Ui Test</div>
 
             <p class="connectionText">Offline</p>
             <label class="switch">
@@ -307,7 +307,7 @@ SOFTWARE. -->
         </div>
 
 
-        <div class="uiTestTab page">
+        <div class="uiTestTab page" style="display: grid;">
             <!-- <button class="actionButton" data-type="boolean" data-topic="TestActionButton"
             data-value="false">Action Button</button> -->
             <!-- <div class="cameraComponent">
@@ -395,7 +395,7 @@ SOFTWARE. -->
                 </div>
                 <h1 class="graphTitle">Name</h1>
                 <div class="rightButtons"></div>
-                <div class="leftSuperSlider verticalSuperSlider" data-max="false" data-absmax="255" data-absmin="245">
+                <div class="leftSuperSlider verticalSuperSlider" data-max="false" data-absmax="1" data-absmin="-1">
                     <div class="midSlider superSliderPart">
                         <div class="sliderThumb"></div>
                     </div>
@@ -406,7 +406,7 @@ SOFTWARE. -->
                         <div class="sliderThumb"></div>
                     </div>
                 </div>
-                <div class="leftTicks" data-max="false" data-min="false" data-absmax="255" data-absmin="245">
+                <div class="leftTicks" data-max="false" data-min="false" data-absmax="1" data-absmin="-1">
                     <div class="graphLeftTick">1</div>
                     <div class="graphLeftTick">0.9</div>
                     <div class="graphLeftTick">0.8</div>
@@ -423,7 +423,7 @@ SOFTWARE. -->
                 <div class="graphHolder">
                     <canvas width="1920" height="1080" class="graphCanvas graphCanvasSecondary" draggable="false"></canvas>
 
-                    <canvas class="graphCanvas graphCanvasPrimary" id="testMain" width="1920" height="1080"> </canvas>
+                    <canvas class="graphCanvas graphCanvasPrimary" id="testMain"> </canvas>
 
                     <div class="graphEffectorOverlay" draggable="false"> </div>
                 </div>
@@ -477,8 +477,9 @@ SOFTWARE. -->
                     </div>
                 </div>
                 <div class="bottomDrawer"></div>
-            </div>
+                <audio id="audio"></audio>
 
+            </div>
         </div>
     </div>
     <!-- Insert tabs before this or between existing tabs before here -->

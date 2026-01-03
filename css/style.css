@@ -1667,7 +1667,8 @@ input[type=number] {
     }
 
     .autonomus {
-        display: grid;
+        /* display: grid; */
+        display: none;
         grid-template-areas:
             "o o o o "
             "m w w w"

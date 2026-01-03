@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+
+    <canvas id="gpuCanvas" width="1800" height="1600" style="background: #111; width: 80vw; height:80vh;"></canvas>
+
+
+    <script>
+
+        const shaderCode = `
+struct Uniforms {
+  resolution : vec2f,
+  scale : vec2f,       // Changed to vec2f for separate X/Y scaling
+  color : vec4f,
+  translation : vec2f, // x, y translation
+  width : f32,
+};
+
+@group(0) @binding(0) var<uniform> uniforms : Uniforms;
+
+struct VertexOutput {
+  @builtin(position) position : vec4f,
+};
+
+@vertex
+fn vs_main(
+  @location(0) curr_raw : vec2f,
+  @location(1) prev_raw : vec2f,
+  @location(2) next_raw : vec2f,
+  @location(3) direction : f32
+) -> VertexOutput {
+  
+  var output : VertexOutput;
+  
+  // 1. Apply Transform (Scale then Translate)
+  // We apply this to the raw points *before* calculating line thickness
+  // to ensure the line joins (miters) are calculated correctly for the distorted aspect ratio.
+  
+  let curr = (curr_raw * uniforms.scale) + uniforms.translation;
+  let prev = (prev_raw * uniforms.scale) + uniforms.translation;
+  let next = (next_raw * uniforms.scale) + uniforms.translation;
+
+  let halfWidth = uniforms.width / 2.0;
+
+  // 2. Line Expansion (Miter Join Logic)
+  var dirA = normalize(curr - prev);
+  var dirB = normalize(next - curr);
+
+  if (all(curr == prev)) { dirA = dirB; }
+  if (all(curr == next)) { dirB = dirA; }
+
+  var tangent = normalize(dirA + dirB);
+  var normal = vec2f(-tangent.y, tangent.x);
+  
+  // Miter calculation
+  var miter = vec2f(-dirA.y, dirA.x);
+  let miterDot = dot(miter, normal);
+  let miterLength = halfWidth / max(miterDot, 0.1); 
+
+  let offset = normal * direction * miterLength;
+  let pos = curr + offset;
+
+  // 3. Screen Space Conversion
+  let clipX = (pos.x / uniforms.resolution.x) * 2.0 - 1.0;
+  let clipY = (1.0 - (pos.y / uniforms.resolution.y)) * 2.0 - 1.0;
+
+  output.position = vec4f(clipX, clipY, 0.0, 1.0);
+  return output;
+}
+
+@fragment
+fn fs_main() -> @location(0) vec4f {
+  return uniforms.color;
+}
+`;
+        class Camera2D {
+            constructor() {
+                this.x = 0;      // Current horizontal scroll
+                this.y = 0;      // Current vertical scroll
+                this.scaleX = 1; // Horizontal zoom
+                this.scaleY = 1; // Vertical zoom
+            }
+
+            // Move the camera by a relative amount
+            pan(dx, dy) {
+                this.x += dx;
+                this.y += dy;
+            }
+
+            // Zoom relative to a specific point (like the mouse cursor)
+            zoomAt(amount, centerX, centerY) {
+                const oldZoomX = this.scaleX;
+                const oldZoomY = this.scaleY;
+
+                this.scaleX *= amount;
+                this.scaleY *= amount;
+
+                // Adjust translation so the zoom feels like it's centered on centerX/Y
+                this.x += (centerX / oldZoomX) - (centerX / this.scaleX);
+                this.y += (centerY / oldZoomY) - (centerY / this.scaleY);
+            }
+
+            // Returns the values needed for the GPU Uniforms
+            getUniforms() {
+                return {
+                    translation: [-this.x * this.scaleX, -this.y * this.scaleY],
+                    scale: [this.scaleX, this.scaleY]
+                };
+            }
+        }
+
+        class WebGPUGraphRenderer {
+            constructor() {
+                this.device = null;
+                this.context = null;
+                this.pipeline = null;
+                this.camera = new Camera2D();
+            }
+
+            async initialize(canvas) {
+                const adapter = await navigator.gpu.requestAdapter();
+                this.device = await adapter.requestDevice();
+                this.context = canvas.getContext("webgpu");
+                this.presentationFormat = navigator.gpu.getPreferredCanvasFormat();
+
+                this.context.configure({
+                    device: this.device,
+                    format: this.presentationFormat,
+                    alphaMode: "premultiplied",
+                });
+
+                const shaderModule = this.device.createShaderModule({ code: shaderCode });
+
+                this.pipeline = this.device.createRenderPipeline({
+                    layout: "auto",
+                    vertex: {
+                        module: shaderModule,
+                        entryPoint: "vs_main",
+                        buffers: [{
+                            arrayStride: 28,
+                            attributes: [
+                                { shaderLocation: 0, offset: 0, format: "float32x2" },
+                                { shaderLocation: 1, offset: 8, format: "float32x2" },
+                                { shaderLocation: 2, offset: 16, format: "float32x2" },
+                                { shaderLocation: 3, offset: 24, format: "float32" },
+                            ]
+                        }]
+                    },
+                    fragment: {
+                        module: shaderModule,
+                        entryPoint: "fs_main",
+                        targets: [{ format: this.presentationFormat }]
+                    },
+                    primitive: { topology: "triangle-strip", cullMode: 'none' }
+                });
+            }
+
+            draw(xArray, yArray, color = { r: 1, g: 1, b: 1, a: 1 }, width = 2.0) {
+                const cam = this.camera.getUniforms();
+
+                // 1. Pack Uniforms (Using the camera values)
+                const uniformValues = new Float32Array([
+                    this.context.canvas.width, this.context.canvas.height,
+                    cam.scale[0], cam.scale[1],
+                    color.r, color.g, color.b, color.a,
+                    cam.translation[0], cam.translation[1],
+                    width, 0
+                ]);
+
+                const uniformBuffer = this.device.createBuffer({
+                    size: 48,
+                    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+                });
+                this.device.queue.writeBuffer(uniformBuffer, 0, uniformValues);
+
+                // 2. Prepare Vertices
+                // Note: For a real graph, you'd cache this buffer and only re-create if xArray changes
+                const vertexCount = xArray.length * 2;
+                const vertexData = new Float32Array(vertexCount * 7);
+                for (let i = 0; i < xArray.length; i++) {
+                    const cx = xArray[i], cy = yArray[i];
+                    const px = i === 0 ? cx : xArray[i - 1], py = i === 0 ? cy : yArray[i - 1];
+                    const nx = i === xArray.length - 1 ? cx : xArray[i + 1], ny = i === xArray.length - 1 ? cy : yArray[i + 1];
+
+                    let base = i * 14;
+                    // Vertex A
+                    vertexData[base + 0] = cx; vertexData[base + 1] = cy; vertexData[base + 2] = px; vertexData[base + 3] = py;
+                    vertexData[base + 4] = nx; vertexData[base + 5] = ny; vertexData[base + 6] = 1.0;
+                    // Vertex B
+                    vertexData[base + 7] = cx; vertexData[base + 8] = cy; vertexData[base + 9] = px; vertexData[base + 10] = py;
+                    vertexData[base + 11] = nx; vertexData[base + 12] = ny; vertexData[base + 13] = -1.0;
+                }
+
+                const vertexBuffer = this.device.createBuffer({
+                    size: vertexData.byteLength,
+                    usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+                    mappedAtCreation: true,
+                });
+                new Float32Array(vertexBuffer.getMappedRange()).set(vertexData);
+                vertexBuffer.unmap();
+
+                // 3. Command Encoder
+                const commandEncoder = this.device.createCommandEncoder();
+                const pass = commandEncoder.beginRenderPass({
+                    colorAttachments: [{
+                        view: this.context.getCurrentTexture().createView(),
+                        loadOp: "load",
+                        storeOp: "store"
+                    }]
+                });
+
+                pass.setPipeline(this.pipeline);
+                pass.setBindGroup(0, this.device.createBindGroup({
+                    layout: this.pipeline.getBindGroupLayout(0),
+                    entries: [{ binding: 0, resource: { buffer: uniformBuffer } }]
+                }));
+                pass.setVertexBuffer(0, vertexBuffer);
+                pass.draw(vertexCount);
+                pass.end();
+                this.device.queue.submit([commandEncoder.finish()]);
+            }
+
+            clear() {
+                const commandEncoder = this.device.createCommandEncoder();
+                const pass = commandEncoder.beginRenderPass({
+                    colorAttachments: [{
+                        view: this.context.getCurrentTexture().createView(),
+                        clearValue: { r: 0, g: 0, b: 0, a: 1 },
+                        loadOp: "clear",
+                        storeOp: "store"
+                    }]
+                });
+                pass.end();
+                this.device.queue.submit([commandEncoder.finish()]);
+            }
+        }
+        (async () => {
+        const renderer = new WebGPUGraphRenderer();
+        let canvas = document.getElementById("gpuCanvas")
+        await renderer.initialize(canvas);
+
+        const xData = [];
+        const yData = [];
+        let frameCount = 0;
+
+        function update() {
+            // 1. Add new data point every frame
+            frameCount++;
+            xData.push(frameCount);
+            yData.push(300 + Math.sin(frameCount * 0.05) * 100);
+
+            // 2. Clear screen
+            renderer.clear();
+
+            // 3. Update Camera: 
+            // Scroll so the "latest" point (frameCount) is always visible on the right
+            const visibleRange = 500; // Show 500 pixels of data at a time
+            if (frameCount > visibleRange) {
+                renderer.camera.x = frameCount - visibleRange;
+            }
+
+            // 4. Draw history
+            renderer.draw(new Float32Array(xData), new Float32Array(yData), { r: 0, g: 1, b: 0.5, a: 1 });
+
+            requestAnimationFrame(update);
+        }
+
+        // Add mouse wheel zooming
+        canvas.onwheel = (e) => {
+            const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+            renderer.camera.zoomAt(zoomFactor, e.offsetX, e.offsetY);
+        };
+
+        update();
+    })()
+    </script>
+</body>
+
+</html>
