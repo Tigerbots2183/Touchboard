@@ -1,31 +1,19 @@
 import { NT4_Client } from "../lib/nt4.js";
-import { pxToCq, nt4Client, clamp } from "./ui.js";
+import { pxToCq, nt4Client, clamp, drawOdom } from "./ui.js";
+import { WebGPUPlotter } from "../lib/gpuDrawer.js"
 
-
-let app;
 
 let canvas = document.getElementById("testMain");
-(async () => {
-    // Create a new application
-    app = new PIXI.Application()
 
-    console.log(canvas.clientHeight)
-    // Initialize the application
-    await app.init({ preference: "webgpu", background: 'rgba(0, 0, 0)', backgroundAlpha: 0, canvas: canvas, width: canvas.clientWidth, height: canvas.clientHeight, resizeTo: "HTMLElement", });
+let renderer = new WebGPUPlotter(canvas)
 
-    // Append the application canvas to the document body
 
-    // let graphics = new PIXI.Graphics().setStrokeStyle(5).moveTo(0,0).lineTo(canvas.clientWidth, canvas.clientHeight).stroke(0xff0000)
+$(canvas).attr("width", $(canvas).width()).attr("height", $(canvas).height())
+console.log(canvas)
 
-    // app.stage.addChild(graphics)
+// renderer.initialize(canvas)
+// renderer.setCamera(0,0, $(canvas).width(), $(canvas).height())
 
-    console.log(app.renderer)
-}
-)();
-
-let graphics = new PIXI.Graphics()//.setStrokeStyle(50).stroke(0xff0000)
-let transforms = new PIXI.Transform()
-app.stage.addChild(graphics);
 
 let testScale = findNiceScale(absAsBackup($(".leftTicks"), "min"), absAsBackup($(".leftTicks"), "max"))
 
@@ -56,54 +44,88 @@ console.log(testSync)
 
 setAbsMinMax(setTickScale(testSync, $(".rightTicks")))
 
-const CONVERSIONRATE = 1000000.0
+export const CONVERSIONRATE = 1000000.0
 
 // let sinTest = {}
-let sinTestKeys = []
-let sinTestValues = []
+
 //Test interval
 
 setTimeout(() => {
+    requestAnimationFrame(draw)
+}, 3000)
 
-    setInterval(() => {
-        setCanvasesToTicks($(".graph"))
 
-        // let currentTimestamp = nt4Client.getServerTime_us()
+let allTopicFuncs =[]//[runSinTest, drawOdom]
 
-        // sinTestKeys.push(currentTimestamp.toString())
-        // sinTestValues.push(Math.sin(nt4Client.getServerTime_us() / 1000000.0))
+function runSinTest(){
+    let currentTimestamp = nt4Client.getServerTime_us()/CONVERSIONRATE
 
-        // drawNewData($(".graph"), "test", sinTestKeys, sinTestValues, currentTimestamp)
+    let sinTestKeys = []
+    let sinTestValues = []
 
-        let absMax = (nt4Client.getServerTime_us() / 1000000.0)
+    sinTestKeys.push(currentTimestamp.toString())
+    sinTestValues.push(Math.sin(nt4Client.getServerTime_us() / 1000000.0))
+
+    return {name:"SinTest", keyArray:new Float32Array(sinTestKeys), valArray:new Float32Array(sinTestValues), timestamp:currentTimestamp}
+}
+
+renderer.addLine("SinTest", "#00ffb3ff",3)
+renderer.addLine("OdomFrequency", "#8400ffff",3)
+renderer.addLine("Audio FileR", "#ffffff",3)
+renderer.addLine("Audio FileL", "#ffffff",3)
+
+
+
+
+function draw() {
+    setCanvasesToTicks($(".graph"))
+
+    // let odomTopic = drawOdom()
+    // // console.log(odomTopic)
+    // let currentTimestamp = nt4Client.getServerTime_us()
+
+    // sinTestKeys.push(currentTimestamp.toString())
+    // sinTestValues.push(Math.sin(nt4Client.getServerTime_us() / 1000000.0))
+    // // sinTestValues.push(1)
+
+    //topics[ topic {axis, name"", keyArray[], valArray[],}, ]
+    // drawNewData($(".graph"), "test", sinTestKeys, sinTestValues, currentTimestamp)
+    let allTopics = []
+
+    for(let i = 0; i < allTopicFuncs.length; i++){
+        allTopics.push(allTopicFuncs[i]())
+    }
+
+    drawData($(".graph"), renderer, allTopics)//[ odomTopic, {name:"sinTest", keyArray:sinTestKeys, valArray:sinTestValues, timestamp:currentTimestamp}])
+    renderer.render()
+    let absMax = (nt4Client.getServerTime_us() / 1000000.0)
+    $(".bottomTicks").attr("data-absmax", absMax)
+    $(".bottomSuperSlider").attr("data-absmax", absMax)
+    $(".superSliderBottom").attr("max", absMax)
+    $(".superSliderTop").attr("max", absMax)
+
+    if ($(".bottomTicks").attr("data-max") == "false" && $(".bottomTicks").attr("data-min") != "false") {
+        let min = (nt4Client.getServerTime_us() / 1000000.0) - viewableZoomedUnitsX
+        let absMin = 0
+
+        $(".bottomTicks").attr("data-min", min)
         $(".bottomTicks").attr("data-absmax", absMax)
+
+        $(".bottomSuperSlider").attr("data-min", min)
         $(".bottomSuperSlider").attr("data-absmax", absMax)
-        $(".superSliderBottom").attr("max", absMax)
-        $(".superSliderTop").attr("max", absMax)
-
-        if ($(".bottomTicks").attr("data-max") == "false" && $(".bottomTicks").attr("data-min") != "false") {
-            let min = (nt4Client.getServerTime_us() / 1000000.0) - viewableZoomedUnitsX
-            let absMin = 0
-
-            $(".bottomTicks").attr("data-min", min)
-            $(".bottomTicks").attr("data-absmax", absMax)
-
-            $(".bottomSuperSlider").attr("data-min", min)
-            $(".bottomSuperSlider").attr("data-absmax", absMax)
 
 
-            $(".superSliderBottom").attr("max", absMax).attr("min", absMin).val(min)
-            $(".superSliderTop").attr("max", absMax).attr("min", absMin)
+        $(".superSliderBottom").attr("max", absMax).attr("min", absMin).val(min)
+        $(".superSliderTop").attr("max", absMax).attr("min", absMin)
 
-        }
+    }
 
 
-        let yscale = findNiceScale(absAsBackup($(".bottomTicks"), "min"), absAsBackup($(".bottomTicks"), "max"))
+    let yscale = findNiceScale(absAsBackup($(".bottomTicks"), "min"), absAsBackup($(".bottomTicks"), "max"))
 
-        setTickScale(yscale, $(".bottomTicks"))
-
-    }, 1);
-}, 3000);
+    setTickScale(yscale, $(".bottomTicks"))
+    requestAnimationFrame(draw)
+}
 
 
 
@@ -195,7 +217,7 @@ function zoomAndPanHandler(event, graph) {
         if (isTrackpad) {
             viewableZoomedUnitsX += event.originalEvent.deltaY
         } else {
-            viewableZoomedUnitsX += event.originalEvent.deltaY / 8
+            viewableZoomedUnitsX += event.originalEvent.deltaY / 64
         }
 
         if (viewableZoomedUnitsX <= 0.5) {
@@ -225,7 +247,7 @@ function zoomAndPanHandler(event, graph) {
         if (isTrackpad) {
             viewableZoomedUnitsX += event.originalEvent.deltaY
         } else {
-            viewableZoomedUnitsX += event.originalEvent.deltaY / 8
+            viewableZoomedUnitsX += event.originalEvent.deltaY / 64
         }
 
         if (viewableZoomedUnitsX <= 0.05) {
@@ -287,7 +309,7 @@ function zoomAndPanHandler(event, graph) {
         } else if (isTrackpad) {
             viewableZoomedUnitsY += event.originalEvent.deltaY
         } else {
-            viewableZoomedUnitsY += event.originalEvent.deltaY / 16
+            viewableZoomedUnitsY += event.originalEvent.deltaY / 64
         }
 
         let min = center - (viewableZoomedUnitsY * pointer.yP)
@@ -1176,7 +1198,7 @@ createTopicAttributes($(".graphCanvasPrimary"), "test")
 let strokestyle = { color: 0xff0000, width: (canvas.clientHeight / 100) * 0.3, cap: 'round' }
 
 
-function drawData(graph, topics, timestamp) {
+function drawData(graph, renderer, topics) {
 
     //topics[ topic {axis, hue, name"", keyArray[], valArray[],}, ]
 
@@ -1188,7 +1210,7 @@ function drawData(graph, topics, timestamp) {
 
     function drawDataToCanvas(canvas) {
         if (canvas.attr("data-drawInfo") !== undefined) {
-            scanAndDraw(canvas, JSON.parse(canvas.attr("data-drawInfo")))
+            syncCamAndDraw(canvas, JSON.parse(canvas.attr("data-drawInfo")))
             return
         }
 
@@ -1206,7 +1228,7 @@ function drawData(graph, topics, timestamp) {
         // scanAndDraw(canvas, drawInfo)
     }
 
-    function scanAndDraw(canvas, drawInfo) {
+    function syncCamAndDraw(canvas, drawInfo) {
         let currentBounds = {}
 
         currentBounds.minX = parseFloat(canvas.attr("data-xViewMin"))
@@ -1223,40 +1245,84 @@ function drawData(graph, topics, timestamp) {
         for (let i in topics) {
             //We need to scan in reverse since the current timestamp is the
             //only one we know is logged
-            let keys = new Int32Array(topics[i].keyArray)
-            let values = new Float32Array(topics[i].valArray)
+
+
+            // let keys = new Float64Array(topics[i].keyArray)
+            // let values = new Float64Array(topics[i].valArray)
 
             // console.log(keys)
             // console.log(keys[keys.length-1], values[values.length-1])
 
             // console.log(topics[i])
 
-            let startIndex = keys.indexOf(timestamp)
+            // let startIndex = keys.indexOf(topics[i].timestamp)
 
-            let gx = graphics.position.x 
-            let gy = graphics.position.y 
-
-            graphics.moveTo(xValueToPixels(keys[startIndex] / CONVERSIONRATE) - gx, yValueToPixels(values[startIndex]) - gy).stroke(strokestyle);
-            graphics.lineTo(xValueToPixels(keys[startIndex-1] / CONVERSIONRATE) - gx, yValueToPixels(values[startIndex-1]) - gy)
+            renderer.addData(topics[i].name, topics[i].keyArray, topics[i].valArray);
 
 
-            for(let j = startIndex-1; keys[j] / CONVERSIONRATE > drawInfo.maxX; j--){
-                console.log(keys[j] / CONVERSIONRATE, drawInfo.maxX, drawInfo)
+            // console.log(topics[i].keyArray[0], topics[].valArray[0], topics[i].name)
 
-                graphics.lineTo(xValueToPixels(keys[j] / CONVERSIONRATE) - gx, yValueToPixels(values[j]) - gy)
-                
-            }
+            renderer.camera.x = -currentBounds.maxX + (currentBounds.width/2);
+            renderer.camera.y = currentBounds.minY + (currentBounds.height/2);
 
-            // graphics.lineTo(xValueToPixels(keys[startIndex-1] / CONVERSIONRATE) - gx, yValueToPixels(values[startIndex-1]) - gy).stroke(strokestyle)
+            renderer.camera.viewX = currentBounds.width/2
+            
+            renderer.camera.viewY=-currentBounds.height/2
+            // let gx = graphics.position.x 
+            // let gy = graphics.position.y 
+
+            // graphics.moveTo(xValueToPixels(keys[startIndex] / CONVERSIONRATE) - gx, yValueToPixels(values[startIndex]) - gy).stroke(strokestyle);
+            // graphics.lineTo(xValueToPixels(keys[startIndex-1] / CONVERSIONRATE) - gx, yValueToPixels(values[startIndex-1]) - gy)
+            // let J = 0
+
+            // for (let j = startIndex - 2; keys[j + 2] > xValueToPixels(drawInfo.minX); j--) {
+            //     J = j
+            //     // console.log(keys[j+2] / CONVERSIONRATE > drawInfo.minX,keys[j+2] / CONVERSIONRATE, drawInfo.minX)
+            //     keys[j] = xValueToPixels(keys[j] / CONVERSIONRATE)
+            //     values[j] = yValueToPixels(values[j])
+            //     // graphics.lineTo(xValueToPixels(keys[j] / CONVERSIONRATE) - gx, yValueToPixels(values[j]) - gy)
+            //     if (j <= 0) {
+            //         break
+            //     }
+            // }
+
+            // console.log(keys[J] / CONVERSIONRATE > drawInfo.minX,keys[J] / CONVERSIONRATE, drawInfo.minX, startIndex - J)
+
+
+
+
+            // keys[startIndex] = xValueToPixels(keys[startIndex])
+            // values[startIndex] = yValueToPixels(values[startIndex])
+            // keys[startIndex - 1] = xValueToPixels(keys[startIndex - 1])
+            // values[startIndex - 1] = yValueToPixels(values[startIndex - 1])
+
+            // console.log(keys)
+
+            //  keys[startIndex-] = xValueToPixels(keys[startIndex-2] / CONVERSIONRATE)
+            // values[startIndex-1] = yValueToPixels(values[startIndex-2])
+            // // for (let j = startIndex - 1; j >= 0; j--) {
+            //     keys[j] = xValueToPixels(keys[j] / CONVERSIONRATE)
+            //     values[j] = yValueToPixels(values[j])
+            // }
+
+
+
+            // console.log(keys)
+            // console.log(keys)
+            // console.log(topics[i].name, (360/topics.length ) * i)
+
+            // renderer.draw(keys.slice(J, startIndex), values.slice(J, startIndex), 1.5, hsvToRgb((360 / topics.length) * i, 50, 50, 1))
+            // graphics.lineTo(xValueToPixel(keys[startIndex-1] / CONVERSIONRATE) - gx, yValueToPixels(values[startIndex-1]) - gy).stroke(strokestyle)
             // graphics.lineTo(0,0).stroke(strokestyle)
             // for (let j = startIndex; keys[j] / CONVERSIONRATE > currentBounds.minX; j--) {
             //     // if(keys[j])
             // }
-            keys = null
-            values = null
+            // keys = null
+            // values = null
         }
 
         canvas.attr("data-drawInfo", JSON.stringify(currentBounds))
+        // console.log(renderer.camera)
 
         function compareAndTransform(oldBounds, newBounds) {
             if (compareFloat(oldBounds.width, newBounds.width)) {
@@ -1272,10 +1338,7 @@ function drawData(graph, topics, timestamp) {
 
                 let diffPixels = xValueToPixels(newBounds.minX) - xValueToPixels(oldBounds.minX)
 
-                // graphics.position.set()
-                // graphics.position.set(-diff, diff) // -= diff
-                
-                graphics.position.x -= diffPixels
+
 
             }
 
@@ -1301,7 +1364,7 @@ function drawData(graph, topics, timestamp) {
 }
 
 export function drawNewData(graph, topic, akeys, avalues, timestamp) {
-    drawData(graph,[{keyArray:akeys, valArray:avalues}], timestamp)
+    drawData(graph, [{ keyArray: akeys, valArray: avalues }], timestamp)
 }
 
 // export function drawNewData(graph, topic, akeys, avalues, timestamp) {
@@ -1435,6 +1498,7 @@ function addMusicDropHandler(graph) {
 
         let dataArray = new Float32Array(analyser.fftSize)
 
+        allTopicFuncs.push(getAmplitude, getRevAmplitude)
 
         function convertToAmplitude() {
             analyser.getFloatTimeDomainData(dataArray)
@@ -1449,20 +1513,45 @@ function addMusicDropHandler(graph) {
         }
 
         setInterval(sendAmplitude, 1)
-
-        function sendAmplitude() {
             let currentTimestamp = nt4Client.getServerTime_us()
 
+        function sendAmplitude() {
 
+            currentTimestamp = nt4Client.getServerTime_us()/CONVERSIONRATE
             songKeys.push(currentTimestamp)
             songValues.push(convertToAmplitude())
             songValuesLow.push(convertToAmplitude() * -1)
 
             // console.log(songValues, audio.src)
-            drawNewData($(".graph"), "Audio File", songKeys, songValuesLow, currentTimestamp)
+            // drawNewData($(".graph"), "Audio File", songKeys, songValuesLow, currentTimestamp)
 
-            drawNewData($(".graph"), "Audio File", songKeys, songValues, currentTimestamp)
+            // drawNewData($(".graph"), "Audio File", songKeys, songValues, currentTimestamp)
+        
+            // {name:"SinTest", keyArray:sinTestKeys, valArray:sinTestValues, timestamp:timestamp}
+
         }
+
+
+        function getAmplitude(){
+            
+            let songKeysF32 = new Float32Array(songKeys)
+            let songValsF32 = new Float32Array(songValues)
+
+            songValues = []
+
+            return {name:"Audio FileR", keyArray:songKeysF32, valArray:songValsF32, timestamp:currentTimestamp}
+        }
+        
+        function getRevAmplitude(){
+            let songKeysF32 = new Float32Array(songKeys)
+            let songValsLowF32 = new Float32Array(songValuesLow)
+
+            songKeys = []
+            songValuesLow = []
+
+            return {name:"Audio FileL", keyArray:songKeysF32, valArray:songValsLowF32, timestamp:currentTimestamp}
+        }
+
         linkedMusic = true
     }
 }
@@ -1471,6 +1560,32 @@ function compareFloat(val1, val2) {
     return Math.abs(val1 - val2) < 0.00000001;
 }
 
-setTimeout(() => {
-    graphics.position.set(0,0)
-}, 5000);
+function hsvToRgb(h, s, v, a = 1) {
+    let r, g, b;
+    h /= 60; // Sector 0 to 5
+    s; // Saturation 0 to 1
+    v; // Value 0 to 1
+
+    let i = Math.floor(h);
+    let f = h - i; // Factorial part of h
+    let p = v * (1 - s);
+    let q = v * (1 - s * f);
+    let t = v * (1 - s * (1 - f));
+
+    switch (i % 6) {
+        case 0: r = v, g = t, b = p; break;
+        case 1: r = q, g = v, b = p; break;
+        case 2: r = p, g = v, b = t; break;
+        case 3: r = p, g = q, b = v; break;
+        case 4: r = t, g = p, b = v; break;
+        case 5: r = v, g = p, b = q; break;
+    }
+
+    //   return {
+    //     r: r ,
+    //     g: g ,
+    //     b: b ,
+    //     a
+    //   };
+    return [r, g, b, a]
+}

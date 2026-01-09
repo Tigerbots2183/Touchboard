@@ -30,7 +30,7 @@ import { NT4_Client } from "../lib/nt4.js";
 import { serialize, deserialize } from "../lib/msgpack.js";
 import { goToNextSong } from "./jukebox.js";
 import { setFromString, moveTo, lineTo } from "./autoBuilder.js";
-import { drawNewData } from "./graph.js";
+import { drawNewData, CONVERSIONRATE } from "./graph.js";
 
 //if removing jukebox, get rid of the gotonextsong() in the handle data callback function, remove from html, and remove import
 export function getHtmlFileName() {
@@ -582,10 +582,17 @@ let OdometryFrequencyKeys = []
 let OdometryFrequencyValues = []
 let currentodomts
 
-setInterval(()=>{
-        drawNewData($(".graph"), "test", OdometryFrequencyKeys, OdometryFrequencyValues, currentodomts)
+export function drawOdom(){
 
-},1)
+    let kr = new Float32Array(OdometryFrequencyKeys)
+    let vr = new Float32Array(OdometryFrequencyValues)
+
+    OdometryFrequencyKeys = []
+    OdometryFrequencyValues= []
+
+    return {name:"OdomFrequency", keyArray:kr, valArray:vr, timestamp:currentodomts/CONVERSIONRATE}
+}    
+
 
 function handleNewData(topic, timestamp, value, RawValue) {
     // console.log(topic.name)
@@ -618,7 +625,7 @@ function handleNewData(topic, timestamp, value, RawValue) {
     }
 
     if(topic.name.includes("OdometryFrequency") && timestamp % 10 == 0){
-        OdometryFrequencyKeys.push(timestamp)
+        OdometryFrequencyKeys.push(timestamp/CONVERSIONRATE)
         OdometryFrequencyValues.push(value - 250)
         currentodomts = timestamp
 
