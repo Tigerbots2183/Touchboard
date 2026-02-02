@@ -1,12 +1,11 @@
 import { NT4_Client } from "../lib/nt4.js";
 import { pxToCq, nt4Client, clamp, drawOdom } from "./ui.js";
-import { WebGPUPlotter } from "../lib/gpuDrawer.js"
+import { WebGPULineGraph } from "../lib/gpuDrawer.js"
 
 
 let canvas = document.getElementById("testMain");
 
-let renderer = new WebGPUPlotter(canvas)
-
+let renderer = new WebGPULineGraph()
 
 $(canvas).attr("width", $(canvas).width()).attr("height", $(canvas).height())
 console.log(canvas)
@@ -55,25 +54,28 @@ setTimeout(() => {
 }, 3000)
 
 
-let allTopicFuncs =[]//[runSinTest, drawOdom]
+let allTopicFuncs = []//[runSinTest]
 
-function runSinTest(){
-    let currentTimestamp = nt4Client.getServerTime_us()/CONVERSIONRATE
+function runSinTest() {
+    let currentTimestamp = nt4Client.getServerTime_us() / CONVERSIONRATE
 
-    let sinTestKeys = []
-    let sinTestValues = []
+    let sinTestData = []
 
-    sinTestKeys.push(currentTimestamp.toString())
-    sinTestValues.push(Math.sin(nt4Client.getServerTime_us() / 1000000.0))
+    sinTestData.push(currentTimestamp, Math.sin(nt4Client.getServerTime_us() / 1000000.0))
+    // sinTestValues.push()
 
-    return {name:"SinTest", keyArray:new Float32Array(sinTestKeys), valArray:new Float32Array(sinTestValues), timestamp:currentTimestamp}
+    return { name: "SinTest", dataArray: sinTestData, timestamp: currentTimestamp }
 }
 
-renderer.addLine("SinTest", "#00ffb3ff",3)
-renderer.addLine("OdomFrequency", "#8400ffff",3)
-renderer.addLine("Audio FileR", "#ffffff",3)
-renderer.addLine("Audio FileL", "#ffffff",3)
 
+(async () => {
+    await renderer.initialize(canvas)
+
+    renderer.createLine("SinTest", "#00ffb3", 10)
+    renderer.createLine("OdomFrequency", "#8400ff", 3)
+    renderer.createLine("Audio FileR", "#ffffff", 8)
+    renderer.createLine("Audio FileL", "#ffffff", 8)
+})()
 
 
 
@@ -92,7 +94,7 @@ function draw() {
     // drawNewData($(".graph"), "test", sinTestKeys, sinTestValues, currentTimestamp)
     let allTopics = []
 
-    for(let i = 0; i < allTopicFuncs.length; i++){
+    for (let i = 0; i < allTopicFuncs.length; i++) {
         allTopics.push(allTopicFuncs[i]())
     }
 
@@ -1256,18 +1258,23 @@ function drawData(graph, renderer, topics) {
             // console.log(topics[i])
 
             // let startIndex = keys.indexOf(topics[i].timestamp)
+            // console.log(topics[i].dataArray)
+            renderer.addData(topics[i].name, topics[i].dataArray);
 
-            renderer.addData(topics[i].name, topics[i].keyArray, topics[i].valArray);
-
+            // console.log(topics[i].keyArray, topics[i].valArray)
 
             // console.log(topics[i].keyArray[0], topics[].valArray[0], topics[i].name)
 
-            renderer.camera.x = -currentBounds.maxX + (currentBounds.width/2);
-            renderer.camera.y = currentBounds.minY + (currentBounds.height/2);
+            // renderer.camera.x = -currentBounds.maxX + (currentBounds.width/2);
+            // renderer.camera.y = currentBounds.minY + (currentBounds.height/2);
 
-            renderer.camera.viewX = currentBounds.width/2
-            
-            renderer.camera.viewY=-currentBounds.height/2
+            renderer.setCamera( currentBounds.maxX - (currentBounds.width/2), currentBounds.minY + (currentBounds.height/2),  (canvas.width()/canvas.height())/(currentBounds.width/2), 1/(currentBounds.height/2))
+
+            console.log(currentBounds.maxX, currentBounds.maxY, currentBounds.width, currentBounds.height)
+            console.log(renderer.camera.x, renderer.camera.y, 1/renderer.camera.zoomX, 1/renderer.camera.zoomY)
+            // renderer.camera.viewX = currentBounds.width/2
+
+            // renderer.camera.viewY=-currentBounds.height/2
             // let gx = graphics.position.x 
             // let gy = graphics.position.y 
 
@@ -1484,9 +1491,8 @@ function addMusicDropHandler(graph) {
             return
         }
 
-        let songKeys = []
-        let songValues = []
-        let songValuesLow = [];
+        let songData = []
+        let songDataRev = [];
 
         let context = new AudioContext();
         let audioSrc = context.createMediaElementSource(audio)
@@ -1513,43 +1519,39 @@ function addMusicDropHandler(graph) {
         }
 
         setInterval(sendAmplitude, 1)
-            let currentTimestamp = nt4Client.getServerTime_us()
+        let currentTimestamp = nt4Client.getServerTime_us()
 
         function sendAmplitude() {
 
-            currentTimestamp = nt4Client.getServerTime_us()/CONVERSIONRATE
-            songKeys.push(currentTimestamp)
-            songValues.push(convertToAmplitude())
-            songValuesLow.push(convertToAmplitude() * -1)
+            currentTimestamp = nt4Client.getServerTime_us() / CONVERSIONRATE
+            songData.push(currentTimestamp, convertToAmplitude())
+            songDataRev.push(currentTimestamp, convertToAmplitude() * -1)
+            
 
             // console.log(songValues, audio.src)
             // drawNewData($(".graph"), "Audio File", songKeys, songValuesLow, currentTimestamp)
 
             // drawNewData($(".graph"), "Audio File", songKeys, songValues, currentTimestamp)
-        
+
             // {name:"SinTest", keyArray:sinTestKeys, valArray:sinTestValues, timestamp:timestamp}
 
         }
 
 
-        function getAmplitude(){
-            
-            let songKeysF32 = new Float32Array(songKeys)
-            let songValsF32 = new Float32Array(songValues)
+        function getAmplitude() {
 
-            songValues = []
+            let tempSongData = structuredClone(songData)
+            songData = []
 
-            return {name:"Audio FileR", keyArray:songKeysF32, valArray:songValsF32, timestamp:currentTimestamp}
+            return { name: "Audio FileR", dataArray:tempSongData, timestamp: currentTimestamp }
         }
-        
-        function getRevAmplitude(){
-            let songKeysF32 = new Float32Array(songKeys)
-            let songValsLowF32 = new Float32Array(songValuesLow)
 
-            songKeys = []
-            songValuesLow = []
+        function getRevAmplitude() {
+ 
+            let tempSongDataRev = structuredClone(songDataRev)
+            songDataRev = []
 
-            return {name:"Audio FileL", keyArray:songKeysF32, valArray:songValsLowF32, timestamp:currentTimestamp}
+            return { name: "Audio FileL", dataArray:tempSongDataRev, timestamp: currentTimestamp }
         }
 
         linkedMusic = true

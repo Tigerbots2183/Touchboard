@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGPU Graph (Planar Input)</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #111; color: #eee; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; }
+        .graph-container { position: relative; flex: 1; border-bottom: 1px solid #333; overflow: hidden; transition: flex 0.3s ease; }
+        canvas { display: block; width: 100%; height: 100%; }
+        .ui { position: absolute; top: 10px; left: 10px; background: rgba(0, 0, 0, 0.8); padding: 10px; border-radius: 6px; pointer-events: none; user-select: none; }
+        h2 { margin: 0 0 5px 0; font-size: 16px; color: #00ffcc; }
+        .stat { font-size: 12px; font-family: monospace; color: #ccc; }
+        #memory-monitor { position: absolute; top: 10px; right: 10px; z-index: 100; background: rgba(20, 0, 0, 0.9); border: 1px solid #ff4444; padding: 10px; border-radius: 8px; text-align: right; pointer-events: none; }
+        #mem-total { color: #ff4444; font-weight: bold; font-size: 16px; }
+        #mem-detail { font-size: 11px; color: #aaa; margin-top: 4px; }
+        #global-controls { position: absolute; bottom: 10px; right: 10px; z-index: 100; background: #222; padding: 10px; border-radius: 8px; border: 1px solid #444; display: flex; gap: 10px; }
+        button { cursor: pointer; background: #444; color: #fff; border: none; padding: 8px 12px; border-radius: 4px; font-weight: bold;}
+        button:hover { background: #555; } button.danger { background: #822; } button.danger:hover { background: #a33; }
+    </style>
+</head>
+<body>
+
+<div id="memory-monitor">
+    <div id="mem-total">Total VRAM: 0 MB</div>
+    <div id="mem-detail">0 Graphs Active</div>
+</div>
+
+<div class="graph-container" id="container1">
+    <div class="ui">
+        <h2>Graph A (Planar Data Input)</h2>
+        <div class="stat" id="stat1">Zoom: 1.0</div>
+    </div>
+    <canvas id="canvas1"></canvas>
+</div>
+
+<div class="graph-container" id="container2">
+    <div class="ui">
+        <h2>Graph B</h2>
+        <div class="stat" id="stat2">Zoom: 1.0</div>
+    </div>
+    <canvas id="canvas2"></canvas>
+</div>
+
+<div id="global-controls">
+    <button id="btnPause">Pause All</button>
+    <button id="btnKill" class="danger">Remove Graph B</button>
+</div>
+
+<script>
+class WebGPULineGraph {
+    static GLOBAL_VRAM_LIMIT = 512 * 1024 * 1024;
+    static totalAllocatedBytes = 0;
+    static instanceCount = 0;
+
+    constructor() {
+        this.device = null; this.context = null; this.canvas = null;
+        this.pipeline = null; this.bindGroupLayout = null;
+        this.camera = { x: 0, y: 0, zoomX: 1.0, zoomY: 1.0 };
+        this.lines = new Map(); this.lineList = [];
+        this.pointBuffer = null; this.uniformBuffer = null; this.lineMetaBuffer = null; this.bindGroup = null;
+        this.maxPointsTotal = 0; this.metaChunkSize = 256; 
+    }
+
+    async initialize(device, canvas) {
+        if (!device) throw new Error("GPUDevice is required");
+        this.device = device; this.canvas = canvas; this.context = canvas.getContext('webgpu');
+        const format = navigator.gpu.getPreferredCanvasFormat();
+        this.context.configure({ device: this.device, format: format, alphaMode: 'premultiplied' });
+
+        const defaultPerGraph = 64 * 1024 * 1024; 
+        const remainingGlobal = WebGPULineGraph.GLOBAL_VRAM_LIMIT - WebGPULineGraph.totalAllocatedBytes;
+        if (remainingGlobal < 1024 * 1024) throw new Error("Out of VRAM");
+        const allocationSize = Math.min(defaultPerGraph, remainingGlobal);
+
+        this.maxPointsTotal = Math.floor(allocationSize / 8); 
+        this.metaChunkSize = this.device.limits.minStorageBufferOffsetAlignment || 256;
+
+        const pointBytes = this.maxPointsTotal * 8;
+        const uniformBytes = 32;
+        const metaBytes = 16 * this.metaChunkSize;
+        const totalInstanceBytes = pointBytes + uniformBytes + metaBytes;
+
+        console.log(`Allocating: ${(totalInstanceBytes/1024/1024).toFixed(2)}MB`);
+
+        this.pointBuffer = this.device.createBuffer({ size: pointBytes, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+        this.uniformBuffer = this.device.createBuffer({ size: uniformBytes, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+        this.lineMetaBuffer = this.device.createBuffer({ size: metaBytes, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+
+        WebGPULineGraph.totalAllocatedBytes += totalInstanceBytes;
+        WebGPULineGraph.instanceCount++;
+        this.updateMemoryUI();
+
+        await this.createPipeline(format);
+    }
+
+    destroy() {
+        if (this.pointBuffer) this.pointBuffer.destroy();
+        if (this.uniformBuffer) this.uniformBuffer.destroy();
+        if (this.lineMetaBuffer) this.lineMetaBuffer.destroy();
+        
+        const pointBytes = this.maxPointsTotal * 8;
+        const uniformBytes = 32;
+        const metaBytes = 16 * this.metaChunkSize;
+        const totalFreed = pointBytes + uniformBytes + metaBytes;
+
+        WebGPULineGraph.totalAllocatedBytes -= totalFreed;
+        WebGPULineGraph.instanceCount--;
+        this.updateMemoryUI();
+        this.device = null;
+    }
+
+    updateMemoryUI() {
+        const elTotal = document.getElementById('mem-total');
+        const elDetail = document.getElementById('mem-detail');
+        if (elTotal) elTotal.innerText = `Total VRAM: ${(WebGPULineGraph.totalAllocatedBytes / (1024 * 1024)).toFixed(2)} MB`;
+        if (elDetail) elDetail.innerText = `${WebGPULineGraph.instanceCount} Graphs Active`;
+    }
+
+    async createPipeline(format) {
+        const shaderCode = `
+            struct Camera { pos: vec2<f32>, zoom: vec2<f32>, screen: vec2<f32>, padding: vec2<f32> };
+            struct LineMeta { color: vec4<f32>, width: f32, start_offset: u32, capacity: u32, head_index: u32, logical_length: u32 };
+            @group(0) @binding(0) var<uniform> camera: Camera;
+            @group(0) @binding(1) var<storage, read> points: array<vec2<f32>>;
+            @group(0) @binding(2) var<storage, read> lines: array<LineMeta>;
+            struct VertexOutput { @builtin(position) position: vec4<f32>, @location(0) color: vec4<f32>, @location(1) uv: vec2<f32>, @location(2) width: f32 };
+            var<private> quad_pos: array<vec2<f32>, 6> = array<vec2<f32>, 6>(vec2(-1.0, -1.0), vec2( 1.0, -1.0), vec2(-1.0,  1.0), vec2(-1.0,  1.0), vec2( 1.0, -1.0), vec2( 1.0,  1.0));
+            fn get_point(props: LineMeta, logical_idx: u32) -> vec2<f32> { let idx = (props.head_index + logical_idx) % props.capacity + props.start_offset; return points[idx]; }
+            @vertex fn vs_main(@builtin(vertex_index) v_idx: u32, @builtin(instance_index) i_idx: u32) -> VertexOutput {
+                let props = lines[0]; 
+                let lod_step = max(1u, u32(1.0 / (camera.zoom.x * 2.0))); 
+                let l_curr = i_idx * lod_step;
+                let l_next = min(l_curr + lod_step, props.logical_length - 1u);
+                let l_prev = select(l_curr - lod_step, 0u, l_curr < lod_step);
+                let l_next2 = min(l_next + lod_step, props.logical_length - 1u);
+                let s_curr = (get_point(props, l_curr) - camera.pos) * camera.zoom * camera.screen.y; 
+                let s_next = (get_point(props, l_next) - camera.pos) * camera.zoom * camera.screen.y;
+                let s_prev = (get_point(props, l_prev) - camera.pos) * camera.zoom * camera.screen.y;
+                let s_next2 = (get_point(props, l_next2) - camera.pos) * camera.zoom * camera.screen.y;
+                let dir_prev = normalize(s_curr - s_prev); let dir_curr = normalize(s_next - s_curr); let dir_next = normalize(s_next2 - s_next);
+                let t_in  = select(dir_prev, dir_curr, length(s_curr - s_prev) < 0.1);
+                let t_out = select(dir_curr, dir_next, length(s_next - s_curr) < 0.1);
+                let t_next_seg = select(dir_next, dir_curr, length(s_next2 - s_next) < 0.1);
+                let n_in = vec2(-t_in.y, t_in.x); let n_out = vec2(-t_out.y, t_out.x); let n_next = vec2(-t_next_seg.y, t_next_seg.x);
+                let p_local = quad_pos[v_idx];
+                var center_pos: vec2<f32>; var miter: vec2<f32>; var ref_normal: vec2<f32>;
+                if (p_local.x < 0.0) { center_pos = s_curr; miter = normalize(n_in + n_out); ref_normal = n_out; } else { center_pos = s_next; miter = normalize(n_out + n_next); ref_normal = n_out; }
+                let miter_dot = dot(miter, ref_normal); let use_miter = miter_dot > 0.1; 
+                var expansion: vec2<f32>; if (use_miter) { let miter_len = 1.0 / miter_dot; let safe_len = min(miter_len, 5.0); expansion = miter * safe_len; } else { expansion = ref_normal; }
+                let half_width = (props.width * 0.5) + 0.5; let final_offset = expansion * p_local.y * half_width; let final_pos_px = center_pos + final_offset;
+                let ndc_x = (final_pos_px.x / camera.screen.y) / (camera.screen.x / camera.screen.y); let ndc_y = final_pos_px.y / camera.screen.y;
+                var out: VertexOutput; out.position = vec4(ndc_x, ndc_y, 0.0, 1.0); out.color = props.color; out.uv = p_local; out.width = props.width; return out;
+            }
+            @fragment fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
+                let dist = abs(in.uv.y); let px_w = in.width * 0.5; let alpha = 1.0 - smoothstep(px_w - 0.5, px_w + 0.5, dist * (px_w + 0.5)); return vec4(in.color.rgb, in.color.a * alpha);
+            }
+        `;
+        const module = this.device.createShaderModule({ code: shaderCode });
+        this.bindGroupLayout = this.device.createBindGroupLayout({
+            entries: [
+                { binding: 0, visibility: GPUShaderStage.VERTEX, buffer: { type: 'uniform' } }, 
+                { binding: 1, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } },
+                { binding: 2, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage', hasDynamicOffset: true } }
+            ]
+        });
+        this.pipeline = this.device.createRenderPipeline({
+            layout: this.device.createPipelineLayout({ bindGroupLayouts: [this.bindGroupLayout] }),
+            vertex: { module, entryPoint: 'vs_main' },
+            fragment: { module, entryPoint: 'fs_main', targets: [{ format: format, blend: { color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha', operation: 'add' }, alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha', operation: 'add' } } }] },
+            primitive: { topology: 'triangle-list' }
+        });
+    }
+
+    createLine(name, color, width) {
+        if(this.lines.has(name)) return;
+        this.lines.set(name, { id: this.lines.size, name, color, width, head: 0, length: 0, capacity: 0, startOffset: 0 });
+        this.lineList = Array.from(this.lines.values());
+        this.reallocateMemory();
+    }
+
+    reallocateMemory() {
+        if (this.lines.size === 0) return;
+        const ptsPerLine = Math.floor(this.maxPointsTotal / this.lines.size);
+        let offset = 0;
+        for (const line of this.lines.values()) {
+            line.capacity = ptsPerLine; line.startOffset = offset; line.head = 0; line.length = 0; offset += ptsPerLine;
+        }
+    }
+
+    // --- UPDATED ADD DATA FUNCTION ---
+    addData(name, xData, yData) {
+        if (!this.device) return;
+        const line = this.lines.get(name); if (!line) return;
+        const count = xData.length;
+
+        // Interleave manually in JS. 
+        // For max performance, you'd use a shared scratch buffer, but this is fine for <100k points/frame
+        const interleaved = new Float32Array(count * 2);
+        for(let i=0; i<count; i++) {
+            interleaved[i*2] = xData[i];
+            interleaved[i*2+1] = yData[i];
+        }
+
+        const writeIdx = line.head; const space = line.capacity - writeIdx; const absOffset = line.startOffset + writeIdx;
+        if (count <= space) { 
+            this.device.queue.writeBuffer(this.pointBuffer, absOffset * 8, interleaved); 
+        } else { 
+            const chunk1 = space; 
+            this.device.queue.writeBuffer(this.pointBuffer, absOffset * 8, interleaved.subarray(0, chunk1 * 2)); 
+            this.device.queue.writeBuffer(this.pointBuffer, line.startOffset * 8, interleaved.subarray(chunk1 * 2)); 
+        }
+        line.head = (line.head + count) % line.capacity; line.length = Math.min(line.length + count, line.capacity);
+    }
+
+    setCamera(x, y, zx, zy) { this.camera.x = x; this.camera.y = y; this.camera.zoomX = zx; this.camera.zoomY = zy; }
+
+    render() {
+        if (!this.device || !this.pipeline) return;
+        const w = this.canvas.width; const h = this.canvas.height;
+        this.device.queue.writeBuffer(this.uniformBuffer, 0, new Float32Array([this.camera.x, this.camera.y, this.camera.zoomX, this.camera.zoomY, w, h, 0, 0]));
+        for (let i = 0; i < this.lineList.length; i++) {
+            const line = this.lineList[i]; let readHead = (line.length < line.capacity) ? 0 : line.head;
+            const meta = new ArrayBuffer(48); const f32 = new Float32Array(meta); const u32 = new Uint32Array(meta);
+            f32[0] = line.color[0]; f32[1] = line.color[1]; f32[2] = line.color[2]; f32[3] = line.color[3];
+            f32[4] = line.width; u32[5] = line.startOffset; u32[6] = line.capacity; u32[7] = readHead; u32[8] = line.length;
+            this.device.queue.writeBuffer(this.lineMetaBuffer, i * this.metaChunkSize, meta);
+        }
+        const enc = this.device.createCommandEncoder();
+        const pass = enc.beginRenderPass({ colorAttachments: [{ view: this.context.getCurrentTexture().createView(), clearValue: { r: 0.05, g: 0.05, b: 0.05, a: 1.0 }, loadOp: 'clear', storeOp: 'store' }] });
+        pass.setPipeline(this.pipeline);
+        if (!this.bindGroup) {
+            this.bindGroup = this.device.createBindGroup({ layout: this.bindGroupLayout, entries: [{ binding: 0, resource: { buffer: this.uniformBuffer } }, { binding: 1, resource: { buffer: this.pointBuffer } }, { binding: 2, resource: { buffer: this.lineMetaBuffer, offset: 0, size: this.metaChunkSize } }] });
+        }
+        for (let i = 0; i < this.lineList.length; i++) {
+            const line = this.lineList[i]; if (line.length < 2) continue;
+            pass.setBindGroup(0, this.bindGroup, [i * this.metaChunkSize]);
+            const lodStep = Math.max(1, Math.floor(1.0 / (this.camera.zoomX * 2.0)));
+            const instances = Math.floor((line.length - 1) / lodStep);
+            if (instances > 0) { pass.draw(6, instances, 0, 0); }
+        }
+        pass.end(); this.device.queue.submit([enc.finish()]);
+    }
+}
+
+// ---------------- APP SETUP ----------------
+let globalDevice = null;
+let graph1 = null;
+let graph2 = null;
+let isPaused = false;
+let time = 0;
+
+async function setupSharedDevice() {
+    const adapter = await navigator.gpu.requestAdapter();
+    if (!adapter) throw new Error("No WebGPU Adapter");
+    return await adapter.requestDevice({ requiredLimits: { maxStorageBufferBindingSize: adapter.limits.maxStorageBufferBindingSize, maxBufferSize: adapter.limits.maxBufferSize } });
+}
+
+async function initApp() {
+    try {
+        globalDevice = await setupSharedDevice();
+        
+        const c1 = document.getElementById('canvas1');
+        c1.width = c1.parentElement.clientWidth; c1.height = c1.parentElement.clientHeight;
+        graph1 = new WebGPULineGraph();
+        await graph1.initialize(globalDevice, c1);
+        graph1.createLine('FastSine', [0, 1, 1, 1], 4.0);
+        graph1.createLine('Square', [1, 0, 0.5, 1], 2.0);
+        graph1.setCamera(0, 0, 0.05, 0.5);
+
+        const c2 = document.getElementById('canvas2');
+        c2.width = c2.parentElement.clientWidth; c2.height = c2.parentElement.clientHeight;
+        graph2 = new WebGPULineGraph();
+        await graph2.initialize(globalDevice, c2); 
+        graph2.createLine('SlowCos', [1, 0.8, 0, 1], 8.0);
+        graph2.setCamera(0, 0, 0.2, 0.8);
+
+        requestAnimationFrame(renderLoop);
+    } catch (e) { console.error(e); alert("WebGPU Setup Failed: " + e.message); }
+}
+
+function renderLoop() {
+    if (!isPaused) {
+        time += 0.005;
+
+        // --- UPDATE GRAPH 1 (Using Separate Planar Arrays) ---
+        if (graph1) {
+            const batch = 200;
+            // Create TypedArrays to simulate input from audio/hardware
+            const xSine = new Float32Array(batch);
+            const ySine = new Float32Array(batch);
+            const xSq = new Float32Array(batch);
+            const ySq = new Float32Array(batch);
+
+            for(let i=0; i<batch; i++) {
+                const t = time + (i * 0.0001); // minor sub-step
+                xSine[i] = t;
+                ySine[i] = Math.sin(t * 10.0);
+                xSq[i] = t;
+                ySq[i] = Math.sign(Math.sin(t * 2.0)) * 0.8;
+            }
+            
+            // Pass separate arrays
+            graph1.addData('FastSine', xSine, ySine);
+            graph1.addData('Square', xSq, ySq);
+            
+            const cam1 = graph1.camera; 
+            graph1.setCamera(time - (1.0/cam1.zoomX)*0.9, 0, cam1.zoomX, cam1.zoomY);
+            
+            document.getElementById('stat1').innerText = `Zoom X: ${graph1.camera.zoomX.toFixed(3)}`;
+            graph1.render();
+        }
+
+        // --- UPDATE GRAPH 2 ---
+        if (graph2) {
+            const batch = 200;
+            const xCos = new Float32Array(batch);
+            const yCos = new Float32Array(batch);
+            for(let i=0; i<batch; i++) {
+                const t = time + (i * 0.0001);
+                xCos[i] = t;
+                yCos[i] = Math.cos(t * 0.5);
+            }
+            graph2.addData('SlowCos', xCos, yCos);
+            
+            const cam2 = graph2.camera; 
+            graph2.setCamera(time - (1.0/cam2.zoomX)*0.9, 0, cam2.zoomX, cam2.zoomY);
+            
+            document.getElementById('stat2').innerText = `Zoom X: ${graph2.camera.zoomX.toFixed(3)}`;
+            graph2.render();
+        }
+    } else {
+        if (graph1) graph1.render();
+        if (graph2) graph2.render();
+    }
+    
+    requestAnimationFrame(renderLoop);
+}
+
+function bindEvents(cvsId, getGraph) {
+    const cvs = document.getElementById(cvsId);
+    let dragging = false; let lx=0, ly=0;
+    cvs.onmousedown = e => { dragging=true; lx=e.clientX; ly=e.clientY; };
+    cvs.onmouseup = () => dragging=false; cvs.onmouseleave = () => dragging=false;
+    cvs.onmousemove = e => {
+        if(!dragging) return;
+        const g = getGraph(); if(!g) return;
+        const dx = e.clientX - lx; const dy = e.clientY - ly;
+        lx = e.clientX; ly = e.clientY;
+        const c = g.camera; const ar = cvs.width/cvs.height;
+        g.setCamera(c.x - (dx/cvs.width)*2/c.zoomX*ar, c.y + (dy/cvs.height)*2/c.zoomY, c.zoomX, c.zoomY);
+    };
+    cvs.onwheel = e => {
+        e.preventDefault(); const g = getGraph(); if(!g) return;
+        const dir = e.deltaY > 0 ? 0.9 : 1.1; const c = g.camera;
+        if(e.shiftKey) g.setCamera(c.x, c.y, c.zoomX, c.zoomY * dir); else g.setCamera(c.x, c.y, c.zoomX * dir, c.zoomY);
+    };
+}
+
+bindEvents('canvas1', () => graph1); 
+bindEvents('canvas2', () => graph2);
+
+window.onresize = () => {
+    const c1 = document.getElementById('canvas1'); const c2 = document.getElementById('canvas2');
+    if (c1) { c1.width = c1.parentElement.clientWidth; c1.height = c1.parentElement.clientHeight; }
+    if (c2) { c2.width = c2.parentElement.clientWidth; c2.height = c2.parentElement.clientHeight; }
+};
+
+document.getElementById('btnPause').onclick = () => { 
+    isPaused = !isPaused; 
+    document.getElementById('btnPause').innerText = isPaused ? "Resume All" : "Pause All"; 
+};
+
+document.getElementById('btnKill').onclick = () => {
+    if (graph2) {
+        graph2.destroy();
+        const container = document.getElementById('container2');
+        container.style.flex = "0"; 
+        setTimeout(() => container.remove(), 300);
+        graph2 = null;
+    }
+};
+
+initApp();
+</script>
+</body>
+</html>
