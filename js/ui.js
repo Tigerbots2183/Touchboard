@@ -25,6 +25,39 @@
 // 
 
 
+// A few things of note, 
+//
+//Due to the fact that these buttons may actuate mechanisims, persistance is based on when
+//touchboard is connected, not on network tables built in feature
+//
+//Removal of a component may not clear its value, if this becomes an issue it can, but currently
+//it will be difficult to track if multiple components have input on one topic.
+//
+//Multiple topics may be bound to one component, but as of now they will NOT update each other.
+//So usage of multiple is not recommnded besides action and one shot buttons. 
+
+const MathUtils = {
+
+    _getFactor(n1, n2) {
+        const s1 = n1.toString();
+        const s2 = n2.toString();
+
+        const d1 = (s1.split('.')[1] || '').length;
+        const d2 = (s2.split('.')[1] || '').length;
+
+        return Math.pow(10, Math.max(d1, d2));
+    },
+
+    add(n1, n2) {
+        const factor = this._getFactor(n1, n2);
+        return (Math.round(n1 * factor) + Math.round(n2 * factor)) / factor;
+    },
+
+    subtract(n1, n2) {
+        const factor = this._getFactor(n1, n2);
+        return (Math.round(n1 * factor) - Math.round(n2 * factor)) / factor;
+    }
+};
 
 import { NT4_Client } from "../lib/nt4.js";
 import { serialize, deserialize } from "../lib/msgpack.js";
@@ -246,6 +279,13 @@ $(".tab").on("pointerdown ", (event) => {
     } else {
         $($ct.attr("data-page")).css("display", $ct.attr("data-displaytype"))
 
+    }
+
+    let currentPage$ = $($ct.attr("data-page"))
+
+    if (!$($ct.attr("data-page")).hasClass("pageF")) {
+        tabGrid(parseFloat(currentPage$.attr("columns")), parseFloat(currentPage$.attr("rows")), currentPage$)
+        setGridInput(currentPage$)
     }
 })
 
@@ -755,7 +795,7 @@ function onConnectCb() {
                         $uiElements.eq(i).css("background-color", oldBG + ", 0)")
 
                     }
-                    $uiElements.eq(i).attr("data-value", !(JSON.parse($uiElements.eq(i).attr("data-value"))))
+                    $uiElements.eq(i).attr("data-value", JSON.stringify(!(JSON.parse($uiElements.eq(i).attr("data-value")))))
                 })
             } else if ($uiElements.eq(i).hasClass("oneShotButton")) {
                 nt4Client.subscribe(["/touchboard/" + $uiElements.eq(i).attr("data-topic")])
@@ -763,15 +803,15 @@ function onConnectCb() {
                     nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), true)
                 })
             } else if ($uiElements.eq(i).hasClass("numberComponent")) {
-                if ($uiElements.eq(i).attr('data-persist') == "true") {
-                    if (localStorage.getItem(getHtmlFileName() + $uiElements.eq(i).attr("data-topic")) == null) {
-                        localStorage.setItem(getHtmlFileName() + $uiElements.eq(i).attr("data-topic"), $uiElements.eq(i).attr("data-value"))
-                    } else {
-                        let currentPersitant = localStorage.getItem(getHtmlFileName() + $uiElements.eq(i).attr("data-topic"));
-                        $uiElements.eq(i).attr("data-value", currentPersitant)
-                        $uiElements.eq(i).children(".numberTextInput").attr("value", currentPersitant)
-                    }
-                }
+                // if ($uiElements.eq(i).attr('data-persist') == "true") {
+                //     if (localStorage.getItem(getHtmlFileName() + $uiElements.eq(i).attr("data-topic")) == null) {
+                //         localStorage.setItem(getHtmlFileName() + $uiElements.eq(i).attr("data-topic"), $uiElements.eq(i).attr("data-value"))
+                //     } else {
+                //         let currentPersitant = localStorage.getItem(getHtmlFileName() + $uiElements.eq(i).attr("data-topic"));
+                //         $uiElements.eq(i).attr("data-value", currentPersitant)
+                //         $uiElements.eq(i).children(".numberTextInput").attr("value", currentPersitant)
+                //     }
+                // }
                 nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), parseFloat(localStorage.getItem(getHtmlFileName() + $uiElements.eq(i).attr("data-topic"))))
 
                 $uiElements.eq(i).children(".numberPlus").on("pointerdown ", (event) => {
@@ -784,9 +824,9 @@ function onConnectCb() {
                         $numberTarget.val(currentVal)
                         $ct.parent().attr("data-value", $numberTarget.val())
                         nt4Client.addSample("/touchboard/" + $ct.parent().attr("data-topic"), parseFloat($ct.parent().attr("data-value")))
-                        if ($ct.parent().attr('data-persist') == "true") {
-                            localStorage.setItem(getHtmlFileName() + $ct.parent().attr("data-topic"), $numberTarget.val())
-                        }
+                        // if ($ct.parent().attr('data-persist') == "true") {
+                        //     localStorage.setItem(getHtmlFileName() + $ct.parent().attr("data-topic"), $numberTarget.val())
+                        // }
                     }
                 })
                 $uiElements.eq(i).children(".numberMinus").on("pointerdown ", (event) => {
@@ -799,9 +839,9 @@ function onConnectCb() {
                         $numberTarget.val(currentVal)
                         $ct.parent().attr("data-value", $numberTarget.val())
                         nt4Client.addSample("/touchboard/" + $ct.parent().attr("data-topic"), parseFloat($ct.parent().attr("data-value")))
-                        if ($ct.parent().attr('data-persist') == "true") {
-                            localStorage.setItem(getHtmlFileName() + $ct.parent().attr("data-topic"), $numberTarget.val())
-                        }
+                        // if ($ct.parent().attr('data-persist') == "true") {
+                        //     localStorage.setItem(getHtmlFileName() + $ct.parent().attr("data-topic"), $numberTarget.val())
+                        // }
                     }
                 })
                 $uiElements.eq(i).children(".numberTextInput").on("blur", (event) => {
@@ -817,14 +857,14 @@ function onConnectCb() {
                     }
                     $ct.parent().attr("data-value", $ct.val())
                     nt4Client.addSample("/touchboard/" + $ct.parent().attr("data-topic"), parseFloat($ct.parent().attr("data-value")))
-                    if ($ct.parent().attr('data-persist') == "true") {
-                        localStorage.setItem(getHtmlFileName() + $ct.parent().attr("data-topic"), $ct.val())
-                    }
+                    // if ($ct.parent().attr('data-persist') == "true") {
+                    //     localStorage.setItem(getHtmlFileName() + $ct.parent().attr("data-topic"), $ct.val())
+                    // }
                 })
             } else if ($uiElements.eq(i).hasClass("select")) {
                 $uiElements.eq(i).children(".selectOption").on("pointerdown", (event) => {
                     let $ct = $(event.target)
-                    $uiElements.eq(i).attr("data-value", $ct.attr("data-value")).css("background-color", $ct.attr("data-hex") + "6b")
+                    $uiElements.eq(i).attr("data-value", $ct.attr("data-value")).css("background-color", $ct.attr("data-hex") + "6b").attr("data-index", $ct.attr("data-index"))
                     $uiElements.eq(i).children(".selectTitle").text($ct.text())
                     nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), $uiElements.eq(i).attr("data-value"))
 
@@ -841,17 +881,21 @@ function onConnectCb() {
                     nt4Client.addSample("/touchboard/" + $ct.parent().attr("data-topic"), parseFloat($ct.parent().attr("data-value")))
 
                 }).on("pointerup  ", (event) => {
-                    let $ct = $(event.target)
-                    $uiElements.eq(i).attr("data-value", 0)
-                    $(event.currentTarget).val(0)
-                    nt4Client.addSample("/touchboard/" + $ct.parent().attr("data-topic"), parseFloat($ct.parent().attr("data-value")))
+                    if (JSON.parse($uiElements.eq(i).attr("data-snapBack"))) {
+                        let $ct = $(event.target)
+                        $uiElements.eq(i).attr("data-value", 0)
+                        $(event.currentTarget).val(0)
+                        nt4Client.addSample("/touchboard/" + $ct.parent().attr("data-topic"), parseFloat($ct.parent().attr("data-value")))
+                    }
                 })
-            } else if ($uiElements.eq(i).hasClass("basicSubscription")) {
+            }
+            // else if ($uiElements.eq(i).hasClass("basicSubscription")) {
 
-                nt4Client.subscribe([$uiElements.eq(i).attr('data-topic')])
+            //     nt4Client.subscribe([$uiElements.eq(i).attr('data-topic')])
 
-                $uiElements.eq(i).addClass($uiElements.eq(i).attr('data-topic').replaceAll("/", "esc-Sl-esc").replaceAll(".", "esc-period-esc"))
-            } else if ($uiElements.eq(i).hasClass("buttonOptGroup")) {
+            //     $uiElements.eq(i).addClass($uiElements.eq(i).attr('data-topic').replaceAll("/", "esc-Sl-esc").replaceAll(".", "esc-period-esc"))
+            // } 
+            else if ($uiElements.eq(i).hasClass("buttonOptGroup")) {
                 $uiElements.eq(i).children(".optGroupButton").on("pointerdown", (event) => {
 
                     let cI = $uiElements.eq(i).children(".optGroupButton")
@@ -861,7 +905,7 @@ function onConnectCb() {
                     let oldBG = $(event.target).css("background-color").replace(/^([^,]*,[^,]*,[^,]*),.*$/, '$1')
                     let $ct = $(event.target).addClass("toggledOn").css("background-color", oldBG + ", 0.6)")
 
-                    $uiElements.eq(i).attr("data-value", $ct.attr("data-value"))
+                    $uiElements.eq(i).attr("data-value", $ct.attr("data-value")).attr("data-index", $ct.attr("data-index"))
                     nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), $uiElements.eq(i).attr("data-value"))
 
                 })
@@ -870,7 +914,7 @@ function onConnectCb() {
                 for (let j = 0; j < cH.length; j++) {
                     if (cH.eq(j).hasClass("toggledOn")) {
                         cH.eq(j).css("background-color", cH.eq(j).css("background-color").replace(/^([^,]*,[^,]*,[^,]*),.*$/, '$1') + ", 0.6)");
-                        $uiElements.eq(i).attr("data-value", cH.eq(j).attr("data-value"))
+                        $uiElements.eq(i).attr("data-value", cH.eq(j).attr("data-value")).attr("data-index", cH.eq(j).attr("data-index"))
                     }
                 }
             }
@@ -896,7 +940,7 @@ function onDisconnectCb() {
         $(".tabNav").css("background-color", "rgb(64, 12, 12)")
         $(".currentTab").css("background-color", "rgb(128, 32, 32)")
         setTimeout(() => {
-            window.location.reload()
+            // window.location.reload()
 
         }, 1000);
     }
@@ -1046,11 +1090,11 @@ $(".ioComponents").children().off().on("pointerdown.addComponent ", (event) => {
 
 })
 
-function addToCurrentDrag(jQueryReference, initalX, initalY, componentType) {
+function addToCurrentDrag(jQueryReference, initialX, initialY, componentType) {
     $(".currentDrag").remove()
     jQueryReference.css("position", "absolute").addClass("currentDrag")
 
-    jQueryReference.css("top", initalY).css('left', initalX)
+    jQueryReference.css("top", initialY).css('left', initialX)
 
     $("html").off("pointermove.dragComponent").on("pointermove.dragComponent", (event) => {
         // console.log("Start" + grid.column + " " + grid.row + " ")
@@ -1195,7 +1239,7 @@ function addToCurrentDrag(jQueryReference, initalX, initalY, componentType) {
     })
 }
 
-tabGrid(9, 4, ".uiTestTab")// <-- perfect for defailt
+// tabGrid(9, 4, ".uiTestTab")// <-- perfect for defailt
 // tabGrid(18, 8, '.uiTestTab')
 
 function tabGrid(columns, rows, tab) {
@@ -1205,7 +1249,7 @@ function tabGrid(columns, rows, tab) {
     let cqval = setGridSize($tab, columns, rows)
     $(".gridUnderlay").css("grid-template-rows", "repeat(" + rows + " ," + cqval + "cqmin)").css("grid-template-columns", "repeat(" + columns + " ," + cqval + "cqmin)")
 
-    $(window).off().on("resize", () => {
+    $(window).off("resize").on("resize", () => {
         let cqval = setGridSize($tab, columns, rows)
         $(".gridUnderlay").css("grid-template-rows", "repeat(" + rows + " ," + cqval + "cqmin)").css("grid-template-columns", "repeat(" + columns + " ," + cqval + "cqmin)")
 
@@ -1390,7 +1434,7 @@ function createDefaultOf(component, append, topic = "esc-UNSET-esc") {
     }
 }
 
-function createActionButton(displayName, topic, append = false, hex = "#2b00ff") {
+function createActionButton(displayName, topic, append = false, hex = "#2b00ff", similarOptions = defaultSimilarOptions) {
     let actionButton = $("<button>")
         .addClass("actionButton")
         .addClass("editableComponent")
@@ -1399,21 +1443,23 @@ function createActionButton(displayName, topic, append = false, hex = "#2b00ff")
         .attr("data-value", false)
         .attr("data-color", hex)
         .attr("data-componentType", "actionButton")
-        .attr("data-defaultSimilarOptions", JSON.stringify(defaultSimilarOptions))
+        .attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
         .text(displayName)
+        .css("background-color", hex + "3f")
+
 
     if (append) {
         actionButton.appendTo(append)
     }
 
-    setSimilarOptions(actionButton, defaultSimilarOptions)
+    setSimilarOptions(actionButton, similarOptions)
     addButtonToAnimate(actionButton)
     addEditHandler(actionButton, "boolean")
 
     return actionButton
 }
 
-function createOneShotButton(displayName, topic, append = false, hex = "#fff200") {
+function createOneShotButton(displayName, topic, append = false, hex = "#fff200", similarOptions = defaultSimilarOptions) {
     let oneShotButton = $("<button>")
         .addClass("oneShotButton")
         .addClass(topic)
@@ -1423,54 +1469,68 @@ function createOneShotButton(displayName, topic, append = false, hex = "#fff200"
         .attr("data-value", false)
         .attr("data-color", hex)
         .attr("data-componentType", "oneShotButton")
-        .attr("data-defaultSimilarOptions", JSON.stringify(defaultSimilarOptions))
+        .attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
+        .css("background-color", hex + "3f")
+        .css("border-color", hex)
         .text(displayName)
 
     if (append) {
         oneShotButton.appendTo(append)
     }
 
-    setSimilarOptions(oneShotButton, defaultSimilarOptions)
+    setSimilarOptions(oneShotButton, similarOptions)
     addButtonToAnimate(oneShotButton)
     addEditHandler(oneShotButton, "boolean")
 
     return oneShotButton
 }
 
-function createToggleButton(displayName, topic, append = false, hex = "#ff7300", value = false) {
+function createToggleButton(displayName, topic, append = false, hex = "#ff7300", value = false, similarOptions = defaultSimilarOptions, persist) {
     let toggleButton = $("<button>")
         .addClass("editableComponent")
         .addClass("toggleButton")
         .attr("data-type", "boolean")
         .attr("data-topic", topic)
-        .attr("data-value", value)
         .attr("data-color", hex)
         .attr("data-componentType", "toggleButton")
-        .attr("data-defaultSimilarOptions", JSON.stringify(defaultSimilarOptions))
+        .attr("data-value", value)
+        .attr("data-initialvalue", value)
+        .attr("data-persist", persist)
+        .attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
+        .css("border-color", hex)
         .text(displayName)
 
-    if (value) {
-        toggleButton.addClass("toggledOn")
+    if (JSON.parse(value)) {
+
+        toggleButton.addClass("toggledOn").css("background-color", hex + "99")
+    } else {
+        toggleButton.css("background-color", hex + "00")
     }
+
 
     if (append) {
         toggleButton.appendTo(append)
     }
 
-    setSimilarOptions(toggleButton, defaultSimilarOptions)
+    setSimilarOptions(toggleButton, similarOptions)
     addButtonToAnimate(toggleButton)
     addEditHandler(toggleButton, "boolean", ".toggleSpecific")
 
     return toggleButton
 }
 
-function createAxis(displayName, topic, append = false, vertical = false, hex = "#8a2be2", value = 0, min = -1, max = 1, step = 0.01, snapBack = true) {
+function createAxis(displayName, topic, append = false, vertical = false, hex = "#8a2be2", value = 0, min = -1, max = 1, step = 0.01, snapBack = true, similarOptions = defaultSimilarOptions) {
     let axis = {
-        div: $('<div>').attr("data-defaultSimilarOptions", JSON.stringify(defaultSimilarOptions)).addClass("editableComponent"),
+        div: $('<div>').attr("data-snapBack", "false").attr("data-defaultSimilarOptions", JSON.stringify(similarOptions)).addClass("editableComponent"),
         label: $("<h1>").addClass("axisLabel").addClass("editThisName"),
         knob: $("<input>")
     }
 
+    if (snapBack) {
+        axis.div.attr("data-snapBack", "true")
+    }
+
+    axis.div[0].style.setProperty('--thumbColor', hex)
     axis.label.appendTo(axis.div)
     axis.knob.appendTo(axis.div)
 
@@ -1499,17 +1559,19 @@ function createAxis(displayName, topic, append = false, vertical = false, hex = 
         axis.div.appendTo(append)
     }
 
-    setSimilarOptions(axis.div, defaultSimilarOptions)
+    setSimilarOptions(axis.div, similarOptions)
     addEditHandler(axis.div, "double", ".axisSpecific")
 
     return axis
 }
 
-function createNumberComponent(title, topic, append = false, hex = 0, value = 0, min = -1, max = 1, step = 0.1, persist = false) {
+function createNumberComponent(title, topic, append = false, hex = 0, value = 0, min = -1, max = 1, step = 0.1, persist = false, similarOptions = defaultSimilarOptions) {
 
     let numberComponent = {
-        div: $("<div>").addClass("numberComponent").addClass("editableComponent").attr("data-type", 'double').attr("data-step", step).attr("data-min", min).attr("data-max", max).attr("data-value", value).attr("data-persist", persist).attr("data-topic", topic).attr("data-componentType", "numberComponent").attr("data-defaultSimilarOptions", JSON.stringify(defaultSimilarOptions)),
+        div: $("<div>").addClass("numberComponent").addClass("editableComponent").attr("data-type", 'double').attr("data-step", step).attr("data-min", min).attr("data-max", max).attr("data-value", value).attr("data-initialValue", value).attr("data-persist", "false").attr("data-topic", topic).attr("data-componentType", "numberComponent").attr("data-defaultSimilarOptions", JSON.stringify(similarOptions)),
     }
+
+    if (persist) numberComponent.div.attr("data-persist", "true")
 
     numberComponent["title"] = $("<p>").addClass("numberTitle").addClass("editThisName").text(title).appendTo(numberComponent.div)
     numberComponent["minus"] = $("<button>").addClass("numberMinus").addClass("animatedButton").text("-").appendTo(numberComponent.div)
@@ -1520,7 +1582,7 @@ function createNumberComponent(title, topic, append = false, hex = 0, value = 0,
         numberComponent.div.appendTo(append)
     }
 
-    setSimilarOptions(numberComponent.div, defaultSimilarOptions)
+    setSimilarOptions(numberComponent.div, similarOptions)
     addEditHandler(numberComponent.div, "double", ".numberComponentSpecific")
 
     return numberComponent
@@ -1532,20 +1594,33 @@ function createNumberComponent(title, topic, append = false, hex = 0, value = 0,
 
 }
 
-function createDropdown(topic, append = false, hex = 0, initalOptionIndex = 0, options = [], similarOptions = defaultSimilarOptions) {
+function createDropdown(topic, append = false, hex = 0, initialOptionIndex = 0, options = [], similarOptions = defaultSimilarOptions, persist = false) {
 
 
 
     let dropdown = {
-        div: $("<div>").addClass("editableComponent").addClass("select").attr("data-value", options[initalOptionIndex].value).attr("data-topic", topic).attr("data-type", "string").attr("data-componentType", "select").attr("data-componentOptions", JSON.stringify(options)).css("background-color", options[initalOptionIndex].color + "6b").attr("data-defaultSimilarOptions", JSON.stringify(similarOptions)),
+        div: $("<div>").addClass("editableComponent").attr("data-persist", "false").attr('data-index', initialOptionIndex).addClass("select").attr("data-topic", topic).attr("data-type", "string").attr("data-componentType", "select").attr("data-componentOptions", JSON.stringify(options)).attr("data-defaultSimilarOptions", JSON.stringify(similarOptions)),
 
     }
 
-    dropdown["title"] = $("<h1>").appendTo(dropdown.div).addClass("selectTitle").text(options[initalOptionIndex].name)
+
+    if (persist) {
+        dropdown.div.attr("data-persist", "true")
+    }
+
+    if (options.length !== 0) {
+        dropdown.div.attr("data-value", options[initialOptionIndex].value).css("background-color", options[initialOptionIndex].color + "6b")
+        dropdown["title"] = $("<h1>").appendTo(dropdown.div).addClass("selectTitle").text(options[initialOptionIndex].name)
+    } else {
+        dropdown["title"] = $("<h1>").appendTo(dropdown.div).addClass("selectTitle").text("Dropdown")
+
+    }
+
+
 
     let $aO = []
     for (let i = 0; i < options.length; i++) {
-        $aO.push($("<h1>").appendTo(dropdown.div).addClass("selectOption").text(options[i].name).attr("data-value", options[i].value).attr("data-hex", options[i].color).css("background-color", options[i].color));
+        $aO.push($("<h1>").appendTo(dropdown.div).addClass("selectOption").text(options[i].name).attr("data-index", i).attr("data-value", options[i].value).attr("data-hex", options[i].color).css("background-color", options[i].color));
     }
 
     dropdown["options"] = $aO
@@ -1561,10 +1636,14 @@ function createDropdown(topic, append = false, hex = 0, initalOptionIndex = 0, o
     return dropdown
 }
 
-function createOptGroup(topic, append, hex = 0, initalOptionIndex = 0, options = [], similarOptions = defaultSimilarOptions) {
+function createOptGroup(topic, append, hex = 0, initialOptionIndex = 0, options = [], similarOptions = defaultSimilarOptions, persist = false) {
 
 
-    let optDiv = $("<div>").addClass("editableComponent").addClass("buttonOptGroup").attr("data-topic", topic).attr("data-type", "string").attr("data-componentOptions", JSON.stringify(options)).attr("data-componentType", "buttonOptGroup").attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
+    let optDiv = $("<div>").addClass("editableComponent").attr("data-index", initialOptionIndex).addClass("buttonOptGroup").attr("data-topic", topic).attr("data-type", "string").attr("data-componentOptions", JSON.stringify(options)).attr("data-componentType", "buttonOptGroup").attr("data-defaultSimilarOptions", JSON.stringify(similarOptions)).attr("data-persist", "false")
+
+    if (persist) {
+        optDiv.attr("data-persist", "true")
+    }
 
     console.log(options)
 
@@ -1589,9 +1668,9 @@ function createOptGroup(topic, append, hex = 0, initalOptionIndex = 0, options =
             }
         }
 
-        let newButton = $("<button>").addClass("animatedButton").addClass("optGroupButton").attr("data-value", options[i].value).text(options[i].name).appendTo(optDiv).css("border-color", color.border).css("background-color", color.background)
+        let newButton = $("<button>").addClass("animatedButton").addClass("optGroupButton").attr("data-value", options[i].value).attr("data-index", i).text(options[i].name).appendTo(optDiv).css("border-color", color.border).css("background-color", color.background)
 
-        if (i == initalOptionIndex) {
+        if (i == initialOptionIndex) {
             newButton.addClass("toggledOn").css("background-color", color.backgroundOn)
         }
         $aO.push(newButton)
@@ -1602,7 +1681,6 @@ function createOptGroup(topic, append, hex = 0, initalOptionIndex = 0, options =
     if (append) {
         optGroup.div.appendTo(append)
     }
-
     setSimilarOptions(optGroup.div, similarOptions)
     addEditHandler(optDiv, "string")
 
@@ -1624,6 +1702,7 @@ function createBasicSubscription(displayName, topic, append = false, hex = false
         .attr("data-topic", topic)
         .attr("data-color", "#9d00ff")
         .attr("data-componentType", "basicSubscription")
+        .attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
 
     if (hex) {
         basicSubscription.css("background-color", hex + "42").attr("data-color", hex)
@@ -1687,6 +1766,7 @@ function createBasicLogger(displayName, topic, append = false, hex = "#0c0c0c", 
         .attr("data-componentType", "basicLogger")
         .css("border-color", hex)
         .attr("data-color", hex)
+        .attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
 
     $("<h1>").addClass("basicLoggerTitle").addClass("editThisName").text(displayName).appendTo(basicLogger)
 
@@ -1855,7 +1935,7 @@ function createNumberLine(displayName, topic, append = false, hex = "#0c0c0c", m
         .css("border-color", hex)
         .attr("data-color", hex)
         .attr("data-deriveAttributes", 'true')
-
+        .attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
 
     if (append) {
         numberLine.appendTo(append)
@@ -1965,6 +2045,7 @@ function createRadialGauge(displayName, topic, append, hex = "#0c0c0c", maxDeg =
         .attr("data-componentType", "radialGauge")
         .css("border-color", hex)
         .attr("data-color", hex)
+        .attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
 
 
     if (append) {
@@ -2043,7 +2124,7 @@ function createRadialGauge(displayName, topic, append, hex = "#0c0c0c", maxDeg =
     return radialGauge
 }
 
-setGridInput(".uiTestTab")
+// setGridInput(".uiTestTab")
 
 function setGridInput(tab) {
 
@@ -2118,7 +2199,7 @@ function setGridInput(tab) {
 
 
 
-        currentSetting.children(".numberPlus").on("pointerdown ", (event) => {
+        currentSetting.children(".numberPlus").off("pointerdown.RCA").on("pointerdown.RCA ", (event) => {
             let $ct = $(event.currentTarget)
             let max = parseFloat($ct.parent().attr("data-max"))
             let step = parseFloat($ct.parent().attr("data-step"))
@@ -2131,7 +2212,7 @@ function setGridInput(tab) {
                 tabGrid(parseInt($(".setGridColumn").attr("data-value")), parseInt($(".setGridRow").attr("data-value")), tab)
             }
         })
-        currentSetting.children(".numberMinus").on("pointerdown ", (event) => {
+        currentSetting.children(".numberMinus").off("pointerdown.RCA").on("pointerdown.RCA", (event) => {
             let $ct = $(event.currentTarget)
 
 
@@ -2152,7 +2233,7 @@ function setGridInput(tab) {
 
             }
         })
-        currentSetting.children(".numberTextInput").on("blur", (event) => {
+        currentSetting.children(".numberTextInput").off("blur.RCA").on("blur.RCA", (event) => {
             event.preventDefault()
 
             let $ct = $(event.currentTarget)
@@ -2253,7 +2334,7 @@ $(".editSidebar").find(" .numberTextInput").on("blur", (event) => {
 })
 
 let dragInfo = {
-    initalY: 0,
+    initialY: 0,
     currentY: 0,
     phased: false,
     margined: false,
@@ -2271,7 +2352,7 @@ function handleOptionDrag() {
 
     $(".sideBar").on("pointerup.sidebarDrag pointerleave.sidebarDrag", (event) => {
         dragInfo = {
-            initalY: 0,
+            initialY: 0,
             currentY: 0,
             phased: false,
             margined: false,
@@ -2286,10 +2367,10 @@ function handleOptionDrag() {
 function addOptionDragHandler($element) {
     $element.children(".hamburger").off("pointerdown.startDrag").on("pointerdown.startDrag", (event) => {
 
-        //bro i was like, you know what, ima not use event.current target, ima use $element inside the lambda like a normal person
+        //i was like, you know what, ima not use event.current target, ima use $element inside the lambda like a normal person
         //and guess what
         //it would select like half the elements in the div
-        //currenttaget my beloved 
+        //currenttarget my beloved 
 
         let $pr = $(event.currentTarget).parent()
 
@@ -2451,7 +2532,14 @@ function bindEditMenu(element, valueType, specificClass = false) {
             bindMultiAdder(inputBeingBound)
         } else if (inputBeingBound.attr("data-editing") == "changeTopic") {
             bindChangeSubscriptionTopic(inputBeingBound)
-        } else {
+        } else if (inputBeingBound.attr("data-editing") == "data-persist") {
+            bindPersistantCheckbox(inputBeingBound)
+        } else if (inputBeingBound.hasClass("multiSwitch")) {
+            bindToggleMultiSwitch(inputBeingBound)
+        } else if (inputBeingBound.attr("data-editing") == "data-snapBack") {
+            bindSnapBack(inputBeingBound)
+        }
+        else {
             bindOtherData(inputBeingBound)
         }
 
@@ -2466,6 +2554,18 @@ function bindEditMenu(element, valueType, specificClass = false) {
             val.removeAttr("disabled")
         } else {
             val.attr("disabled", "disabled").val("")
+        }
+    }
+
+    function bindSnapBack(inputBeingBound) {
+        if (editComponent.currentTarget.hasClass("axis") || editComponent.currentTarget.hasClass("verticalAxis")) {
+            inputBeingBound.prop("checked", JSON.parse(editComponent.currentTarget.attr("data-snapBack")))
+
+            inputBeingBound.off("input.snapBack").on("input.snapBack", (event) => {
+                let $ct = $(event.currentTarget)
+
+                editComponent.currentTarget.attr("data-snapBack", JSON.stringify($ct.prop("checked")))
+            })
         }
     }
 
@@ -2602,6 +2702,20 @@ function bindEditMenu(element, valueType, specificClass = false) {
         })
     }
 
+    function bindPersistantCheckbox(inputBeingBound) {
+        if (editComponent.currentTarget.hasClass("toggleButton") || editComponent.currentTarget.hasClass("buttonOptGroup") || editComponent.currentTarget.hasClass("select") || editComponent.currentTarget.hasClass("numberComponent")) {
+            inputBeingBound.prop("checked", JSON.parse(editComponent.currentTarget.attr("data-persist")))
+
+            inputBeingBound.off("input.persitant").on("input.persitant", (event) => {
+                let $ct = $(event.currentTarget)
+
+                editComponent.currentTarget.attr("data-persist", JSON.stringify($ct.prop("checked")))
+            })
+        }
+
+
+    }
+
     function bindAxisDirection(inputBeingBound) {
         setTimeout(() => {
             if (editComponent.currentTarget.hasClass("verticalAxis")) {
@@ -2619,6 +2733,44 @@ function bindEditMenu(element, valueType, specificClass = false) {
                 editComponent.currentTarget.removeClass("verticalAxis").addClass("axis").attr("data-componentType", "axis")
                 editComponent.currentTarget.find(".verticalAxisKnob").removeClass("verticalAxisKnob").addClass("axisKnob")
 
+            }
+        })
+    }
+
+    function bindToggleMultiSwitch(inputBeingBound) {
+        if (editComponent.currentTarget.attr("data-componenttype") != "toggleButton") return
+
+        setTimeout(() => {
+            let persist = false
+            if (editComponent.currentTarget.attr("data-persist") != undefined) {
+                persist = JSON.parse(editComponent.currentTarget.attr("data-persist"))
+            }
+
+            if (persist) {
+                if (JSON.parse(editComponent.currentTarget.attr("data-value"))) {
+                    multiSwitchButtonSet(inputBeingBound, "True")
+                    editComponent.currentTarget.attr("data-initialvalue", "true")
+                } else {
+                    multiSwitchButtonSet(inputBeingBound, "False")
+                    editComponent.currentTarget.attr("data-initialvalue", "false")
+
+                }
+            } else {
+                if (JSON.parse(editComponent.currentTarget.attr("data-initialvalue"))) {
+                    multiSwitchButtonSet(inputBeingBound, "True")
+                } else {
+                    multiSwitchButtonSet(inputBeingBound, "False")
+                }
+            }
+        }, 1);
+
+        inputBeingBound.find(".multiSwitchButton").off("pointerdown.setInitial").on("pointerdown.setInitial", (event) => {
+            let oldBG = editComponent.currentTarget.css("background-color").replace(/^([^,]*,[^,]*,[^,]*),.*$/, '$1')
+
+            if ($(event.target).val() == "False") {
+                editComponent.currentTarget.css("background-color", oldBG + ", 0)").removeClass("toggledOn").attr("data-value", "false").attr("data-initialvalue", "false")
+            } else if ($(event.target).val() == "True") {
+                editComponent.currentTarget.css("background-color", oldBG + ", 0.6)").addClass("toggledOn").attr("data-value", "true").attr("data-initialvalue", "true")
             }
         })
     }
@@ -2701,9 +2853,13 @@ function bindEditMenu(element, valueType, specificClass = false) {
         // if (componentsOptions.length < 1) return
 
         let newComponent
+        // console.log(JSON.parse(eDCT.attr("data-persist")) ? eDCT.attr("data-index") : 0)
+        // console.log(JSON.parse(eDCT.attr("data-persist")))
+        // console.log(eDCT)
 
         if (editComponent.currentTarget.hasClass("buttonOptGroup")) {
-            newComponent = createOptGroup(eDCT.attr("data-topic"), $(".currentTab").attr("data-page"), eDCT.attr("data-color"), 0, componentsOptions, JSON.parse(eDCT.attr("data-defaultsimilaroptions"))).div
+
+            newComponent = createOptGroup(eDCT.attr("data-topic"), $(".currentTab").attr("data-page"), eDCT.attr("data-color"), JSON.parse(eDCT.attr("data-persist")) ? eDCT.attr("data-index") : 0, componentsOptions, JSON.parse(eDCT.attr("data-defaultsimilaroptions")), JSON.parse(eDCT.attr("data-persist"))).div
                 .css("grid-area", eDCT.css("grid-area"))
                 .attr("data-row", eDCT.attr("data-row"))
                 .attr("data-column", eDCT.attr("data-column"))
@@ -2712,7 +2868,7 @@ function bindEditMenu(element, valueType, specificClass = false) {
                 .attr("data-componentOptions", JSON.stringify(componentsOptions))
 
         } else {
-            newComponent = createDropdown(eDCT.attr("data-topic"), $(".currentTab").attr("data-page"), eDCT.attr("data-color"), 0, componentsOptions, JSON.parse(eDCT.attr("data-defaultsimilaroptions"))).div
+            newComponent = createDropdown(eDCT.attr("data-topic"), $(".currentTab").attr("data-page"), eDCT.attr("data-color"), JSON.parse(eDCT.attr("data-persist")) ? eDCT.attr("data-index") : 0, componentsOptions, JSON.parse(eDCT.attr("data-defaultsimilaroptions")), JSON.parse(eDCT.attr("data-persist"))).div
                 .css("grid-area", eDCT.css("grid-area"))
                 .attr("data-row", eDCT.attr("data-row"))
                 .attr("data-column", eDCT.attr("data-column"))
@@ -2791,6 +2947,9 @@ function multiSwitchButtonSet(element, optionValue) {
 }
 
 function setSimilarOptions(element, similarOptions = JSON.parse($(element).attr("data-defaultSimilarOptions"))) {
+    if (typeof similarOptions == "string") {
+        JSON.parse(similarOptions)
+    }
 
     if (similarOptions.fill) {
         element.addClass("fill")
@@ -3217,7 +3376,7 @@ function saveLayoutToJSON() {
                 endcol: comp$.attr("data-endcolumn"),
                 area: comp$.css("grid-area"),
                 topic: comp$.attr('data-topic'),
-                similarOptions: comp$.attr("data-defaultsimilaroptions")
+                similarOptions: JSON.parse(comp$.attr("data-defaultsimilaroptions"))
             }
 
             components.push({ ...component, ...(getComponentSpecificAsObject(comp$)) })
@@ -3225,6 +3384,8 @@ function saveLayoutToJSON() {
 
         json[tabs.eq(i).attr("data-page")] = {
             tabTitle: tabs.eq(i).text(),
+            tabRows: tab.attr("rows"),
+            tabColumns: tab.attr("columns"),
             "components": components,
         }
     }
@@ -3238,6 +3399,8 @@ function loadLayoutFromJson(json) {
     }
 
     for (let tab in json) {
+        let components = json[tab].components;
+
         $("<div>").addClass("tab")
             .css("background-color", $(".fullScreen").css("background-color"))
             .addClass("tabConnection")
@@ -3245,10 +3408,51 @@ function loadLayoutFromJson(json) {
             .attr("data-page", tab)
             .text(json[tab].tabTitle)
             .insertBefore(".connectionText")
+            .on("pointerdown ", (event) => {
+                let $ct = $(event.currentTarget)
+                $(".page, .pageF").css("display", "none")
+                $(".tab").removeClass("currentTab").css("background-color", "rgb(12, 12, 12)")
+                $ct.addClass("currentTab").css("background-color", "rgb(32, 32, 32)")
+                if ($ct.attr("data-displaytype") == null) {
+                    $($ct.attr("data-page")).css("display", "grid")
+                } else {
+                    $($ct.attr("data-page")).css("display", $ct.attr("data-displaytype"))
+
+                }
+
+                let currentPage$ = $($ct.attr("data-page"))
+                if (!$($ct.attr("data-page")).hasClass("pageF")) {
+                    tabGrid(parseFloat(currentPage$.attr("columns")), parseFloat(currentPage$.attr("rows")), currentPage$)
+                    setGridInput(currentPage$)
+                }
+
+            })
 
         // <div class="uiTestTab page" style="display: grid;">/
 
-        $("<div>").addClass(page).addClass(tab).css("display", "grid")
+        let page$ = $("<div>").addClass("page").addClass(tab.slice(1)).css("display", "grid").attr("rows", json[tab].tabRows).attr("columns", json[tab].tabColumns).insertAfter(".autonomus")
+
+        for (let i = 0; i < components.length; i++) {
+            makeComponentFromJson(components[i])
+                .attr("data-row", components[i].row)
+                .attr("data-column", components[i].col)
+                .attr("data-endrow", components[i].endrow)
+                .attr("data-endcolumn", components[i].endcol)
+                .css("grid-area", components[i].area)
+                .appendTo(page$)
+        }
+
+        let $ct = $(".autoTab")
+        $(".page, .pageF").css("display", "none")
+        $(".tab").removeClass("currentTab").css("background-color", "rgb(12, 12, 12)")
+        $ct.addClass("currentTab").css("background-color", "rgb(32, 32, 32)")
+        if ($ct.attr("data-displaytype") == null) {
+            $($ct.attr("data-page")).css("display", "grid")
+        } else {
+            $($ct.attr("data-page")).css("display", $ct.attr("data-displaytype"))
+        }
+
+
     }
 }
 
@@ -3265,21 +3469,34 @@ function getComponentSpecificAsObject(comp$) {
                 color: comp$.attr("data-color")
             }
         case "toggleButton":
-            return {
+            let returning = {
                 displayName: comp$.text(),
                 color: comp$.attr("data-color"),
                 //if persist
                 value: comp$.attr("data-value"),
-                //else use inital value which needa be added
+                initialValue: comp$.attr("data-initalValue")
+                //else use initial value which needa be added
             }
+            let persist = "false"
+            if (comp$.attr("data-persist") !== undefined) {
+                persist = comp$.attr("data-persist")
+
+                if (!JSON.parse(persist)) {
+                    returning.value = comp$.attr("data-initialvalue")
+                }
+            }
+
+            returning["persist"] = persist
+
+            return returning
         case "axis":
             knob = comp$.children(".axisKnob");
             return {
                 displayName: comp$.find(".editThisName").text(),
                 color: comp$.attr("data-color"),
                 min: knob.attr("min"),
-                max: knob.attr("min"),
-                step: knob.attr("min"),
+                max: knob.attr("max"),
+                step: knob.attr("step"),
                 value: comp$.attr("data-value"),
                 snapBack: comp$.attr("data-snapBack")
             }
@@ -3297,22 +3514,24 @@ function getComponentSpecificAsObject(comp$) {
             }
         case "select":
             return {
-                componentOptions: comp$.attr("data-componentoptions")
-                //TODO: however persist work
+                componentOptions: comp$.attr("data-componentoptions"),
+                index: JSON.parse(comp$.attr("data-persist")) ? comp$.attr("data-index") : 0,
+                persist: comp$.attr("data-persist"),
             }
         case "buttonOptGroup":
+
             return {
-                componentOptions: comp$.attr("data-componentoptions")
-                //TODO: however persist work
+                componentOptions: comp$.attr("data-componentoptions"),
+                index: JSON.parse(comp$.attr("data-persist")) ? comp$.attr("data-index") : 0,
+                persist: comp$.attr("data-persist"),
             }
         case "numberComponent":
             return {
+                displayName: comp$.find(".editThisName").text(),
                 step: comp$.attr('data-step'),
                 min: comp$.attr('data-min'),
                 max: comp$.attr('data-max'),
-                //if persist
-                value: comp$.attr('data-value'),
-                //else inital value
+                value: JSON.parse(comp$.attr("data-persist")) ? comp$.attr("data-value") : comp$.attr("data-initialValue"),
                 persist: comp$.attr('data-persist'),
 
             }
@@ -3349,25 +3568,70 @@ function getComponentSpecificAsObject(comp$) {
     }
 }
 
-const MathUtils = {
-
-    _getFactor(n1, n2) {
-        const s1 = n1.toString();
-        const s2 = n2.toString();
-
-        const d1 = (s1.split('.')[1] || '').length;
-        const d2 = (s2.split('.')[1] || '').length;
-
-        return Math.pow(10, Math.max(d1, d2));
-    },
-
-    add(n1, n2) {
-        const factor = this._getFactor(n1, n2);
-        return (Math.round(n1 * factor) + Math.round(n2 * factor)) / factor;
-    },
-
-    subtract(n1, n2) {
-        const factor = this._getFactor(n1, n2);
-        return (Math.round(n1 * factor) - Math.round(n2 * factor)) / factor;
+function makeComponentFromJson(component) {
+    // type: componentType,
+    // row: comp$.attr("data-row"),
+    // col: comp$.attr("data-column"),
+    // endrow: comp$.attr("data-endrow"),
+    // endcol: comp$.attr("data-endcolumn"),
+    // area: comp$.css("grid-area"),
+    // topic: comp$.attr('data-topic'),
+    // similarOptions: comp$.attr("data-defaultsimilaroptions")
+    switch (component.type) {
+        case "actionButton":
+            return createActionButton(component.displayName, component.topic, false, component.color, component.similarOptions)
+        case "oneShotButton":
+            return createOneShotButton(component.displayName, component.topic, false, component.color, component.similarOptions)
+        case "toggleButton":
+            return createToggleButton(component.displayName, component.topic, false, component.color, component.value, component.similarOptions, component.persist)
+        case "axis":
+            return createAxis(component.displayName, component.topic, false, false, component.color, component.value, component.min, component.max, component.step, component.snapBack, component.similarOptions).div
+        case "verticalAxis":
+            return createAxis(component.displayName, component.topic, false, true, component.color, component.value, component.min, component.max, component.step, component.snapBack, component.similarOptions).div
+        case "select":
+            return createDropdown(component.topic, false, 0, component.index, JSON.parse(component.componentOptions), component.similarOptions, component.persist).div
+        case "buttonOptGroup":
+            return createOptGroup(component.topic, false, 0, component.index, JSON.parse(component.componentOptions), component.similarOptions, component.persist).div
+        case "numberComponent":
+            return createNumberComponent(component.displayName, component.topic, false, 0, component.value, component.min, component.max, component.step, component.persist, component.similarOptions).div
+        case "basicSubscription":
+            return createBasicSubscription(component.displayName, component.topic, false, component.color, component.similarOptions)
+        case "basicLogger":
+            return createBasicLogger(component.displayName, component.topic, false, component.color, component.similarOptions)
+        case "numberLine":
+            return createNumberLine(component.displayName, component.topic, false, component.color, component.max, component.min, component.low, component.high, component.optimum, component.similarOptions)
+        case "radialGauge":
+            return createRadialGauge(component.displayName, component.topic, false, component.color, component.maxDeg, 5, component.max, component.min, component.low, component.high, component.optimum, component.offsetDeg, component.similarOptions)
     }
-};
+}
+
+
+
+// case "actionButton":
+//     return createActionButton("Action Button", topic, append)
+// case "oneShotButton":
+//     return createOneShotButton("One Shot Button", topic, append)
+// case "toggleButton":
+//     return createToggleButton("Toggle Button", topic, append)
+// case "axis":
+//     return createAxis("Axis", topic, append, false).div
+// case "verticalAxis":
+//     return createAxis("Y-Axis", topic, append, true).div
+// case "select":
+//     return createDropdown(topic, append, 0, 0, [{ name: "Dropdown", value: "" }]).div
+// case "buttonOptGroup":
+//     return createOptGroup(topic, append, 0, 0, []).div
+// case "numberComponent":
+//     return createNumberComponent("Number", topic, append).div
+// case "basicSubscription":
+//     return createBasicSubscription(undefined, topic, append)
+// case "basicLogger":
+//     return createBasicLogger(undefined, topic, append)
+// case "numberLine":
+//     return createNumberLine(undefined, topic, append)
+// case "radialGauge":
+//     return createRadialGauge(undefined, topic, append)
+
+
+
+// {".uiTestTab":{"tabTitle":"Ui Test","tabRows":"5","tabColumns":"9","components":[{"type":"actionButton","row":"1","col":"1","endrow":"1","endcol":"2","area":"1 / 1 / 2 / 3","topic":"esc-UNDEFINED-esc","similarOptions":{"fill":true},"displayName":"The quick","color":"#00ff6e"},{"type":"oneShotButton","row":"2","col":"1","endrow":"2","endcol":"2","area":"2 / 1 / 3 / 3","topic":"esc-UNDEFINED-esc","similarOptions":{"fill":true},"displayName":"Brown Fox","color":"#ff00c8"},{"type":"toggleButton","row":"3","col":"1","endrow":"3","endcol":"2","area":"3 / 1 / 4 / 3","topic":"esc-UNDEFINED-esc","similarOptions":{"fill":true},"displayName":"Jumps over","color":"#ff0000"},{"type":"axis","row":"4","col":"1","endrow":"4","endcol":"3","area":"4 / 1 / 5 / 4","topic":"esc-UNDEFINED-esc","similarOptions":{"fill":true},"displayName":"the","color":"#e82c2c","min":"-1","max":"1","step":"0.1","value":"0"},{"type":"buttonOptGroup","row":"1","col":"4","endrow":"2","endcol":"4","area":"1 / 4 / 3 / 5","topic":"","similarOptions":{"fill":false},"componentOptions":"[{\"name\":\"Dog\",\"value\":\"fr\",\"color\":\"#bbff00\"},{\"name\":\"NGl\",\"value\":\"bro\",\"color\":\"#00ff9d\"}]"},{"type":"numberComponent","row":"3","col":"3","endrow":"3","endcol":"5","area":"3 / 3 / 4 / 6","topic":"esc-UNDEFINED-esc","similarOptions":{"fill":true},"displayName":"Im kinda pmo","step":"0.1","min":"-1","max":"1","value":"1","persist":""},{"type":"basicSubscription","row":"1","col":"6","endrow":"1","endcol":"9","area":"1 / 6 / 2 / 10","topic":"/DriveState/OdometryFrequency","similarOptions":{"fill":true},"displayName":"OdometryFrequency","color":"#00aaff"},{"type":"basicLogger","row":"6","col":"8","endrow":"3","endcol":"9","area":"6 / 8 / 3 / 10","topic":"/DriveState/Timestamp","similarOptions":"{\"fill\":true}","displayName":"Crazy work","color":"#4700cc"},{"type":"radialGauge","row":"4","col":"4","endrow":"5","endcol":"6","area":"4 / 4 / 6 / 7","topic":"/DriveState/OdometryFrequency","similarOptions":{"fill":true},"displayName":"OdometryFrequency","color":"#ff00dd","maxDeg":"270","offsetDeg":"-45","low":"245","high":"255","optimum":"250"},{"type":"numberLine","row":"2","col":"6","endrow":"2","endcol":"7","area":"2 / 6 / 3 / 8","topic":"/DriveState/OdometryFrequency","similarOptions":"{\"fill\":false}","displayName":"ODOM","color":"#f50000","min":"0","max":"252"},{"type":"select","row":"5","col":"1","endrow":"5","endcol":"3","area":"5 / 1 / 6 / 4","topic":"esc-UNDEFINED-esc","similarOptions":"\"{\\\"fill\\\":true}\"","componentOptions":"[{\"name\":\"lazy\",\"value\":\"4\",\"color\":\"#8cff00\"}]"}]}}
