@@ -395,6 +395,11 @@ foreignObject input[type=range]::-webkit-slider-thumb {
     font-size: 3vh;
 }
 
+.version {
+    color: white;
+    font-size: 2vh;
+}
+
 .setTeam {
     height: 10vh;
     width: 24vh;
@@ -799,6 +804,7 @@ input[type=number] {
 
 .basicLogger .basicLoggerTitle {
     width: 100%;
+    text-overflow: ellipsis;
     height: 2.5cqh;
     line-height: 2.5cqh;
     background-color: rgb(12, 12, 12);
@@ -1075,7 +1081,7 @@ input[type=number] {
     border-radius: 9000vh;
     position: relative;
     /* background-color: rgb(166, 166, 166); */
-    background: radial-gradient(circle, rgba(166, 166, 166, 1) 50%, rgba(105, 105, 105, 1) 50%);
+    background: radial-gradient(circle, rgba(166, 166, 166, 1) 50%, rgba(105, 105, 105, 1) 55%);
     display: block;
     width: 10%;
     height: 10%;
@@ -1209,13 +1215,19 @@ input[type=number] {
         border: none;
         font-size: 5cqh;
         line-height: 7cqh;
-        border-radius: 3cqh 3cqh 0 0;
+        border-top-right-radius: 3cqh ;
+        border-top-left-radius: 3cqh ;
+
+        border-bottom-right-radius: 0cqh;
+        border-bottom-left-radius: 0cqh;
+
         height: 7cqh;
         overflow: hidden;
         text-overflow: ellipsis;
-
+        transition: border-bottom-right-radius 300ms ease, border-bottom-left-radius 300ms ease;
     }
 
+   
 
     .currentTab {
         background-color: rgb(128, 32, 32);
@@ -1224,9 +1236,21 @@ input[type=number] {
         border: none;
         font-size: 5cqh;
         line-height: 7cqh;
-        border-radius: 3cqh 3cqh 0 0;
+                border-top-right-radius: 3cqh ;
+        border-top-left-radius: 3cqh ;
+
+        border-bottom-right-radius: 0cqh;
+        border-bottom-left-radius: 0cqh;
         height: 7cqh;
         overflow: hidden;
+
+    }
+ .tabsEditActivated{
+          border-top-right-radius: 3cqh ;
+        border-top-left-radius: 3cqh ;
+
+        border-bottom-right-radius: 3cqh;
+        border-bottom-left-radius: 3cqh;
 
     }
 
@@ -1737,7 +1761,7 @@ input[type=number] {
         max-height: 93cqh;
         align-content: center;
         justify-content: center;
-
+        background-color: rgb(32,32,32);        
         /* justify-items: center;
         align-items: center; */
     }
@@ -2308,7 +2332,7 @@ input[type=number] {
         width: calc(var(--w) - 10cqh);
         overflow-wrap: anywhere;
         min-height: 5cqh;
-        height: fit-content;
+        height: 5cqh;
         line-height: 5cqh;
         background-color: rgb(12, 12, 12);
         text-align: center;
@@ -2316,6 +2340,7 @@ input[type=number] {
 
     .basicLoggerValues {
         overflow-y: scroll;
+        
         grid-area: V;
         height: calc(100% - 5cqh);
 
@@ -2658,7 +2683,7 @@ input[type=number] {
         border-radius: 9000vh;
         position: relative;
         /* background-color: rgb(166, 166, 166); */
-        background: radial-gradient(circle, rgba(166, 166, 166, 1) 50%, rgba(105, 105, 105, 1) 50%);
+        background: radial-gradient(circle, rgba(166, 166, 166, 1) 50%, rgba(105, 105, 105, 1) 55%);
         display: block;
         width: 10%;
         height: 10%;
@@ -3902,6 +3927,7 @@ meter:not([value]) {
 .sideBarNav .editNavName {
     font-size: 3vh;
     width: max-content;
+    text-overflow: ellipsis;
 }
 
 .reposistionComponent {
@@ -3997,6 +4023,7 @@ meter:not([value]) {
     border-bottom: 0.125vh rgb(28, 28, 28) solid;
     margin: 0px;
     height: 5vh;
+    width: 100%;
     align-self: flex-start;
     justify-self: flex-start;
     /* padding-left: 0.5vh; */
@@ -4061,6 +4088,7 @@ meter:not([value]) {
     align-self: flex-start;
     justify-self: flex-start;
     margin-left: 0.6vh;
+    width: 100%;
     grid-area: subPaths;
     border-left: white 0.25vh solid;
 }

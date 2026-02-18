@@ -41,8 +41,8 @@ export function getHtmlFileName() {
     return fileName.slice(0, -5);
 }
 
-document.body.addEventListener("drop", (event)=>{event.preventDefault(); event.stopPropagation()}, false)
-document.body.addEventListener("dragover", (event)=>{event.preventDefault()}, false)
+document.body.addEventListener("drop", (event) => { event.preventDefault(); event.stopPropagation() }, false)
+document.body.addEventListener("dragover", (event) => { event.preventDefault() }, false)
 
 export function clamp(num, min = 0, max = 1) { return Math.min(Math.max(num, min), max) };
 
@@ -353,6 +353,8 @@ function topicAnnounce(topic) {
 }
 
 function topicToSidebar(topic) {
+    // if(topic.type.includes("struct")) return
+
     let split = topic.name.split("/")
     split.shift();
 
@@ -387,6 +389,7 @@ function topicToSidebar(topic) {
                 else if (topic.type.includes('struct')) {
                     src = "StructIcon.png"
                     typeString = 'struct'
+                    parentDiv.css("display", "none")
                 }
                 else if (topic.type.includes('int')) {
                     src = "IntIcon.png"
@@ -582,16 +585,16 @@ let OdometryFrequencyKeys = []
 let OdometryFrequencyValues = []
 let currentodomts
 
-export function drawOdom(){
+export function drawOdom() {
 
     let kr = new Float32Array(OdometryFrequencyKeys)
     let vr = new Float32Array(OdometryFrequencyValues)
 
     OdometryFrequencyKeys = []
-    OdometryFrequencyValues= []
+    OdometryFrequencyValues = []
 
-    return {name:"OdomFrequency", keyArray:kr, valArray:vr, timestamp:currentodomts/CONVERSIONRATE}
-}    
+    return { name: "OdomFrequency", keyArray: kr, valArray: vr, timestamp: currentodomts / CONVERSIONRATE }
+}
 
 
 function handleNewData(topic, timestamp, value, RawValue) {
@@ -624,13 +627,13 @@ function handleNewData(topic, timestamp, value, RawValue) {
         }
     }
 
-    if(topic.name.includes("OdometryFrequency") && timestamp % 10 == 0){
-        OdometryFrequencyKeys.push(timestamp/CONVERSIONRATE)
+    if (topic.name.includes("OdometryFrequency") && timestamp % 10 == 0) {
+        OdometryFrequencyKeys.push(timestamp / CONVERSIONRATE)
         OdometryFrequencyValues.push(value - 250)
         currentodomts = timestamp
 
-        
-    } 
+
+    }
 
     if (topic.name.includes('streams')) {
         console.log(topic, value)
@@ -776,7 +779,7 @@ function onConnectCb() {
                     let max = parseFloat($ct.parent().attr("data-max"))
                     let step = parseFloat($ct.parent().attr("data-step"))
                     let $numberTarget = $ct.parent().children(".numberTextInput")
-                    let currentVal = roundToNearestX(parseFloat($numberTarget.val()) + step, step)
+                    let currentVal = MathUtils.add($numberTarget.val(), step)
                     if (currentVal <= max) {
                         $numberTarget.val(currentVal)
                         $ct.parent().attr("data-value", $numberTarget.val())
@@ -791,7 +794,7 @@ function onConnectCb() {
                     let min = parseFloat($ct.parent().attr("data-min"))
                     let step = parseFloat($ct.parent().attr("data-step"))
                     let $numberTarget = $ct.parent().children(".numberTextInput")
-                    let currentVal = roundToNearestX((parseFloat($numberTarget.val()) - step), step)
+                    let currentVal = MathUtils.subtract($numberTarget.val(), step)
                     if (currentVal >= min) {
                         $numberTarget.val(currentVal)
                         $ct.parent().attr("data-value", $numberTarget.val())
@@ -947,6 +950,7 @@ $(".editTabs").on("click", () => {
 
     $(".editTabs").toggleClass("editingTabs");
     $("body").toggleClass("bodyEdit")
+    $(".tab").toggleClass("tabsEditActivated")
     $(".gridUnderlay").toggleClass("gridUnderlayEditing")
     $(".gridSquare").toggleClass("gridSquareEditing")
 
@@ -988,7 +992,9 @@ $(".editTabs").on("click", () => {
 
         })
     } else {
-        $("html").off()
+        $("*").removeClass("removeShake").off("pointerdown.remove").off("pointermove.dragComponent").off("pointerdown.editHandler")
+        $(".trashCan").removeClass("trashActive")
+
     }
 
 })
@@ -1387,6 +1393,7 @@ function createDefaultOf(component, append, topic = "esc-UNSET-esc") {
 function createActionButton(displayName, topic, append = false, hex = "#2b00ff") {
     let actionButton = $("<button>")
         .addClass("actionButton")
+        .addClass("editableComponent")
         .attr("data-type", "boolean")
         .attr("data-topic", topic)
         .attr("data-value", false)
@@ -1410,6 +1417,7 @@ function createOneShotButton(displayName, topic, append = false, hex = "#fff200"
     let oneShotButton = $("<button>")
         .addClass("oneShotButton")
         .addClass(topic)
+        .addClass("editableComponent")
         .attr("data-type", "boolean")
         .attr("data-topic", topic)
         .attr("data-value", false)
@@ -1431,6 +1439,7 @@ function createOneShotButton(displayName, topic, append = false, hex = "#fff200"
 
 function createToggleButton(displayName, topic, append = false, hex = "#ff7300", value = false) {
     let toggleButton = $("<button>")
+        .addClass("editableComponent")
         .addClass("toggleButton")
         .attr("data-type", "boolean")
         .attr("data-topic", topic)
@@ -1457,7 +1466,7 @@ function createToggleButton(displayName, topic, append = false, hex = "#ff7300",
 
 function createAxis(displayName, topic, append = false, vertical = false, hex = "#8a2be2", value = 0, min = -1, max = 1, step = 0.01, snapBack = true) {
     let axis = {
-        div: $('<div>').attr("data-defaultSimilarOptions", JSON.stringify(defaultSimilarOptions)),
+        div: $('<div>').attr("data-defaultSimilarOptions", JSON.stringify(defaultSimilarOptions)).addClass("editableComponent"),
         label: $("<h1>").addClass("axisLabel").addClass("editThisName"),
         knob: $("<input>")
     }
@@ -1499,7 +1508,7 @@ function createAxis(displayName, topic, append = false, vertical = false, hex = 
 function createNumberComponent(title, topic, append = false, hex = 0, value = 0, min = -1, max = 1, step = 0.1, persist = false) {
 
     let numberComponent = {
-        div: $("<div>").addClass("numberComponent").attr("data-type", 'double').attr("data-step", step).attr("data-min", min).attr("data-max", max).attr("data-value", value).attr("data-persist", persist).attr("data-topic", topic).attr("data-componentType", "numberComponent").attr("data-defaultSimilarOptions", JSON.stringify(defaultSimilarOptions)),
+        div: $("<div>").addClass("numberComponent").addClass("editableComponent").attr("data-type", 'double').attr("data-step", step).attr("data-min", min).attr("data-max", max).attr("data-value", value).attr("data-persist", persist).attr("data-topic", topic).attr("data-componentType", "numberComponent").attr("data-defaultSimilarOptions", JSON.stringify(defaultSimilarOptions)),
     }
 
     numberComponent["title"] = $("<p>").addClass("numberTitle").addClass("editThisName").text(title).appendTo(numberComponent.div)
@@ -1528,7 +1537,7 @@ function createDropdown(topic, append = false, hex = 0, initalOptionIndex = 0, o
 
 
     let dropdown = {
-        div: $("<div>").addClass("select").attr("data-value", options[initalOptionIndex].value).attr("data-topic", topic).attr("data-type", "string").attr("data-componentType", "select").attr("data-componentOptions", JSON.stringify(options)).css("background-color", options[initalOptionIndex].color + "6b").attr("data-defaultSimilarOptions", JSON.stringify(similarOptions)),
+        div: $("<div>").addClass("editableComponent").addClass("select").attr("data-value", options[initalOptionIndex].value).attr("data-topic", topic).attr("data-type", "string").attr("data-componentType", "select").attr("data-componentOptions", JSON.stringify(options)).css("background-color", options[initalOptionIndex].color + "6b").attr("data-defaultSimilarOptions", JSON.stringify(similarOptions)),
 
     }
 
@@ -1555,7 +1564,7 @@ function createDropdown(topic, append = false, hex = 0, initalOptionIndex = 0, o
 function createOptGroup(topic, append, hex = 0, initalOptionIndex = 0, options = [], similarOptions = defaultSimilarOptions) {
 
 
-    let optDiv = $("<div>").addClass("buttonOptGroup").attr("data-topic", topic).attr("data-type", "string").attr("data-componentOptions", JSON.stringify(options)).attr("data-componentType", "buttonOptGroup").attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
+    let optDiv = $("<div>").addClass("editableComponent").addClass("buttonOptGroup").attr("data-topic", topic).attr("data-type", "string").attr("data-componentOptions", JSON.stringify(options)).attr("data-componentType", "buttonOptGroup").attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
 
     console.log(options)
 
@@ -1603,8 +1612,6 @@ function createOptGroup(topic, append, hex = 0, initalOptionIndex = 0, options =
 
 function createBasicSubscription(displayName, topic, append = false, hex = false, similarOptions = defaultSimilarOptions) {
 
-    let topicClass = topic.replaceAll(".", "esc-period-esc").replaceAll("/", "esc-Sl-esc")
-
     if (displayName == null) {
         let topicSplit = topic.split("/")
         displayName = topicSplit[topicSplit.length - 1]
@@ -1612,6 +1619,7 @@ function createBasicSubscription(displayName, topic, append = false, hex = false
     // console.log(topicClass)
 
     let basicSubscription = $("<div>")
+        .addClass("editableComponent")
         .addClass("basicSubscription")
         .attr("data-topic", topic)
         .attr("data-color", "#9d00ff")
@@ -1673,6 +1681,7 @@ function createBasicLogger(displayName, topic, append = false, hex = "#0c0c0c", 
     // console.log(topicClass)
 
     let basicLogger = $("<div>")
+        .addClass("editableComponent")
         .addClass("basicLogger")
         .attr("data-topic", topic)
         .attr("data-componentType", "basicLogger")
@@ -1836,11 +1845,12 @@ function createBasicLogger(displayName, topic, append = false, hex = "#0c0c0c", 
     return basicLogger
 }
 
-function createNumberLine(displayName, topic, append = false, hex = "#0c0c0c", similarOptions = defaultSimilarOptions) {
+function createNumberLine(displayName, topic, append = false, hex = "#0c0c0c", maxNumber, minNumber, low, high, optimum, similarOptions = defaultSimilarOptions) {
 
 
     let numberLine = $("<div>").addClass("numberLine")
         .attr("data-topic", topic)
+        .addClass("editableComponent")
         .attr("data-componentType", "numberLine")
         .css("border-color", hex)
         .attr("data-color", hex)
@@ -1860,15 +1870,33 @@ function createNumberLine(displayName, topic, append = false, hex = "#0c0c0c", s
 
     let numberLineMeterHolder = $("<div>").addClass("numberLineMeters").appendTo(numberLine)
 
-    createNewMeter()
     function createNewMeter() {
         let newMeter = $("<div>").addClass("meterHolder").appendTo(numberLineMeterHolder)
 
         $("<div>").addClass("numberLineNoValue").appendTo(newMeter)
         $("<meter>").addClass("numberLineHasValue").appendTo(newMeter).attr("max", "0").attr("min", "0")
 
+        if (maxNumber) {
+            newMeter.attr("data-maxNumber", maxNumber)
+        }
+        if (minNumber) {
+            newMeter.attr("data-minNumber", minNumber)
+        }
+        if (low) {
+            newMeter.attr("data-low", low)
+        }
+        if (high) {
+            newMeter.attr("data-high", high)
+        }
+        if (optimum) {
+            newMeter.attr("data-optimum", optimum)
+        }
+
         return newMeter
     }
+
+
+
 
     setSimilarOptions(numberLine, similarOptions)
     addEditHandler(numberLine, "subscription", ".numberLineSpecific")
@@ -1933,6 +1961,7 @@ function createRadialGauge(displayName, topic, append, hex = "#0c0c0c", maxDeg =
     }
     let radialGauge = $("<div>").addClass("radialGauge")
         .attr("data-topic", topic)
+        .addClass("editableComponent")
         .attr("data-componentType", "radialGauge")
         .css("border-color", hex)
         .attr("data-color", hex)
@@ -2385,7 +2414,7 @@ function addEditHandler(element, valueType, specificClass = false) {
     })
 }
 
-$(".editNavBack, .trashCan").on("pointerdown.resetEditor", () => {
+$(".editNavBack, .trashCan, .editTabs").on("pointerdown.resetEditor", () => {
     $(".addButtons").css("display", "")
     $(".sideBar").off("pointerup.setEdit pointermove.setEdit")
     $(".editNavButtons").css("display", "none")
@@ -3133,3 +3162,212 @@ function emulateMeterColors(min = 0, max = 360, low = "", high = "", optimum = "
     }
 
 }
+
+$(".testbtn").on("click", () => {
+    alert(saveLayoutToJSON())
+    console.log(JSON.parse(saveLayoutToJSON()))
+    console.log(saveLayoutToJSON())
+
+})
+$(".testbtn2").on("click", () => {
+    loadLayoutFromJson(prompt("GIVE ME THAT JSHON"))
+})
+function saveLayoutToJSON() {
+    let tabs = $(".userTab")
+
+    let json = {}
+
+    // example layout:
+
+    // {
+    //     .uiTestTab:{
+    //         tabTitle:"Ui Test",
+    //         components:[
+    //             {
+    //                 type:
+    //                 row:
+    //                 col:
+    //                 endrow:
+    //                 endcol:
+    //                 similarOptions:
+    //                 parameters...
+    //             }
+    //         ]
+    //     }
+    // }
+
+    for (let i = 0; i < tabs.length; i++) {
+        let tab = $(tabs.eq(i).attr("data-page"))
+
+        let editableComponents = tab.children(".editableComponent");
+
+        let components = []
+
+        for (let j = 0; j < editableComponents.length; j++) {
+            let component = {}
+            let comp$ = editableComponents.eq(j)
+            let componentType = comp$.attr("data-componentType")
+
+
+            component = {
+                type: componentType,
+                row: comp$.attr("data-row"),
+                col: comp$.attr("data-column"),
+                endrow: comp$.attr("data-endrow"),
+                endcol: comp$.attr("data-endcolumn"),
+                area: comp$.css("grid-area"),
+                topic: comp$.attr('data-topic'),
+                similarOptions: comp$.attr("data-defaultsimilaroptions")
+            }
+
+            components.push({ ...component, ...(getComponentSpecificAsObject(comp$)) })
+        }
+
+        json[tabs.eq(i).attr("data-page")] = {
+            tabTitle: tabs.eq(i).text(),
+            "components": components,
+        }
+    }
+
+    return JSON.stringify(json)
+}
+
+function loadLayoutFromJson(json) {
+    if (typeof json == "string") {
+        json = JSON.parse(json)
+    }
+
+    for (let tab in json) {
+        $("<div>").addClass("tab")
+            .css("background-color", $(".fullScreen").css("background-color"))
+            .addClass("tabConnection")
+            .addClass("userTab")
+            .attr("data-page", tab)
+            .text(json[tab].tabTitle)
+            .insertBefore(".connectionText")
+
+        // <div class="uiTestTab page" style="display: grid;">/
+
+        $("<div>").addClass(page).addClass(tab).css("display", "grid")
+    }
+}
+
+function getComponentSpecificAsObject(comp$) {
+    let componentType = comp$.attr("data-componenttype")
+
+    let knob
+
+    switch (componentType) {
+        case "actionButton":
+        case "oneShotButton":
+            return {
+                displayName: comp$.text(),
+                color: comp$.attr("data-color")
+            }
+        case "toggleButton":
+            return {
+                displayName: comp$.text(),
+                color: comp$.attr("data-color"),
+                //if persist
+                value: comp$.attr("data-value"),
+                //else use inital value which needa be added
+            }
+        case "axis":
+            knob = comp$.children(".axisKnob");
+            return {
+                displayName: comp$.find(".editThisName").text(),
+                color: comp$.attr("data-color"),
+                min: knob.attr("min"),
+                max: knob.attr("min"),
+                step: knob.attr("min"),
+                value: comp$.attr("data-value"),
+                snapBack: comp$.attr("data-snapBack")
+            }
+            break
+        case "verticalAxis":
+            knob = comp$.children(".verticalAxisKnob");
+            return {
+                displayName: comp$.find(".editThisName").text(),
+                color: comp$.attr("data-color"),
+                min: knob.attr("min"),
+                max: knob.attr("min"),
+                step: knob.attr("min"),
+                value: comp$.attr("data-value"),
+                snapBack: comp$.attr("data-snapBack")
+            }
+        case "select":
+            return {
+                componentOptions: comp$.attr("data-componentoptions")
+                //TODO: however persist work
+            }
+        case "buttonOptGroup":
+            return {
+                componentOptions: comp$.attr("data-componentoptions")
+                //TODO: however persist work
+            }
+        case "numberComponent":
+            return {
+                step: comp$.attr('data-step'),
+                min: comp$.attr('data-min'),
+                max: comp$.attr('data-max'),
+                //if persist
+                value: comp$.attr('data-value'),
+                //else inital value
+                persist: comp$.attr('data-persist'),
+
+            }
+        case "basicLogger":
+        case "basicSubscription":
+            return {
+                displayName: comp$.find(".editThisName").text(),
+                color: comp$.attr("data-color")
+            }
+        case "radialGauge":
+            let gauge = comp$.find(".gauge")
+            return {
+                displayName: comp$.find(".editThisName").text(),
+                color: comp$.attr("data-color"),
+                min: gauge.attr("data-min"),
+                max: gauge.attr("data-max"),
+                maxDeg: gauge.attr("data-maxdeg"),
+                offsetDeg: gauge.attr("data-offsetDeg"),
+                low: gauge.attr("data-low"),
+                high: gauge.attr("data-high"),
+                optimum: gauge.attr("data-optimum")
+            }
+        case "numberLine":
+            let meter = comp$.find(".numberLineHasValue")
+            return {
+                displayName: comp$.find(".editThisName").text(),
+                color: comp$.attr("data-color"),
+                min: meter.attr("min"),
+                max: meter.attr("max"),
+                low: meter.attr("low"),
+                high: meter.attr("high"),
+                optimum: meter.attr("optimum")
+            }
+    }
+}
+
+const MathUtils = {
+
+    _getFactor(n1, n2) {
+        const s1 = n1.toString();
+        const s2 = n2.toString();
+
+        const d1 = (s1.split('.')[1] || '').length;
+        const d2 = (s2.split('.')[1] || '').length;
+
+        return Math.pow(10, Math.max(d1, d2));
+    },
+
+    add(n1, n2) {
+        const factor = this._getFactor(n1, n2);
+        return (Math.round(n1 * factor) + Math.round(n2 * factor)) / factor;
+    },
+
+    subtract(n1, n2) {
+        const factor = this._getFactor(n1, n2);
+        return (Math.round(n1 * factor) - Math.round(n2 * factor)) / factor;
+    }
+};

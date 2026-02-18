@@ -3,30 +3,30 @@ import { pxToCq, nt4Client, clamp, drawOdom } from "./ui.js";
 import { WebGPULineGraph } from "../lib/gpuDrawer.js"
 
 
-let canvas = document.getElementById("testMain");
+// let canvas = document.getElementById("testMain");
 
-let renderer = new WebGPULineGraph()
+// let renderer = new WebGPULineGraph()
 
-$(canvas).attr("width", $(canvas).width()).attr("height", $(canvas).height())
-console.log(canvas)
+// $(canvas).attr("width", $(canvas).width()).attr("height", $(canvas).height())
+// console.log(canvas)
 
 // renderer.initialize(canvas)
 // renderer.setCamera(0,0, $(canvas).width(), $(canvas).height())
 
 
-let testScale = findNiceScale(absAsBackup($(".leftTicks"), "min"), absAsBackup($(".leftTicks"), "max"))
+// let testScale = findNiceScale(absAsBackup($(".leftTicks"), "min"), absAsBackup($(".leftTicks"), "max"))
 
-setTickScale(testScale, $(".leftTicks"))
+// setTickScale(testScale, $(".leftTicks"))
 // setTickScale(findDependantScale($(".rightTicks").attr("data-min"), $(".rightTicks").attr("data-max"), testScale), $(".rightTicks"))
 // let testSync = findRelativeScale(absAsBackup($(".rightTicks"), "min"), (absAsBackup($(".rightTicks"), "max")), testScale)
 
 
-let testSync
-if ($(".graph").attr("data-linkAxis") == "true") {
-    testSync = findRelativeScale(absAsBackup($(".rightTicks"), "min"), (absAsBackup($(".rightTicks"), "max")), testScale)
-} else {
-    testSync = findNiceScale(absAsBackup($(".rightTicks"), "min"), (absAsBackup($(".rightTicks"), "max")))
-}
+// let testSync
+// if ($(".graph").attr("data-linkAxis") == "true") {
+//     testSync = findRelativeScale(absAsBackup($(".rightTicks"), "min"), (absAsBackup($(".rightTicks"), "max")), testScale)
+// } else {
+//     testSync = findNiceScale(absAsBackup($(".rightTicks"), "min"), (absAsBackup($(".rightTicks"), "max")))
+// }
 
 
 
@@ -39,9 +39,8 @@ let viewableZoomedUnitsY = false;
 let offsetX = 0
 let offsetY = 0
 
-console.log(testSync)
 
-setAbsMinMax(setTickScale(testSync, $(".rightTicks")))
+// setAbsMinMax(setTickScale(testSync, $(".rightTicks")))
 
 export const CONVERSIONRATE = 1000000.0
 
@@ -49,9 +48,9 @@ export const CONVERSIONRATE = 1000000.0
 
 //Test interval
 
-setTimeout(() => {
-    requestAnimationFrame(draw)
-}, 3000)
+// setTimeout(() => {
+//     requestAnimationFrame(draw)
+// }, 3000)
 
 
 let allTopicFuncs = []//[runSinTest]
@@ -68,14 +67,14 @@ function runSinTest() {
 }
 
 
-(async () => {
-    await renderer.initialize(canvas)
+// (async () => {
+//     await renderer.initialize(canvas)
 
-    renderer.createLine("SinTest", "#00ffb3", 10)
-    renderer.createLine("OdomFrequency", "#8400ff", 3)
-    renderer.createLine("Audio FileR", "#ffffff", 8)
-    renderer.createLine("Audio FileL", "#ffffff", 8)
-})()
+//     renderer.createLine("SinTest", "#00ffb3", 10)
+//     renderer.createLine("OdomFrequency", "#8400ff", 3)
+//     renderer.createLine("Audio FileR", "#ffffff", 8)
+//     renderer.createLine("Audio FileL", "#ffffff", 8)
+// })()
 
 
 
@@ -460,9 +459,9 @@ function zoomAndPanHandler(event, graph) {
 
 }
 
-bindSuperSlider($(".bottomSuperSlider"), $(".bottomTicks"))
-bindSuperSlider($(".leftSuperSlider"), $(".leftTicks"), "y", $(".rightTicks"), $(".rightSuperSlider"), $(".graph"))
-bindSuperSlider($(".rightSuperSlider"), $(".rightTicks"), "y", $(".leftTicks"), $(".leftSuperSlider"), $(".graph"))
+// bindSuperSlider($(".bottomSuperSlider"), $(".bottomTicks"))
+// bindSuperSlider($(".leftSuperSlider"), $(".leftTicks"), "y", $(".rightTicks"), $(".rightSuperSlider"), $(".graph"))
+// bindSuperSlider($(".rightSuperSlider"), $(".rightTicks"), "y", $(".leftTicks"), $(".leftSuperSlider"), $(".graph"))
 
 
 function bindSuperSlider(superSlider, ticks, delta = "x", secondaryTicks, secondarySlider, graph) {
@@ -1194,10 +1193,10 @@ function setCanvasesToTicks(graph) {
 
 }
 
-createTopicAttributes($(".graphCanvasPrimary"), "test")
+// createTopicAttributes($(".graphCanvasPrimary"), "test")
 
 
-let strokestyle = { color: 0xff0000, width: (canvas.clientHeight / 100) * 0.3, cap: 'round' }
+// let strokestyle = { color: 0xff0000, width: (canvas.clientHeight / 100) * 0.3, cap: 'round' }
 
 
 function drawData(graph, renderer, topics) {
@@ -1446,7 +1445,7 @@ function createTopicAttributes(axis, topic) {
 
 }
 
-addMusicDropHandler($(".graph"))
+// addMusicDropHandler($(".graph"))
 
 function addMusicDropHandler(graph) {
     let audio = graph.children("#audio")[0];
