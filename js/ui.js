@@ -269,25 +269,27 @@ function addButtonToAnimate(jQueryReference) {
     })
 }
 
-$(".tab").on("pointerdown ", (event) => {
-    let $ct = $(event.currentTarget)
-    $(".page, .pageF").css("display", "none")
-    $(".tab").removeClass("currentTab").css("background-color", "rgb(12, 12, 12)")
-    $ct.addClass("currentTab").css("background-color", "rgb(32, 32, 32)")
-    if ($ct.attr("data-displaytype") == null) {
-        $($ct.attr("data-page")).css("display", "grid")
-    } else {
-        $($ct.attr("data-page")).css("display", $ct.attr("data-displaytype"))
+// $(".tab").on("pointerdown ", (event) => {
+//     let $ct = $(event.currentTarget)
+//     $(".page, .pageF").css("display", "none")
+//     $(".tab").removeClass("currentTab").css("background-color", "rgb(12, 12, 12)")
+//     $ct.addClass("currentTab").css("background-color", "rgb(32, 32, 32)")
+//     if ($ct.attr("data-displaytype") == null) {
+//         $($ct.attr("data-page")).css("display", "grid")
+//     } else {
+//         $($ct.attr("data-page")).css("display", $ct.attr("data-displaytype"))
 
-    }
+//     }
 
-    let currentPage$ = $($ct.attr("data-page"))
+//     let currentPage$ = $($ct.attr("data-page"))
 
-    if (!$($ct.attr("data-page")).hasClass("pageF")) {
-        tabGrid(parseFloat(currentPage$.attr("columns")), parseFloat(currentPage$.attr("rows")), currentPage$)
-        setGridInput(currentPage$)
-    }
-})
+//     if (!$($ct.attr("data-page")).hasClass("pageF")) {
+//         tabGrid(parseFloat(currentPage$.attr("columns")), parseFloat(currentPage$.attr("rows")), currentPage$)
+//         setGridInput(currentPage$)
+//     }
+// })
+
+bindTabChanger($(".tab"))
 
 function oneShotAnimation(elemClass) {
     //runs as callback in case input not recieved
@@ -367,7 +369,7 @@ function setSelectOpener() {
 
 // let daq = new SignalDAQNT4("localhost", ci, null, null, 
 export var nt4Client = new NT4_Client(localStorage.getItem(getHtmlFileName() + "teamNumber"),
-    "Touchboard",
+    "Touchboard" + Math.random().toString().slice(2),
     topicAnnounce,
     doNothing,
     handleNewData,
@@ -451,6 +453,8 @@ function topicToSidebar(topic) {
                 if (topic.type.includes("[]")) {
                     src = "Array" + src
                     typeString = "array" + typeString
+                    parentDiv.css("display", "none")
+
                 }
 
                 $allOf.on("pointerdown.openOutputComponents", () => {
@@ -584,6 +588,11 @@ if (localStorage.getItem(getHtmlFileName() + "connect") === "true") {
 
     $("html").css("background-color", "rgb(32, 32, 32)")
     $(".tab").css("background-color", "rgb(12, 12, 12)")
+    $(".addTab").css("background-color", "rgb(32, 32, 32)")
+    $(".tabManager").css("background-color", "rgb(32, 32, 32)")
+
+    $(".tabCreator").css("background-color", "rgb(32, 32, 32)")
+
     $(".tabNav").css("background-color", "rgb(12, 12, 12)")
     $(".currentTab").css("background-color", "rgb(32, 32, 32)")
     nt4Client.disconnect()
@@ -598,6 +607,10 @@ $("#connect").on("click", () => {
 
         $("html").css("background-color", "rgb(32, 32, 32)")
         $(".tab").css("background-color", "rgb(12, 12, 12)")
+        $(".addTab").css("background-color", "rgb(32, 32, 32)")
+        $(".tabManager").css("background-color", "rgb(32, 32, 32)")
+        $(".tabCreator").css("background-color", "rgb(32, 32, 32)")
+
         $(".tabNav").css("background-color", "rgb(12, 12, 12)")
         $(".currentTab").css("background-color", "rgb(32, 32, 32)")
         nt4Client.disconnect()
@@ -609,6 +622,11 @@ $("#connect").on("click", () => {
 
         $("html").css("background-color", "")
         $(".tab").css("background-color", "")
+        $(".addTab").css("background-color", "")
+        $(".tabManager").css("background-color", "")
+        $(".tabCreator").css("background-color", "")
+
+
         $(".tabNav").css("background-color", "")
         $(".currentTab").css("background-color", "")
         nt4Client.disconnect()
@@ -734,6 +752,10 @@ function onConnectCb() {
 
         $("html").css("background-color", "rgb(32, 32, 32)")
         $(".tab").css("background-color", "rgb(12, 12, 12)")
+        $(".addTab").css("background-color", "rgb(32, 32, 32)")
+        $(".tabManager").css("background-color", "rgb(32, 32, 32)")
+        $(".tabCreator").css("background-color", "rgb(32, 32, 32)")
+
         $(".tabNav").css("background-color", "rgb(12, 12, 12)")
         $(".currentTab").css("background-color", "rgb(32, 32, 32)")
         nt4Client.publishTopic("/touchboard/posePlotterFinalString", "string")
@@ -937,6 +959,9 @@ function onDisconnectCb() {
 
         $("html").css("background-color", "rgb(128, 32, 32)")
         $(".tab").css("background-color", "rgb(64, 12, 12)")
+        $(".addTab").css("background-color", "rgb(128, 32, 32)")
+        $(".tabCreator").css("background-color", "rgb(128, 32, 32)")
+
         $(".tabNav").css("background-color", "rgb(64, 12, 12)")
         $(".currentTab").css("background-color", "rgb(128, 32, 32)")
         setTimeout(() => {
@@ -990,11 +1015,23 @@ function roundToNearestX(number, x) {
 }
 
 $(".editTabs").on("click", () => {
+    $(".tabCreator").removeClass("tabCreatorOpen")
+
+    $(".tabCreator").css("overflow-x", "hidden")
+    $(".nameInput").val("")
+    $(".addTab").text("+").css("font-size", "").css("line-height", "")
+
     $("#connect").css("pointer-events", "none")
 
     $(".editTabs").toggleClass("editingTabs");
     $("body").toggleClass("bodyEdit")
     $(".tab").toggleClass("tabsEditActivated")
+    $(".addTab").toggleClass("tabsEditActivated")
+    $(".tabManager").toggleClass("tabsEditActivated")
+    $(".tabCreator").toggleClass("tabsEditActivated")
+
+    $(".onlyOnEdit").toggleClass("onlyEditShowing")
+
     $(".gridUnderlay").toggleClass("gridUnderlayEditing")
     $(".gridSquare").toggleClass("gridSquareEditing")
 
@@ -1196,6 +1233,8 @@ function addToCurrentDrag(jQueryReference, initialX, initialY, componentType) {
                 $(".page").off("pointerdown.dragComponent")
                 $(".feauxComponent").remove()
                 $(".cornerBorder").remove()
+                $(".currentDrag").remove()
+
                 grid.row = 0
                 grid.column = 0
                 grid.endRow = 0;
@@ -1493,20 +1532,22 @@ function createToggleButton(displayName, topic, append = false, hex = "#ff7300",
         .attr("data-topic", topic)
         .attr("data-color", hex)
         .attr("data-componentType", "toggleButton")
-        .attr("data-value", value)
-        .attr("data-initialvalue", value)
-        .attr("data-persist", persist)
+
+        .attr("data-persist", "false")
         .attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
         .css("border-color", hex)
         .text(displayName)
 
     if (JSON.parse(value)) {
 
-        toggleButton.addClass("toggledOn").css("background-color", hex + "99")
+        toggleButton.addClass("toggledOn").css("background-color", hex + "99").attr("data-value", "true").attr("data-initialvalue", "true")
     } else {
-        toggleButton.css("background-color", hex + "00")
+        toggleButton.css("background-color", hex + "00").attr("data-value", "false").attr("data-initialvalue", "false")
     }
 
+    if (persist) {
+        toggleButton.attr("data-persist", "true")
+    }
 
     if (append) {
         toggleButton.appendTo(append)
@@ -2128,6 +2169,20 @@ function createRadialGauge(displayName, topic, append, hex = "#0c0c0c", maxDeg =
 
 function setGridInput(tab) {
 
+    if (tab.hasClass("pageF")) {
+        $(".setGridRow").addClass("hiddenClickless")
+        $(".setGridColumn").addClass("hiddenClickless")
+
+        return
+    } else {
+        let rows = tab.attr("rows")
+        let columns = tab.attr("columns")
+        $(".setGridRow").removeClass("hiddenClickless").attr("data-value", rows).children(".numberTextInput").val(rows).attr("value", rows)
+        $(".setGridColumn").removeClass("hiddenClickless").attr("data-value", columns).children(".numberTextInput").val(columns).attr("value", columns)
+
+
+    }
+
     for (let i = 0; i < 2; i++) {
         let currentSetting
         let current
@@ -2257,6 +2312,11 @@ function setGridInput(tab) {
 
 $(".trashCan").on(" pointerdown.activateTrashCan", (event) => {
     $(".trashCan").toggleClass("trashActive")
+
+
+    // $(".currentDrag").remove()
+    // $("*").off("pointermove.dragComponent").off("pointerup.dragComponent").off("pointerdown.dragComponent")
+
     setCornerBorder(0, 0, 0, 0, 0, true)
 
     let elements = $($(".currentTab").attr("data-page")).children()
@@ -2495,21 +2555,51 @@ function addEditHandler(element, valueType, specificClass = false) {
     })
 }
 
-$(".editNavBack, .trashCan, .editTabs").on("pointerdown.resetEditor", () => {
-    $(".addButtons").css("display", "")
-    $(".sideBar").off("pointerup.setEdit pointermove.setEdit")
-    $(".editNavButtons").css("display", "none")
-    setCornerBorder(0, 0, 0, 0, 0, true)
-    $(".allComponentOptions").css("display", "none")
-    $(".specificComponent").css("display", "none")
-    $(".editSidebar").css("display", "none")
-    $(".ioComponents").css("display", "none")
-    $(".outputComponents").css("display", "none")
+// 
+bindEditorResetter($(".editNavBack, .trashCan, .editTabs, .tab, .addTab, .tabCreator"))
 
-    $("." + $(".sideBarUnderline").attr("data-sidebarClass")).css("display", "flex")
+function bindEditorResetter(element) {
+    element.on("pointerdown.resetEditor", () => {
+        $(".addButtons").css("display", "")
+        $(".sideBar").off("pointerup.setEdit pointermove.setEdit")
+        $(".editNavButtons").css("display", "none")
+        setCornerBorder(0, 0, 0, 0, 0, true)
+        $(".allComponentOptions").css("display", "none")
+        $(".specificComponent").css("display", "none")
+        $(".editSidebar").css("display", "none")
+        $(".ioComponents").css("display", "none")
+        $(".outputComponents").css("display", "none")
 
+        $("." + $(".sideBarUnderline").attr("data-sidebarClass")).css("display", "flex")
 
-})
+        $(".currentDrag").remove()
+        $(".feauxComponent").remove()
+        $("*").off("pointermove.dragComponent").off("pointerup.dragComponent").off("pointerdown.dragComponent")
+    })
+}
+
+function bindTabChanger(element) {
+    element.on("pointerdown ", (event) => {
+        let $ct = $(event.currentTarget)
+        $(".page, .pageF").css("display", "none")
+        $(".tab").removeClass("currentTab").css("background-color", "rgb(12, 12, 12)")
+        $ct.addClass("currentTab").css("background-color", "rgb(32, 32, 32)")
+        if ($ct.attr("data-displaytype") == null) {
+            $($ct.attr("data-page")).css("display", "grid")
+        } else {
+            $($ct.attr("data-page")).css("display", $ct.attr("data-displaytype"))
+
+        }
+
+        let currentPage$ = $($ct.attr("data-page"))
+
+        setGridInput(currentPage$)
+        if (!$($ct.attr("data-page")).hasClass("pageF")) {
+            tabGrid(parseFloat(currentPage$.attr("columns")), parseFloat(currentPage$.attr("rows")), currentPage$)
+        }
+
+    })
+}
 
 function bindEditMenu(element, valueType, specificClass = false) {
 
@@ -3025,7 +3115,7 @@ function captureMJPEG(cameraComponent) {
 
         mediaRecorder.onstop = () => {
             let blob = new Blob(recordedBlob, {
-                type: 'video/mp4' //TODO: unhardcode this let the ppl use mp4 if they want fr
+                type: 'video/mp4' //TODO: unhardcode this let the ppl use mp4 if they want 
             })
 
             let downloadUrl = URL.createObjectURL(blob)
@@ -3033,7 +3123,7 @@ function captureMJPEG(cameraComponent) {
             let filename = cameraComponent.attr("data-usTimestamp") + "" + cameraComponent.attr("data-streamTopic")
 
             let $a = $("<a>").css("display", "none").attr("href", downloadUrl)
-            $a[0].download = "video.mp4"//TODO: unhardcode this let the ppl use mp4 if they want fr
+            $a[0].download = "video.mp4"//TODO: unhardcode this let the ppl use mp4 if they want 
 
             $("body").append($a)
 
@@ -3401,34 +3491,18 @@ function loadLayoutFromJson(json) {
     for (let tab in json) {
         let components = json[tab].components;
 
-        $("<div>").addClass("tab")
+        let $loadedTab = $("<div>").addClass("tab")
             .css("background-color", $(".fullScreen").css("background-color"))
             .addClass("tabConnection")
             .addClass("userTab")
             .attr("data-page", tab)
             .text(json[tab].tabTitle)
-            .insertBefore(".connectionText")
-            .on("pointerdown ", (event) => {
-                let $ct = $(event.currentTarget)
-                $(".page, .pageF").css("display", "none")
-                $(".tab").removeClass("currentTab").css("background-color", "rgb(12, 12, 12)")
-                $ct.addClass("currentTab").css("background-color", "rgb(32, 32, 32)")
-                if ($ct.attr("data-displaytype") == null) {
-                    $($ct.attr("data-page")).css("display", "grid")
-                } else {
-                    $($ct.attr("data-page")).css("display", $ct.attr("data-displaytype"))
+            .insertBefore(".tabCreator")
 
-                }
-
-                let currentPage$ = $($ct.attr("data-page"))
-                if (!$($ct.attr("data-page")).hasClass("pageF")) {
-                    tabGrid(parseFloat(currentPage$.attr("columns")), parseFloat(currentPage$.attr("rows")), currentPage$)
-                    setGridInput(currentPage$)
-                }
-
-            })
 
         // <div class="uiTestTab page" style="display: grid;">/
+        bindEditorResetter($loadedTab)
+        bindTabChanger($loadedTab)
 
         let page$ = $("<div>").addClass("page").addClass(tab.slice(1)).css("display", "grid").attr("rows", json[tab].tabRows).attr("columns", json[tab].tabColumns).insertAfter(".autonomus")
 
@@ -3605,33 +3679,178 @@ function makeComponentFromJson(component) {
     }
 }
 
+$(".addTab").on("pointerdown.addTab", () => {
+    $(".tabCreator").toggleClass("tabCreatorOpen")
+    if (!$(".tabCreator").hasClass("tabCreatorOpen")) {
+        $(".tabCreator").css("overflow-x", "hidden")
+        $(".addTab").text("+").css("font-size", "").css("line-height", "")
+    }
+    setTimeout(() => {
+        if ($(".tabCreator").hasClass("tabCreatorOpen")) {
+            $(".tabCreator").css("overflow-x", "initial")
+            $(".addTab").text("✗").css("font-size", "4cqh").css("line-height", "6cqh")
+
+        }
+    }, 300);
+})
+
+$(".tabCreatorForm").on("submit", () => {
+
+    let name = $(".nameInput").val()
+    let tab = $(".nameInput").val().replace(/[^a-zA-Z]/g, '-') + "B" + Math.random().toString().slice(2)
+
+    console.log(name, tab)
+
+    let $ct = $("<div>").addClass("tab")
+        .addClass("tabsEditActivated")
+        .css("background-color", $(".fullScreen").css("background-color"))
+        .addClass("tabConnection")
+        .addClass("userTab")
+        .attr("data-page", "." + tab)
+        .text(name)
+        .insertBefore(".tabCreator")
 
 
-// case "actionButton":
-//     return createActionButton("Action Button", topic, append)
-// case "oneShotButton":
-//     return createOneShotButton("One Shot Button", topic, append)
-// case "toggleButton":
-//     return createToggleButton("Toggle Button", topic, append)
-// case "axis":
-//     return createAxis("Axis", topic, append, false).div
-// case "verticalAxis":
-//     return createAxis("Y-Axis", topic, append, true).div
-// case "select":
-//     return createDropdown(topic, append, 0, 0, [{ name: "Dropdown", value: "" }]).div
-// case "buttonOptGroup":
-//     return createOptGroup(topic, append, 0, 0, []).div
-// case "numberComponent":
-//     return createNumberComponent("Number", topic, append).div
-// case "basicSubscription":
-//     return createBasicSubscription(undefined, topic, append)
-// case "basicLogger":
-//     return createBasicLogger(undefined, topic, append)
-// case "numberLine":
-//     return createNumberLine(undefined, topic, append)
-// case "radialGauge":
-//     return createRadialGauge(undefined, topic, append)
+    // <div class="uiTestTab page" style="display: grid;">/
+    bindEditorResetter($ct)
+    bindTabChanger($ct)
+
+    let currentPage$ = $("<div>").addClass("page").addClass(tab).css("display", "grid").attr("data-displaytype", "grid").attr("rows", "4").attr("columns", "9").insertAfter(".autonomus")
 
 
+    $(".page, .pageF").css("display", "none")
+    $(".tab").removeClass("currentTab").css("background-color", "rgb(12, 12, 12)")
+    $ct.addClass("currentTab").css("background-color", "rgb(32, 32, 32)")
+    if ($ct.attr("data-displaytype") == null) {
+        currentPage$.css("display", "grid")
+    } else {
+        currentPage$.css("display", $ct.attr("data-displaytype"))
+    }
 
-// {".uiTestTab":{"tabTitle":"Ui Test","tabRows":"5","tabColumns":"9","components":[{"type":"actionButton","row":"1","col":"1","endrow":"1","endcol":"2","area":"1 / 1 / 2 / 3","topic":"esc-UNDEFINED-esc","similarOptions":{"fill":true},"displayName":"The quick","color":"#00ff6e"},{"type":"oneShotButton","row":"2","col":"1","endrow":"2","endcol":"2","area":"2 / 1 / 3 / 3","topic":"esc-UNDEFINED-esc","similarOptions":{"fill":true},"displayName":"Brown Fox","color":"#ff00c8"},{"type":"toggleButton","row":"3","col":"1","endrow":"3","endcol":"2","area":"3 / 1 / 4 / 3","topic":"esc-UNDEFINED-esc","similarOptions":{"fill":true},"displayName":"Jumps over","color":"#ff0000"},{"type":"axis","row":"4","col":"1","endrow":"4","endcol":"3","area":"4 / 1 / 5 / 4","topic":"esc-UNDEFINED-esc","similarOptions":{"fill":true},"displayName":"the","color":"#e82c2c","min":"-1","max":"1","step":"0.1","value":"0"},{"type":"buttonOptGroup","row":"1","col":"4","endrow":"2","endcol":"4","area":"1 / 4 / 3 / 5","topic":"","similarOptions":{"fill":false},"componentOptions":"[{\"name\":\"Dog\",\"value\":\"fr\",\"color\":\"#bbff00\"},{\"name\":\"NGl\",\"value\":\"bro\",\"color\":\"#00ff9d\"}]"},{"type":"numberComponent","row":"3","col":"3","endrow":"3","endcol":"5","area":"3 / 3 / 4 / 6","topic":"esc-UNDEFINED-esc","similarOptions":{"fill":true},"displayName":"Im kinda pmo","step":"0.1","min":"-1","max":"1","value":"1","persist":""},{"type":"basicSubscription","row":"1","col":"6","endrow":"1","endcol":"9","area":"1 / 6 / 2 / 10","topic":"/DriveState/OdometryFrequency","similarOptions":{"fill":true},"displayName":"OdometryFrequency","color":"#00aaff"},{"type":"basicLogger","row":"6","col":"8","endrow":"3","endcol":"9","area":"6 / 8 / 3 / 10","topic":"/DriveState/Timestamp","similarOptions":"{\"fill\":true}","displayName":"Crazy work","color":"#4700cc"},{"type":"radialGauge","row":"4","col":"4","endrow":"5","endcol":"6","area":"4 / 4 / 6 / 7","topic":"/DriveState/OdometryFrequency","similarOptions":{"fill":true},"displayName":"OdometryFrequency","color":"#ff00dd","maxDeg":"270","offsetDeg":"-45","low":"245","high":"255","optimum":"250"},{"type":"numberLine","row":"2","col":"6","endrow":"2","endcol":"7","area":"2 / 6 / 3 / 8","topic":"/DriveState/OdometryFrequency","similarOptions":"{\"fill\":false}","displayName":"ODOM","color":"#f50000","min":"0","max":"252"},{"type":"select","row":"5","col":"1","endrow":"5","endcol":"3","area":"5 / 1 / 6 / 4","topic":"esc-UNDEFINED-esc","similarOptions":"\"{\\\"fill\\\":true}\"","componentOptions":"[{\"name\":\"lazy\",\"value\":\"4\",\"color\":\"#8cff00\"}]"}]}}
+    tabGrid(parseFloat(currentPage$.attr("columns")), parseFloat(currentPage$.attr("rows")), currentPage$)
+    setGridInput(currentPage$)
+
+    $(".tabCreator").removeClass("tabCreatorOpen")
+
+    $(".tabCreator").css("overflow-x", "hidden")
+    $(".nameInput").val("")
+    $(".addTab").text("+").css("font-size", "").css("line-height", "")
+
+    return false
+})
+
+$(".nameInput").on("invalid", (event) => {
+    event.preventDefault()
+    $(".tabCreator").removeClass("tabCreatorOpen")
+
+    $(".tabCreator").css("overflow-x", "hidden")
+    $(".nameInput").val("")
+    $(".addTab").text("+").css("font-size", "").css("line-height", "")
+})
+
+$(".nameInput").on("input", () => {
+    if ($(".nameInput").val().length > 0) {
+        $(".addTab").text("✓")
+    } else {
+        $(".addTab").text("✗")
+    }
+})
+
+
+// let tabDragInfo = {
+//     initialY: 0,
+//     currentY: 0,
+//     phased: false,
+//     margined: false,
+// }
+
+// handleTabDrag()
+
+// function handleTabDrag() {
+
+//     $(".manager").on("pointermove.drag", (event) => {
+//         if (!tabDragInfo.phased) return
+
+//         tabDragInfo.phased.css("top", event.pageY - vh(4.5 / 2) + "px")
+//     })
+
+//     $(".manager").on("pointerup.sidebarDrag pointerleave.sidebarDrag", (event) => {
+//         tabDragInfo = {
+//             initialY: 0,
+//             currentY: 0,
+//             phased: false,
+//             margined: false,
+//         }
+//         $(".sidebarOption").css("transition-duration", "").css("top", "")
+//         $(".optionAdder").css("transition-duration", "")
+//         $(".marginedOption").removeClass("marginedOption")
+//         $(".phasedOption").removeClass("phasedOption")
+//     })
+// }
+
+// function addTabDragHandler($element) {
+//     $element.children(".ham").off("pointerdown.startDrag").on("pointerdown.startDrag", (event) => {
+
+//         //i was like, you know what, ima not use event.current target, ima use $element inside the lambda like a normal person
+//         //and guess what
+//         //it would select like half the elements in the div
+//         //currenttarget my beloved 
+
+//         let $pr = $(event.currentTarget).parent()
+
+//         tabDragInfo.phased = $pr
+
+//         $pr.addClass('phasedOption').css("top", event.pageY - vh(4.5 / 2) + "px")
+
+//         tabDragInfo.margined = $pr.next()
+
+//         tabDragInfo.margined.addClass("marginedOption").offset()
+
+//         $(".sidebarOption").css("transition-duration", "300ms")
+//         $(".optionAdder").css("transition-duration", "300ms")
+//     })
+
+//     $element.off("pointermove.drag").on("pointermove.drag", (event) => {
+//         let $hov = $(document.elementsFromPoint(event.pageX, event.pageY)).not(".phasedOption").filter(".sidebarOption, .optionAdder").eq(0)
+
+//         if (!tabDragInfo.phased) return
+
+//         tabDragInfo.phased.css("top", event.pageY - vh(4.5 / 2) + "px")
+
+//         if ($hov.is(tabDragInfo.phased.prev())) {
+//             if ($hov.hasClass("marginedOption") || $hov.hasClass("transitioning")) {
+//                 return
+//             }
+
+//             if ($hov.hasClass("sidebarOption") || $hov.hasClass("optionAdder")) {
+//                 let transitioner = $(".marginedOption").removeClass("marginedOption").addClass("transitioning")
+
+//                 setTimeout(() => {
+//                     transitioner.removeClass("transitioning")
+//                 }, 300);
+
+//                 $hov.addClass("marginedOption")
+
+//                 tabDragInfo.phased.insertBefore($hov)
+//             }
+//         } else {
+//             if ($hov.next().hasClass("marginedOption") || $hov.next().hasClass("transitioning")) {
+//                 return
+//             }
+
+//             if ($hov.hasClass("sidebarOption") || $hov.hasClass("optionAdder")) {
+//                 let transitioner = $(".marginedOption").removeClass("marginedOption").addClass("transitioning")
+
+//                 setTimeout(() => {
+//                     transitioner.removeClass("transitioning")
+//                 }, 300);
+
+//                 $hov.next().addClass("marginedOption")
+
+//                 tabDragInfo.phased.insertAfter($hov)
+
+//             }
+//         }
+//     })
+
+// }

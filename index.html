@@ -29,7 +29,7 @@ SOFTWARE. -->
     <base href="." />
     <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
     <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover, minimum-scale=1">
-    
+
     <title>Touchboard</title>
     <link rel="stylesheet" href="./css/style.css">
     <script src="./lib/jquery.js"></script>
@@ -40,11 +40,22 @@ SOFTWARE. -->
     <div class="dashboardHolder">
         <div class="tabNav">
             <!-- Insert tab buttons after this or between existing buttons after here -->
-            <div class="tab autoTab currentTab" data-page=".autonomus" >PosePlotter</div>
+            <div class="tabManager">☰</div>
+
+            <div class="tab autoTab currentTab" data-page=".autonomus">PosePlotter</div>
+            <div class="tabCreator">
+                <form class="tabCreatorForm">
+                    <input type="text" placeholder="New Tab Name" required maxlength="12" class="nameInput">
+                    <input type="submit" class="feauxSubmit">
+                </form>
+            </div>
+
+
+            <div class="addTab">+</div>
 
             <!-- <div class="tab tabConnection" data-page=".jukeBox">Jukebox</div> -->
 
- <!-- <div class="tab tabConnection currentTab userTab" data-page=".uiTestTab">Ui Test</div> -->
+            <!-- <div class="tab tabConnection currentTab userTab" data-page=".uiTestTab">Ui Test</div> -->
 
             <p class="connectionText">Offline</p>
             <label class="switch">
@@ -69,8 +80,60 @@ SOFTWARE. -->
             <p class="simHint">Use localhost for simulator</p>
             <input type="button" class="setTeam" value="Set">
             <p class="version">Developed by Tigerbots 2183, Touchboard Version 2.0.0 </p>
-
         </div>
+
+        <!-- <div class="manager">
+            <div class="titleBar">
+                <div class="tabManager">☰</div>
+                <h1>Tabs</h1>
+            </div>
+
+            <h1 class="sectionTitle onlyOnEdit">Visible</h1>
+
+            <div class="visible">
+                <div class="sideTab">
+                    <h1 class="ham onlyOnEdit">☰</h1>
+                    <h1 class="tabName">PosePlotter</h1>
+                    <h1 class="removeTab onlyOnEdit">❌</h1>
+                </div>
+                <div class="sideTab">
+                    <h1 class="ham onlyOnEdit">☰</h1>
+                    <h1 class="tabName">PosePlotter</h1>
+                    <h1 class="removeTab onlyOnEdit">❌</h1>
+                </div>
+            </div>
+
+            <h1 class="sectionTitle onlyOnEdit">Minimized</h1>
+
+            <div class="minimized">
+                <div class="sideTab">
+                    <h1 class="ham onlyOnEdit">☰</h1>
+                    <h1 class="tabName">PosePlotter</h1>
+                    <h1 class="removeTab onlyOnEdit">❌</h1>
+                </div>
+                <div class="sideTab">
+                    <h1 class="ham onlyOnEdit">☰</h1>
+                    <h1 class="tabName">PosePlotter</h1>
+                    <h1 class="removeTab onlyOnEdit">❌</h1>
+                </div>
+            </div>
+
+
+            <h1 class="sectionTitle onlyOnEdit">Hidden</h1>
+
+            <div class="hidden onlyOnEdit">
+                <div class="sideTab">
+                    <h1 class="ham onlyOnEdit">☰</h1>
+                    <h1 class="tabName">PosePlotter</h1>
+                    <h1 class="removeTab onlyOnEdit">❌</h1>
+                </div>
+                <div class="sideTab">
+                    <h1 class="ham onlyOnEdit">☰</h1>
+                    <h1 class="tabName">PosePlotter</h1>
+                    <h1 class="removeTab onlyOnEdit">❌</h1>
+                </div>
+            </div>
+        </div> -->
 
         <div class="autonomus pageF" style="display: grid;">
 
@@ -240,7 +303,7 @@ SOFTWARE. -->
             </div>
         </div>
 
- <!-- <div class="uiTestTab page" style="display: grid;"></div> -->
+        <!-- <div class="uiTestTab page" style="display: grid;"></div> -->
 
         <div class="jukeBox pageF">
             <div class="songSelector">
@@ -274,7 +337,7 @@ SOFTWARE. -->
         </div>
 
 
-       
+
     </div>
     <!-- Insert tabs before this or between existing tabs before here -->
 
@@ -311,8 +374,8 @@ SOFTWARE. -->
             </div> -->
 
             <!-- The value that is sent to the bot is defined in the select option data-value, the text is displayed on the ui -->
-            <div class="select sideBarSelect" data-value="points" data-topic="DropdownTest" data-type="string">
-                <h1 class="selectTitle">Points</h1>
+            <div class="select sideBarSelect" data-value="Dropdown" data-topic="DropdownTest" data-type="string">
+                <h1 class="selectTitle">Dropdown</h1>
 
             </div>
 
@@ -332,7 +395,7 @@ SOFTWARE. -->
                 data-persist="true">
                 <p class="numberTitle editThisText">Number</p>
                 <button class="numberMinus animatedButton">-</button>
-                <input class="numberTextInput" type="number" value="0"> <!-- value must match data-value -->
+                <input class="numberTextInputComponent" type="number" value="0"> <!-- value must match data-value -->
                 <button class="numberPlus animatedButton">+</button>
             </div>
 
@@ -755,16 +818,16 @@ SOFTWARE. -->
     </div>
 
     <div class="bottomBar">
-        <div class="numberInput setGridRow" data-topic='TestAdder' data-step="1" data-min="1" data-max="100"
-            style="grid-area: R;" data-value="4">
+        <div class="numberInput setGridRow setGrid hiddenClickless" data-step="1" data-min="1" data-max="100" style="grid-area: R;"
+            data-value="4">
             <p class="numberInputTitle">Rows:</p>
             <button class="numberMinus animatedButton">-</button>
             <input class="numberTextInput" type="number" value="4"> <!-- value must match data-value -->
             <button class="numberPlus animatedButton">+</button>
         </div>
 
-        <div class="numberInput setGridColumn" data-topic='TestAdder' data-type="double" data-step="1" data-min="1"
-            data-max="100" style="grid-area: C;" data-value="9">
+        <div class="numberInput setGridColumn setGrid hiddenClickless" data-type="double" data-step="1" data-min="1" data-max="100"
+            style="grid-area: C;" data-value="9">
             <p class="numberInputTitle">Cols:</p>
             <button class="numberMinus animatedButton">-</button>
             <input class="numberTextInput" type="number" value="9"> <!-- value must match data-value -->
@@ -776,6 +839,8 @@ SOFTWARE. -->
             <p>Retain Similar Properties</p>
             <input type="checkbox" checked>
         </div>
+
+
 
         <button class="trashCan">🗑</button>
     </div>

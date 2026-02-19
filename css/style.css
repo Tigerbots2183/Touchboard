@@ -47,6 +47,8 @@ body {
         "B S";
 }
 
+
+
 .bodyEdit {
     grid-template-rows: 80%;
     grid-template-columns: 80%;
@@ -144,6 +146,7 @@ body {
     grid-template-areas:
         "R 🗑 ⚙"
         "C 🗑 ⚙";
+    grid-template-columns: 35vmin fit-content auto;
 }
 
 
@@ -468,6 +471,8 @@ foreignObject input[type=range]::-webkit-slider-thumb {
     text-align: center;
     text-overflow: clip;
 }
+
+
 
 .numberPlus {
     grid-area: P;
@@ -1153,6 +1158,19 @@ input[type=number] {
 
 }
 
+.numberTextInputComponent {
+    grid-area: T;
+    border: black solid 0.25vmin;
+    height: 4.5vmin;
+    color: white;
+    line-height: 4.5vmin;
+    font-size: 4vmin;
+    width: 10vmin;
+    background-color: rgb(24, 24, 24);
+    text-align: center;
+    text-overflow: clip;
+}
+
 @container dashboardHolder (width > 0px) {
     .tabNav {
         position: absolute;
@@ -1215,8 +1233,8 @@ input[type=number] {
         border: none;
         font-size: 5cqh;
         line-height: 7cqh;
-        border-top-right-radius: 3cqh ;
-        border-top-left-radius: 3cqh ;
+        border-top-right-radius: 3cqh;
+        border-top-left-radius: 3cqh;
 
         border-bottom-right-radius: 0cqh;
         border-bottom-left-radius: 0cqh;
@@ -1224,10 +1242,126 @@ input[type=number] {
         height: 7cqh;
         overflow: hidden;
         text-overflow: ellipsis;
-        transition: border-bottom-right-radius 300ms ease, border-bottom-left-radius 300ms ease;
+        transition: border-bottom-right-radius 300ms ease, border-bottom-left-radius 300ms ease, opacity 300ms ease;
     }
 
-   
+    .addTab {
+        background-color: rgb(128, 32, 32);
+        color: white;
+        /* padding-inline: 1cqw; */
+        text-align: center;
+        flex-shrink: 0;
+        margin-left: 1cqh;
+        width: 6cqh;
+        margin-top: 0.5cqh;
+        border: none;
+        font-size: 6cqh;
+        line-height: 5.85cqh;
+        border-top-right-radius: 3cqh;
+        border-top-left-radius: 3cqh;
+        display: block;
+        border-bottom-right-radius: 3cqh;
+        border-bottom-left-radius: 3cqh;
+        height: 6cqh;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        transition: opacity 300ms ease;
+        opacity: 0%;
+        pointer-events: none;
+    }
+
+    .tabManager{
+        background-color: rgb(128, 32, 32);
+        color: white;
+        /* padding-inline: 1cqw; */
+        text-align: center;
+        flex-shrink: 0;
+        margin-inline: 1cqh;
+        width: 6cqh;
+        margin-top: 0.5cqh;
+        border: none;
+        font-size: 4cqh;
+        line-height: 6cqh;
+        border-top-right-radius: 3cqh;
+        border-top-left-radius: 3cqh;
+        display: block;
+        border-bottom-right-radius: 3cqh;
+        border-bottom-left-radius: 3cqh;
+        height: 6cqh;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        transition: opacity 300ms ease;
+    }
+
+    .tabCreator {
+        background-color: rgb(128, 32, 32);
+        color: white;
+        padding-inline: 0cqw;
+        border: none;
+        font-size: 5cqh;
+        line-height: 7cqh;
+        width: 0cqw;
+        border-top-right-radius: 3cqh;
+        border-top-left-radius: 3cqh;
+        border-bottom-right-radius: 3cqh;
+        border-bottom-left-radius: 3cqh;
+        /* display: none; */
+        height: 7cqh;
+        overflow-y: hidden;
+        overflow: initial;
+
+        overflow-x: hidden;
+        text-overflow: ellipsis;
+        transition: padding-inline 300ms ease, width 300ms ease;
+
+    }
+
+    .tabCreatorOpen {
+        width: 11.25cqw;
+        padding-inline: 0.5cqw;
+
+    }
+
+    .tabCreatorForm {
+        width: 11.25cqw;
+
+        padding: 0px;
+        margin: 0px;
+        height: 7cqh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: initial;
+        align-content: center;
+        justify-items: center;
+    }
+
+    .nameInput {
+
+        outline: 0vh;
+        appearance: none;
+        background-color: black;
+        border: white 0.2vh solid;
+        height: 5cqh;
+        color: white;
+        font-size: 3cqh;
+        width: 10cqw;
+        border-radius: 2.2cqh;
+        /* margin-top: .05vh; */
+        /* margin-bottom: .05vh; */
+        padding: 0px;
+        padding-inline: .5cqw;
+    }
+
+    .feauxSubmit {
+        opacity: 0%;
+        position: absolute;
+        right: -9cqh;
+        height: 7cqh;
+        width: 8cqh;
+        z-index: 4;
+    }
 
     .currentTab {
         background-color: rgb(128, 32, 32);
@@ -1236,8 +1370,8 @@ input[type=number] {
         border: none;
         font-size: 5cqh;
         line-height: 7cqh;
-                border-top-right-radius: 3cqh ;
-        border-top-left-radius: 3cqh ;
+        border-top-right-radius: 3cqh;
+        border-top-left-radius: 3cqh;
 
         border-bottom-right-radius: 0cqh;
         border-bottom-left-radius: 0cqh;
@@ -1245,14 +1379,8 @@ input[type=number] {
         overflow: hidden;
 
     }
- .tabsEditActivated{
-          border-top-right-radius: 3cqh ;
-        border-top-left-radius: 3cqh ;
 
-        border-bottom-right-radius: 3cqh;
-        border-bottom-left-radius: 3cqh;
 
-    }
 
 
     .connectionText {
@@ -1347,6 +1475,18 @@ input[type=number] {
 
     .tabConnection {
         opacity: 0.25;
+    }
+
+    .tabsEditActivated {
+        opacity: 100%;
+        border-top-right-radius: 3cqh;
+        border-top-left-radius: 3cqh;
+        display: block;
+        pointer-events: all;
+
+        border-bottom-right-radius: 3cqh;
+        border-bottom-left-radius: 3cqh;
+
     }
 
     .orderHolder {
@@ -1761,7 +1901,7 @@ input[type=number] {
         max-height: 93cqh;
         align-content: center;
         justify-content: center;
-        background-color: rgb(32,32,32);        
+        background-color: rgb(32, 32, 32);
         /* justify-items: center;
         align-items: center; */
     }
@@ -2340,7 +2480,7 @@ input[type=number] {
 
     .basicLoggerValues {
         overflow-y: scroll;
-        
+
         grid-area: V;
         height: calc(100% - 5cqh);
 
@@ -3540,7 +3680,7 @@ meter:not([value]) {
     background-color: rgb(0, 0, 0, 0);
     border: none;
     color: white;
-    font-size: 8vh;
+    font-size: 8vmin;
     width: auto;
 }
 
@@ -3641,6 +3781,7 @@ meter:not([value]) {
 
 .sideBarNav h1 {
     width: 40%;
+    min-width: 10vh;
     text-align: center;
     padding: 1%;
     user-select: none;
@@ -3863,7 +4004,6 @@ meter:not([value]) {
     font-family: "Arial Unicode MS";
     border: none;
     background-color: transparent;
-    margin-top: -0.3vh;
 }
 
 .trashOption {
@@ -4155,4 +4295,199 @@ meter:not([value]) {
     background-color: #0E7C10;
     height: 3vh;
     width: 33.333%;
+}
+
+.hiddenClickless {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.visibilitySwitch {
+    grid-area: V;
+}
+
+.setGrid .numberInputTitle {
+    width: 12vmin;
+    line-height: 5vmin;
+    font-size: 4vmin;
+}
+
+
+
+
+@media (max-aspect-ratio: 4/3) {
+    body {
+        width: 100%;
+        box-sizing: border-box;
+        height: 100%;
+        margin: 0px;
+        padding: 0px;
+        overflow: hidden;
+        border-radius: 0 0 3vh 3vh;
+        display: grid;
+        grid-template-columns: 100%;
+        transition: all 300ms ease;
+        grid-template-rows: 100%;
+        grid-template-areas:
+            "D S"
+            "B B";
+    }
+
+    .sideBarNav h1 {
+        width: 40%;
+        min-width: 10vh;
+        text-align: center;
+        padding: 1%;
+        user-select: none;
+        padding-top: 5%;
+        padding-bottom: 5%;
+        font-size: 2vh;
+        /* background-color: rgb(32, 32, 32); */
+    }
+
+    .bodyEdit {
+        grid-template-rows: 85%;
+        grid-template-columns: 80%;
+
+    }
+
+    .bottomBar {
+        border-top: rgb(5, 5, 5) solid 0.5vw;
+        background-color: rgb(18, 18, 18);
+        width: 100%;
+        height: 15cqh;
+        grid-area: B;
+        align-items: center;
+        box-sizing: border-box;
+        justify-items: center;
+        display: grid;
+        grid-template-areas:
+            "R 🗑 ⚙"
+            "C 🗑 ⚙";
+        grid-template-columns: 35vmin fit-content auto;
+    }
+}
+
+@media (max-aspect-ratio: 9/16) {
+
+
+    .bodyEdit {
+        grid-template-rows: 90%;
+        grid-template-columns: 80%;
+
+    }
+
+    .bottomBar {
+        border-top: rgb(5, 5, 5) solid 0.5vw;
+        background-color: rgb(18, 18, 18);
+        width: 100%;
+        height: 10cqh;
+        grid-area: B;
+        align-items: center;
+        box-sizing: border-box;
+        justify-items: center;
+        display: grid;
+        grid-template-areas:
+            "R 🗑 ⚙"
+            "C 🗑 V";
+        grid-template-columns: 35vmin fit-content auto;
+    }
+}
+
+.manager {
+
+    position: absolute;
+    width: 50cqh;
+    height: 100cqh;
+    top: 0cqh;
+    left: 0;
+    background-color: rgba(12,12,12);
+    z-index: 3;
+    /* outline: .5vh #46009c solid; */
+    /* display: flex; */
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-content: space-evenly;
+    justify-content: start;
+    border-right: rgb(48,48,48) solid 0.5vh;
+}
+
+.titleBar{
+    display: flex;
+    height: 7cqh;
+
+    user-select: none;
+
+    width: 100%;
+    background-color: rgba(32,32,32);
+}
+
+.manager .sectionTitle{
+    color: rgb(168, 168, 168);
+    font-size: 5cqh;
+    user-select: none;
+
+    text-align: center;
+        padding-top: 1cqh;
+    font-weight: 100;
+    padding-bottom: 0.5cqh;
+    border-bottom: rgb(24,24,24) solid 0.5cqh;
+
+}
+
+.titleBar h1{
+    font-size: 4cqh;
+    color: white;
+    line-height: 7cqh;
+    height: 7cqh;
+}
+
+.sideTab{
+    height: 5cqh;
+    width: 100%;
+    padding-top: 0.5cqh;
+    padding-bottom: 0.5cqh;
+
+    user-select: none;
+
+    border-bottom: rgb(24,24,24) solid 0.5cqh;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: space-between;
+}
+
+.ham{
+    width: 5cqh;
+    height: 5cqh;
+    line-height: 5cqh;
+    text-align: center;
+    color: white;
+    font-size: 4cqh;
+}
+
+.removeTab{
+    font-size: 3cqh;
+       height: 5cqh;
+    text-align: center;
+    line-height: 5cqh;
+    width: 5cqh;
+}
+
+.tabName{
+    color: white;
+    font-size: 4cqh;
+    height: 5cqh;
+    line-height: 5cqh;
+    width: 39cqh;
+    padding-left: 1cqh;
+}
+
+.onlyOnEdit{
+    display: none;
+}
+
+.onlyEditShowing{
+    display: initial;
 }
