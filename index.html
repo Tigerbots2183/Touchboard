@@ -42,7 +42,7 @@ SOFTWARE. -->
             <!-- Insert tab buttons after this or between existing buttons after here -->
             <div class="tabManager">☰</div>
 
-            <div class="tab autoTab currentTab" data-page=".autonomus">PosePlotter</div>
+            <div class="tab autoTab currentTab pTABautonomus" data-page=".autonomus">PosePlotter</div>
             <div class="tabCreator">
                 <form class="tabCreatorForm">
                     <input type="text" placeholder="New Tab Name" required maxlength="12" class="nameInput">
@@ -88,52 +88,18 @@ SOFTWARE. -->
                 <h1>Tabs</h1>
             </div>
 
-            <h1 class="sectionTitle onlyOnEdit">Visible</h1>
+            <h1 class="sectionTitle onlyOnEdit immoveable" data-classset="tabVisible">Visible</h1>
 
-            <div class="visible classificationTab">
-                <div class="sideTab">
-                    <h1 class="ham onlyOnEdit">☰</h1>
-                    <h1 class="tabName">PosePlotter</h1>
-                    <h1 class="removeTab onlyOnEdit">❌</h1>
-                </div>
-                <div class="sideTab">
-                    <h1 class="ham onlyOnEdit">☰</h1>
-                    <h1 class="tabName">PosePlotter</h1>
-                    <h1 class="removeTab onlyOnEdit">❌</h1>
-                </div>
-                <!-- Placed here to help with drag -->
-                <h1 class="sectionTitle onlyOnEdit">Minimized</h1>
-
+            <div class="sideTab sTABautonomus" data-page=".autonomus">
+                <h1 class="ham onlyOnEdit">☰</h1>
+                <h1 class="tabName">PosePlotter</h1>
+                <h1 class="removeTab onlyOnEdit">❌</h1>
             </div>
+          
+            <h1 class="sectionTitle onlyOnEdit titleMinimized" data-classset="tabMinimized">Minimized</h1>
 
-            <div class="minimized classificationTab">
-                <div class="sideTab">
-                    <h1 class="ham onlyOnEdit">☰</h1>
-                    <h1 class="tabName">PosePlotter</h1>
-                    <h1 class="removeTab onlyOnEdit">❌</h1>
-                </div>
-                <div class="sideTab">
-                    <h1 class="ham onlyOnEdit">☰</h1>
-                    <h1 class="tabName">PosePlotter</h1>
-                    <h1 class="removeTab onlyOnEdit">❌</h1>
-                </div>
+            <h1 class="sectionTitle onlyOnEdit" data-classset="tabHidden">Hidden</h1>
 
-                <h1 class="sectionTitle onlyOnEdit">Hidden</h1>
-
-            </div>
-
-            <div class="hidden classificationTab onlyOnEdit">
-                <div class="sideTab">
-                    <h1 class="ham onlyOnEdit">☰</h1>
-                    <h1 class="tabName">PosePlotter</h1>
-                    <h1 class="removeTab onlyOnEdit">❌</h1>
-                </div>
-                <div class="sideTab">
-                    <h1 class="ham onlyOnEdit">☰</h1>
-                    <h1 class="tabName">PosePlotter</h1>
-                    <h1 class="removeTab onlyOnEdit">❌</h1>
-                </div>
-            </div>
         </div>
 
         <div class="autonomus pageF" style="display: grid;">

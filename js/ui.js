@@ -36,6 +36,11 @@
 //Multiple topics may be bound to one component, but as of now they will NOT update each other.
 //So usage of multiple is not recommnded besides action and one shot buttons. 
 
+
+if (localStorage.getItem("layout")) {
+    loadLayoutFromJson(localStorage.getItem("layout"))
+}
+
 const MathUtils = {
 
     _getFactor(n1, n2) {
@@ -289,7 +294,6 @@ function addButtonToAnimate(jQueryReference) {
 //     }
 // })
 
-bindTabChanger($(".tab"))
 
 function oneShotAnimation(elemClass) {
     //runs as callback in case input not recieved
@@ -2577,10 +2581,16 @@ function bindEditorResetter(element) {
         $("*").off("pointermove.dragComponent").off("pointerup.dragComponent").off("pointerdown.dragComponent")
     })
 }
+bindTabChanger($(".tabNav"))
 
 function bindTabChanger(element) {
     element.on("pointerdown ", (event) => {
-        let $ct = $(event.currentTarget)
+        let $ct = $(event.target)
+
+        if (!$ct.hasClass("tab")) {
+            return
+        }
+
         $(".page, .pageF").css("display", "none")
         $(".tab").removeClass("currentTab").css("background-color", "rgb(12, 12, 12)")
         $ct.addClass("currentTab").css("background-color", "rgb(32, 32, 32)")
@@ -3495,14 +3505,15 @@ function loadLayoutFromJson(json) {
             .css("background-color", $(".fullScreen").css("background-color"))
             .addClass("tabConnection")
             .addClass("userTab")
+            .addClass("pTAB" + tab.slice(1))
             .attr("data-page", tab)
             .text(json[tab].tabTitle)
             .insertBefore(".tabCreator")
 
+        createSideTab(json[tab].tabTitle, tab)
 
         // <div class="uiTestTab page" style="display: grid;">/
         bindEditorResetter($loadedTab)
-        bindTabChanger($loadedTab)
 
         let page$ = $("<div>").addClass("page").addClass(tab.slice(1)).css("display", "grid").attr("rows", json[tab].tabRows).attr("columns", json[tab].tabColumns).insertAfter(".autonomus")
 
@@ -3706,14 +3717,15 @@ $(".tabCreatorForm").on("submit", () => {
         .css("background-color", $(".fullScreen").css("background-color"))
         .addClass("tabConnection")
         .addClass("userTab")
+        .addClass("pTAB" + tab)
         .attr("data-page", "." + tab)
         .text(name)
         .insertBefore(".tabCreator")
 
+    createSideTab(name, "." + tab)
 
     // <div class="uiTestTab page" style="display: grid;">/
     bindEditorResetter($ct)
-    bindTabChanger($ct)
 
     let currentPage$ = $("<div>").addClass("page").addClass(tab).css("display", "grid").attr("data-displaytype", "grid").attr("rows", "4").attr("columns", "9").insertAfter(".autonomus")
 
@@ -3771,7 +3783,7 @@ function handleTabDrag() {
     //phasedTab
     //marginedTab
     //transitioning
-    
+
     $(".manager").on("pointermove.drag", (event) => {
         if (!tabDragInfo.phased) return
 
@@ -3790,13 +3802,14 @@ function handleTabDrag() {
         $(".marginedTab").removeClass("marginedTab")
         $(".phasedTab").removeClass("phasedTab")
     })
-}
 
-function addTabDragHandler($element) {
-    $element.children(".ham").off("pointerdown.startDrag").on("pointerdown.startDrag", (event) => {
+    $(".manager").off("pointerdown.startDrag").on("pointerdown.startDrag", (event) => {
 
+        if (!$(event.target).hasClass("ham")) {
+            return
+        }
 
-        let $pr = $(event.currentTarget).parent()
+        let $pr = $(event.target).parent()
 
         tabDragInfo.phased = $pr
 
@@ -3810,17 +3823,15 @@ function addTabDragHandler($element) {
         $(".sectionTitle").css("transition-duration", "300ms")
     })
 
-    $element.off("pointermove.drag").on("pointermove.drag", (event) => {
+    $(".manager").off("pointermove.drag").on("pointermove.drag", (event) => {
         let $hov = $(document.elementsFromPoint(event.pageX, event.pageY)).not(".phasedTab").filter(".sideTab, .sectionTitle").eq(0)
-
-        console.log($(document.elementsFromPoint(event.pageX, event.pageY)).not(".phasedTab").filter(".sideTab, .sectionTitle"))
 
         if (!tabDragInfo.phased) return
 
         tabDragInfo.phased.css("top", event.pageY - vh(6.5 / 2) + "px")
 
         if ($hov.is(tabDragInfo.phased.prev())) {
-            if ($hov.hasClass("marginedTab") || $hov.hasClass("transitioning") || $hov.hasClass("classificationTab")) {
+            if ($hov.hasClass("marginedTab") || $hov.hasClass("transitioning") || $hov.hasClass("immoveable")) {
                 return
             }
 
@@ -3834,9 +3845,16 @@ function addTabDragHandler($element) {
                 $hov.addClass("marginedTab")
 
                 tabDragInfo.phased.insertBefore($hov)
+
+                $(".pTAB" + tabDragInfo.phased.attr("data-page").slice(1)).removeClass("tabVisible").removeClass("tabHidden").removeClass("tabMinimized").addClass(tabDragInfo.phased.prev(".sectionTitcle").attr("data-classset"))
+
+                if (!tabDragInfo.phased.hasClass("sectionTitle") && !$hov.hasClass("sectionTitle")) {
+
+                    $(".pTAB" + tabDragInfo.phased.attr("data-page").slice(1)).insertBefore($(".pTAB" + $hov.attr("data-page").slice(1)))
+                }
             }
         } else {
-            if ($hov.next().hasClass("marginedTab") || $hov.next().hasClass("transitioning")|| $hov.hasClass("classificationTab")) {
+            if ($hov.next().hasClass("marginedTab") || $hov.next().hasClass("transitioning") || $hov.hasClass("classificationTab")) {
                 return
             }
 
@@ -3851,11 +3869,44 @@ function addTabDragHandler($element) {
 
                 tabDragInfo.phased.insertAfter($hov)
 
+                $(".pTAB" + tabDragInfo.phased.attr("data-page").slice(1)).removeClass("tabVisible").removeClass("tabHidden").removeClass("tabMinimized").addClass(tabDragInfo.phased.prev(".sectionTitle").attr("data-classset"))
+
+                if (!tabDragInfo.phased.hasClass("sectionTitle") && !$hov.hasClass("sectionTitle")) {
+
+                    $(".pTAB" + tabDragInfo.phased.attr("data-page").slice(1)).insertAfter($(".pTAB" + $hov.attr("data-page").slice(1)))
+                }
+
             }
         }
     })
-
 }
 
-addTabDragHandler($(".sideTab"))
-addTabDragHandler($(".sectionTitle"))
+
+
+$(".tabManager").on("click", () => {
+    $(".manager").toggleClass("managerOpen")
+})
+
+
+function createSideTab(name, page) {
+    let div = $("<div>").addClass("sideTab").insertBefore(".titleMinimized").attr("data-page", page).addClass("sTAB" + page.slice(1))
+
+    let ham = $("<h1>").addClass("ham").addClass("onlyOnEdit").text("☰").appendTo(div)
+    $("<h1>").addClass("tabName").text(name).appendTo(div)
+    let x = $("<h1>").addClass("removeTab").addClass("onlyOnEdit").text("❌").appendTo(div)
+
+    if ($(".editTabs").hasClass("editingTabs")) {
+        ham.addClass("onlyEditShowing")
+        x.addClass("onlyEditShowing")
+
+    }
+}
+
+$(document).on('visibilitychange', () => {
+    if (document.visibilityState === "hidden") {
+        let layout = saveLayoutToJSON()
+
+        localStorage.setItem("layout", layout)
+    }
+
+})

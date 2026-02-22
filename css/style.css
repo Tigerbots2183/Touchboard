@@ -1285,6 +1285,7 @@ input[type=number] {
         border-top-right-radius: 3cqh;
         border-top-left-radius: 3cqh;
         display: block;
+        user-select: none;
         border-bottom-right-radius: 3cqh;
         border-bottom-left-radius: 3cqh;
         height: 6cqh;
@@ -4405,12 +4406,16 @@ meter:not([value]) {
     z-index: 3;
     /* outline: .5vh #46009c solid; */
     /* display: flex; */
-    display: flex;
+    display: none;
     flex-direction: column;
     flex-wrap: wrap;
     align-content: space-evenly;
     justify-content: start;
     border-right: rgb(48, 48, 48) solid 0.5vh;
+}
+
+.managerOpen{
+    display: flex;
 }
 
 .titleBar {
@@ -4437,7 +4442,7 @@ meter:not([value]) {
     width: 100%;
     padding-top: 0.5cqh;
     padding-bottom: 0.5cqh;
-
+    background-color: rgba(12,12,12,0.5);
     user-select: none;
     transition: margin-top ease;
 
@@ -4481,10 +4486,10 @@ meter:not([value]) {
     font-size: 5cqh;
     user-select: none;
     width: 100%;
-    text-align: center;
+    text-align: center; 
     padding-top: 1cqh;
     transition: margin-top ease;
-
+    height: 5cqh;
     display: block;
     font-weight: 100;
     padding-bottom: 0.5cqh;
@@ -4511,4 +4516,16 @@ meter:not([value]) {
     position: absolute;
     pointer-events: none;
     z-index: 2;
+}
+
+.tabHidden{
+    display: none;
+}
+
+.tabMinimized{
+    display: none;
+}
+
+.tabVisible{
+    display: initial;
 }
