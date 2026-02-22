@@ -82,7 +82,7 @@ SOFTWARE. -->
             <p class="version">Developed by Tigerbots 2183, Touchboard Version 2.0.0 </p>
         </div>
 
-        <!-- <div class="manager">
+        <div class="manager">
             <div class="titleBar">
                 <div class="tabManager">☰</div>
                 <h1>Tabs</h1>
@@ -90,7 +90,39 @@ SOFTWARE. -->
 
             <h1 class="sectionTitle onlyOnEdit">Visible</h1>
 
-            <div class="visible">
+            <div class="visible classificationTab">
+                <div class="sideTab">
+                    <h1 class="ham onlyOnEdit">☰</h1>
+                    <h1 class="tabName">PosePlotter</h1>
+                    <h1 class="removeTab onlyOnEdit">❌</h1>
+                </div>
+                <div class="sideTab">
+                    <h1 class="ham onlyOnEdit">☰</h1>
+                    <h1 class="tabName">PosePlotter</h1>
+                    <h1 class="removeTab onlyOnEdit">❌</h1>
+                </div>
+                <!-- Placed here to help with drag -->
+                <h1 class="sectionTitle onlyOnEdit">Minimized</h1>
+
+            </div>
+
+            <div class="minimized classificationTab">
+                <div class="sideTab">
+                    <h1 class="ham onlyOnEdit">☰</h1>
+                    <h1 class="tabName">PosePlotter</h1>
+                    <h1 class="removeTab onlyOnEdit">❌</h1>
+                </div>
+                <div class="sideTab">
+                    <h1 class="ham onlyOnEdit">☰</h1>
+                    <h1 class="tabName">PosePlotter</h1>
+                    <h1 class="removeTab onlyOnEdit">❌</h1>
+                </div>
+
+                <h1 class="sectionTitle onlyOnEdit">Hidden</h1>
+
+            </div>
+
+            <div class="hidden classificationTab onlyOnEdit">
                 <div class="sideTab">
                     <h1 class="ham onlyOnEdit">☰</h1>
                     <h1 class="tabName">PosePlotter</h1>
@@ -102,38 +134,7 @@ SOFTWARE. -->
                     <h1 class="removeTab onlyOnEdit">❌</h1>
                 </div>
             </div>
-
-            <h1 class="sectionTitle onlyOnEdit">Minimized</h1>
-
-            <div class="minimized">
-                <div class="sideTab">
-                    <h1 class="ham onlyOnEdit">☰</h1>
-                    <h1 class="tabName">PosePlotter</h1>
-                    <h1 class="removeTab onlyOnEdit">❌</h1>
-                </div>
-                <div class="sideTab">
-                    <h1 class="ham onlyOnEdit">☰</h1>
-                    <h1 class="tabName">PosePlotter</h1>
-                    <h1 class="removeTab onlyOnEdit">❌</h1>
-                </div>
-            </div>
-
-
-            <h1 class="sectionTitle onlyOnEdit">Hidden</h1>
-
-            <div class="hidden onlyOnEdit">
-                <div class="sideTab">
-                    <h1 class="ham onlyOnEdit">☰</h1>
-                    <h1 class="tabName">PosePlotter</h1>
-                    <h1 class="removeTab onlyOnEdit">❌</h1>
-                </div>
-                <div class="sideTab">
-                    <h1 class="ham onlyOnEdit">☰</h1>
-                    <h1 class="tabName">PosePlotter</h1>
-                    <h1 class="removeTab onlyOnEdit">❌</h1>
-                </div>
-            </div>
-        </div> -->
+        </div>
 
         <div class="autonomus pageF" style="display: grid;">
 
@@ -818,16 +819,16 @@ SOFTWARE. -->
     </div>
 
     <div class="bottomBar">
-        <div class="numberInput setGridRow setGrid hiddenClickless" data-step="1" data-min="1" data-max="100" style="grid-area: R;"
-            data-value="4">
+        <div class="numberInput setGridRow setGrid hiddenClickless" data-step="1" data-min="1" data-max="100"
+            style="grid-area: R;" data-value="4">
             <p class="numberInputTitle">Rows:</p>
             <button class="numberMinus animatedButton">-</button>
             <input class="numberTextInput" type="number" value="4"> <!-- value must match data-value -->
             <button class="numberPlus animatedButton">+</button>
         </div>
 
-        <div class="numberInput setGridColumn setGrid hiddenClickless" data-type="double" data-step="1" data-min="1" data-max="100"
-            style="grid-area: C;" data-value="9">
+        <div class="numberInput setGridColumn setGrid hiddenClickless" data-type="double" data-step="1" data-min="1"
+            data-max="100" style="grid-area: C;" data-value="9">
             <p class="numberInputTitle">Cols:</p>
             <button class="numberMinus animatedButton">-</button>
             <input class="numberTextInput" type="number" value="9"> <!-- value must match data-value -->

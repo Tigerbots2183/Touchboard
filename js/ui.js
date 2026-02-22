@@ -3757,100 +3757,105 @@ $(".nameInput").on("input", () => {
 })
 
 
-// let tabDragInfo = {
-//     initialY: 0,
-//     currentY: 0,
-//     phased: false,
-//     margined: false,
-// }
+let tabDragInfo = {
+    initialY: 0,
+    currentY: 0,
+    phased: false,
+    margined: false,
+}
 
-// handleTabDrag()
+handleTabDrag()
 
-// function handleTabDrag() {
+function handleTabDrag() {
 
-//     $(".manager").on("pointermove.drag", (event) => {
-//         if (!tabDragInfo.phased) return
+    //phasedTab
+    //marginedTab
+    //transitioning
+    
+    $(".manager").on("pointermove.drag", (event) => {
+        if (!tabDragInfo.phased) return
 
-//         tabDragInfo.phased.css("top", event.pageY - vh(4.5 / 2) + "px")
-//     })
+        tabDragInfo.phased.css("top", event.pageY - vh(6.5 / 2) + "px")
+    })
 
-//     $(".manager").on("pointerup.sidebarDrag pointerleave.sidebarDrag", (event) => {
-//         tabDragInfo = {
-//             initialY: 0,
-//             currentY: 0,
-//             phased: false,
-//             margined: false,
-//         }
-//         $(".sidebarOption").css("transition-duration", "").css("top", "")
-//         $(".optionAdder").css("transition-duration", "")
-//         $(".marginedOption").removeClass("marginedOption")
-//         $(".phasedOption").removeClass("phasedOption")
-//     })
-// }
+    $(".manager").on("pointerup.sidebarDrag pointerleave.sidebarDrag", (event) => {
+        tabDragInfo = {
+            initialY: 0,
+            currentY: 0,
+            phased: false,
+            margined: false,
+        }
+        $(".sideTab").css("transition-duration", "").css("top", "")
+        $(".sectionTitle").css("transition-duration", "")
+        $(".marginedTab").removeClass("marginedTab")
+        $(".phasedTab").removeClass("phasedTab")
+    })
+}
 
-// function addTabDragHandler($element) {
-//     $element.children(".ham").off("pointerdown.startDrag").on("pointerdown.startDrag", (event) => {
+function addTabDragHandler($element) {
+    $element.children(".ham").off("pointerdown.startDrag").on("pointerdown.startDrag", (event) => {
 
-//         //i was like, you know what, ima not use event.current target, ima use $element inside the lambda like a normal person
-//         //and guess what
-//         //it would select like half the elements in the div
-//         //currenttarget my beloved 
 
-//         let $pr = $(event.currentTarget).parent()
+        let $pr = $(event.currentTarget).parent()
 
-//         tabDragInfo.phased = $pr
+        tabDragInfo.phased = $pr
 
-//         $pr.addClass('phasedOption').css("top", event.pageY - vh(4.5 / 2) + "px")
+        $pr.addClass('phasedTab').css("top", event.pageY - vh(6.5 / 2) + "px")
 
-//         tabDragInfo.margined = $pr.next()
+        tabDragInfo.margined = $pr.next()
 
-//         tabDragInfo.margined.addClass("marginedOption").offset()
+        tabDragInfo.margined.addClass("marginedTab").offset()
 
-//         $(".sidebarOption").css("transition-duration", "300ms")
-//         $(".optionAdder").css("transition-duration", "300ms")
-//     })
+        $(".sideTab").css("transition-duration", "300ms")
+        $(".sectionTitle").css("transition-duration", "300ms")
+    })
 
-//     $element.off("pointermove.drag").on("pointermove.drag", (event) => {
-//         let $hov = $(document.elementsFromPoint(event.pageX, event.pageY)).not(".phasedOption").filter(".sidebarOption, .optionAdder").eq(0)
+    $element.off("pointermove.drag").on("pointermove.drag", (event) => {
+        let $hov = $(document.elementsFromPoint(event.pageX, event.pageY)).not(".phasedTab").filter(".sideTab, .sectionTitle").eq(0)
 
-//         if (!tabDragInfo.phased) return
+        console.log($(document.elementsFromPoint(event.pageX, event.pageY)).not(".phasedTab").filter(".sideTab, .sectionTitle"))
 
-//         tabDragInfo.phased.css("top", event.pageY - vh(4.5 / 2) + "px")
+        if (!tabDragInfo.phased) return
 
-//         if ($hov.is(tabDragInfo.phased.prev())) {
-//             if ($hov.hasClass("marginedOption") || $hov.hasClass("transitioning")) {
-//                 return
-//             }
+        tabDragInfo.phased.css("top", event.pageY - vh(6.5 / 2) + "px")
 
-//             if ($hov.hasClass("sidebarOption") || $hov.hasClass("optionAdder")) {
-//                 let transitioner = $(".marginedOption").removeClass("marginedOption").addClass("transitioning")
+        if ($hov.is(tabDragInfo.phased.prev())) {
+            if ($hov.hasClass("marginedTab") || $hov.hasClass("transitioning") || $hov.hasClass("classificationTab")) {
+                return
+            }
 
-//                 setTimeout(() => {
-//                     transitioner.removeClass("transitioning")
-//                 }, 300);
+            if ($hov.hasClass("sideTab") || $hov.hasClass("sectionTitle")) {
+                let transitioner = $(".marginedTab").removeClass("marginedTab").addClass("transitioning")
 
-//                 $hov.addClass("marginedOption")
+                setTimeout(() => {
+                    transitioner.removeClass("transitioning")
+                }, 300);
 
-//                 tabDragInfo.phased.insertBefore($hov)
-//             }
-//         } else {
-//             if ($hov.next().hasClass("marginedOption") || $hov.next().hasClass("transitioning")) {
-//                 return
-//             }
+                $hov.addClass("marginedTab")
 
-//             if ($hov.hasClass("sidebarOption") || $hov.hasClass("optionAdder")) {
-//                 let transitioner = $(".marginedOption").removeClass("marginedOption").addClass("transitioning")
+                tabDragInfo.phased.insertBefore($hov)
+            }
+        } else {
+            if ($hov.next().hasClass("marginedTab") || $hov.next().hasClass("transitioning")|| $hov.hasClass("classificationTab")) {
+                return
+            }
 
-//                 setTimeout(() => {
-//                     transitioner.removeClass("transitioning")
-//                 }, 300);
+            if ($hov.hasClass("sideTab") || $hov.hasClass("sectionTitle")) {
+                let transitioner = $(".marginedTab").removeClass("marginedTab").addClass("transitioning")
 
-//                 $hov.next().addClass("marginedOption")
+                setTimeout(() => {
+                    transitioner.removeClass("transitioning")
+                }, 300);
 
-//                 tabDragInfo.phased.insertAfter($hov)
+                $hov.next().addClass("marginedTab")
 
-//             }
-//         }
-//     })
+                tabDragInfo.phased.insertAfter($hov)
 
-// }
+            }
+        }
+    })
+
+}
+
+addTabDragHandler($(".sideTab"))
+addTabDragHandler($(".sectionTitle"))

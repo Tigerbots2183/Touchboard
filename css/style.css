@@ -1270,7 +1270,7 @@ input[type=number] {
         pointer-events: none;
     }
 
-    .tabManager{
+    .tabManager {
         background-color: rgb(128, 32, 32);
         color: white;
         /* padding-inline: 1cqw; */
@@ -4401,7 +4401,7 @@ meter:not([value]) {
     height: 100cqh;
     top: 0cqh;
     left: 0;
-    background-color: rgba(12,12,12);
+    background-color: rgba(12, 12, 12);
     z-index: 3;
     /* outline: .5vh #46009c solid; */
     /* display: flex; */
@@ -4410,55 +4410,45 @@ meter:not([value]) {
     flex-wrap: wrap;
     align-content: space-evenly;
     justify-content: start;
-    border-right: rgb(48,48,48) solid 0.5vh;
+    border-right: rgb(48, 48, 48) solid 0.5vh;
 }
 
-.titleBar{
+.titleBar {
     display: flex;
     height: 7cqh;
 
     user-select: none;
 
     width: 100%;
-    background-color: rgba(32,32,32);
+    background-color: rgba(32, 32, 32);
 }
 
-.manager .sectionTitle{
-    color: rgb(168, 168, 168);
-    font-size: 5cqh;
-    user-select: none;
 
-    text-align: center;
-        padding-top: 1cqh;
-    font-weight: 100;
-    padding-bottom: 0.5cqh;
-    border-bottom: rgb(24,24,24) solid 0.5cqh;
 
-}
-
-.titleBar h1{
+.titleBar h1 {
     font-size: 4cqh;
     color: white;
     line-height: 7cqh;
     height: 7cqh;
 }
 
-.sideTab{
+.sideTab {
     height: 5cqh;
     width: 100%;
     padding-top: 0.5cqh;
     padding-bottom: 0.5cqh;
 
     user-select: none;
+    transition: margin-top ease;
 
-    border-bottom: rgb(24,24,24) solid 0.5cqh;
+    border-bottom: rgb(24, 24, 24) solid 0.5cqh;
     display: flex;
     flex-wrap: wrap;
     align-content: center;
     justify-content: space-between;
 }
 
-.ham{
+.ham {
     width: 5cqh;
     height: 5cqh;
     line-height: 5cqh;
@@ -4467,15 +4457,15 @@ meter:not([value]) {
     font-size: 4cqh;
 }
 
-.removeTab{
+.removeTab {
     font-size: 3cqh;
-       height: 5cqh;
+    height: 5cqh;
     text-align: center;
     line-height: 5cqh;
     width: 5cqh;
 }
 
-.tabName{
+.tabName {
     color: white;
     font-size: 4cqh;
     height: 5cqh;
@@ -4484,10 +4474,41 @@ meter:not([value]) {
     padding-left: 1cqh;
 }
 
-.onlyOnEdit{
+
+
+.sectionTitle {
+    color: rgb(168, 168, 168);
+    font-size: 5cqh;
+    user-select: none;
+    width: 100%;
+    text-align: center;
+    padding-top: 1cqh;
+    transition: margin-top ease;
+
+    display: block;
+    font-weight: 100;
+    padding-bottom: 0.5cqh;
+    border-bottom: rgb(24, 24, 24) solid 0.5cqh;
+}
+
+.onlyOnEdit {
     display: none;
 }
 
-.onlyEditShowing{
+.onlyEditShowing {
     display: initial;
+}
+
+.sectionTitle.onlyEditShowing {
+    display: block
+}
+
+.marginedTab {
+    margin-top: 6.5cqh;
+}
+
+.phasedTab {
+    position: absolute;
+    pointer-events: none;
+    z-index: 2;
 }
