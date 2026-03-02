@@ -11,20 +11,21 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.PubSubOption;
 import edu.wpi.first.networktables.StringSubscriber;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 public class Touchboard {
 
-    NetworkTableInstance inst = NetworkTableInstance.getDefault();
-    NetworkTable datatable = inst.getTable("touchboard");
+    private static NetworkTableInstance inst = NetworkTableInstance.getDefault();
+    private static NetworkTable datatable = inst.getTable("touchboard");
 
     public Touchboard() {
 
     }
 
     // Action Button Methods
-    public Trigger bindActionButton(String topic, Command command) {
+    public static Trigger bindActionButton(String topic, Command command) {
 
         datatable.getBooleanTopic(topic).publish();
         final BooleanSubscriber dataSubscriber = datatable.getBooleanTopic(topic).subscribe(false);
@@ -32,16 +33,19 @@ public class Touchboard {
         return new Trigger(() -> dataSubscriber.get()).whileTrue(command);
     }
 
-    public Trigger bindActionButton(String topic, Supplier<Command> command) {
+    public static Trigger bindActionButton(String topic, Supplier<Command> command) {
 
         datatable.getBooleanTopic(topic).publish();
         final BooleanSubscriber dataSubscriber = datatable.getBooleanTopic(topic).subscribe(false);
 
-        return new Trigger(() -> dataSubscriber.get()).whileTrue(command.get());
+        return new Trigger(() -> dataSubscriber.readQueueValues().length > 0).onTrue(Commands.run(
+                () -> CommandScheduler.getInstance().schedule(command.get().until(() -> !dataSubscriber.get()))
+
+        ));
     }
 
     // Toggle Button Methods
-    public Trigger bindToggleButton(String topic, Command command) {
+    public static Trigger bindToggleButton(String topic, Command command) {
 
         datatable.getBooleanTopic(topic).publish();
         final BooleanSubscriber dataSubscriber = datatable.getBooleanTopic(topic).subscribe(false);
@@ -49,43 +53,50 @@ public class Touchboard {
         return new Trigger(() -> dataSubscriber.get()).whileTrue(command);
     }
 
-    public Trigger bindToggleButton(String topic, Supplier<Command> command) {
+    public static Trigger bindToggleButton(String topic, Supplier<Command> command) {
 
         datatable.getBooleanTopic(topic).publish();
         final BooleanSubscriber dataSubscriber = datatable.getBooleanTopic(topic).subscribe(false);
 
-        return new Trigger(() -> dataSubscriber.get()).whileTrue(command.get());
+        return new Trigger(() -> dataSubscriber.readQueueValues().length > 0).onTrue(Commands.run(
+                () -> CommandScheduler.getInstance().schedule(command.get().until(() -> !dataSubscriber.get()))
+
+        ));
+
     }
 
     // One Shot Button methods
-    public Trigger bindOneShotButton(String topic, Command command) {
+    public static Trigger bindOneShotButton(String topic, Command command) {
 
         final BooleanPublisher dataPublisher = datatable.getBooleanTopic(topic).publish();
         final BooleanSubscriber dataSubscriber = datatable.getBooleanTopic(topic).subscribe(false);
 
-        Command setter = command.andThen(Commands.runOnce(() -> dataPublisher.set(false)));
+        Command setter = command.alongWith(Commands.runOnce(() -> dataPublisher.set(false)));
 
         return new Trigger(() -> dataSubscriber.get()).whileTrue(setter);
     }
 
-    public Trigger bindOneShotButton(String topic, Supplier<Command> command) {
+    public static Trigger bindOneShotButton(String topic, Supplier<Command> command) {
 
         final BooleanPublisher dataPublisher = datatable.getBooleanTopic(topic).publish();
         final BooleanSubscriber dataSubscriber = datatable.getBooleanTopic(topic).subscribe(false);
 
-        Command setter = command.get().andThen(Commands.runOnce(() -> dataPublisher.set(false)));
+        Command setter = command.get().alongWith(Commands.runOnce(() -> dataPublisher.set(false)));
 
-        return new Trigger(() -> dataSubscriber.get()).whileTrue(setter);
+        return new Trigger(() -> dataSubscriber.readQueueValues().length > 0).onTrue(Commands.runOnce(
+                () -> CommandScheduler.getInstance()
+                        .schedule(command.get().until(() -> dataSubscriber.readQueueValues().length > 0))
 
+        ));
     }
 
     // Array of doubleSubscribers to avoid recreation on every trigger
 
-    HashMap<String, DoubleSubscriber> DoubleSubscriberMap = new HashMap<String, DoubleSubscriber>();
+    private static HashMap<String, DoubleSubscriber> DoubleSubscriberMap = new HashMap<String, DoubleSubscriber>();
 
     // Axis Methods
 
-    public Trigger bindAxis(String topic, Supplier<Command> command) {
+    public static Trigger bindAxis(String topic, Supplier<Command> command) {
         datatable.getDoubleTopic(topic).publish();
         DoubleSubscriber dataSubscriber;
 
@@ -96,12 +107,16 @@ public class Touchboard {
                     PubSubOption.pollStorage(1));
         }
 
-        return new Trigger(() -> dataSubscriber.readQueueValues().length > 0).onTrue(command.get());
+        return new Trigger(() -> dataSubscriber.readQueueValues().length > 0).onTrue(Commands.runOnce(
+                () -> CommandScheduler.getInstance()
+                        .schedule(command.get().until(() -> dataSubscriber.readQueueValues().length > 0))
+
+        ));
     }
 
     // Number Component Methods
 
-    public Trigger bindNumberComponent(String topic, Supplier<Command> command) {
+    public static Trigger bindNumberComponent(String topic, Supplier<Command> command) {
         datatable.getDoubleTopic(topic).publish();
         DoubleSubscriber dataSubscriber;
 
@@ -109,19 +124,23 @@ public class Touchboard {
             dataSubscriber = DoubleSubscriberMap.get(topic);
         } else {
             dataSubscriber = datatable.getDoubleTopic(topic).subscribe(0,
-                    PubSubOption.pollStorage(1));
+                    PubSubOption.pollStorage(2));
         }
 
-        return new Trigger(() -> dataSubscriber.readQueueValues().length > 0).onTrue(command.get());
+        return new Trigger(() -> dataSubscriber.readQueueValues().length > 0).onTrue(Commands.runOnce(
+                () -> CommandScheduler.getInstance()
+                        .schedule(command.get().until(() -> dataSubscriber.readQueueValues().length > 0))
+
+        ));
     }
 
     // AXIS + NUMBER COMPONENT value getter
-    public double getDoubleValue(String topic) {
+    public static double getDoubleValue(String topic) {
         if (DoubleSubscriberMap.containsKey(topic)) {
             return DoubleSubscriberMap.get(topic).get();
         } else {
             final DoubleSubscriber dataSubscriber = datatable.getDoubleTopic(topic).subscribe(0,
-                    PubSubOption.pollStorage(1));
+                    PubSubOption.pollStorage(2));
 
             DoubleSubscriberMap.put(topic, dataSubscriber);
 
@@ -129,47 +148,53 @@ public class Touchboard {
         }
     }
 
-    HashMap<String, StringSubscriber> StringSubscriberMap = new HashMap<String, StringSubscriber>();
+    private static HashMap<String, StringSubscriber> StringSubscriberMap = new HashMap<String, StringSubscriber>();
 
-    //Dropdown Methods
+    // Dropdown Methods
 
-    public Trigger bindDropdown(String topic, Supplier<Command> command) {
-        datatable.getDoubleTopic(topic).publish();
+    public static Trigger bindDropdown(String topic, Supplier<Command> command) {
         StringSubscriber dataSubscriber;
 
         if (DoubleSubscriberMap.containsKey(topic)) {
             dataSubscriber = StringSubscriberMap.get(topic);
         } else {
             dataSubscriber = datatable.getStringTopic(topic).subscribe("",
-                    PubSubOption.pollStorage(1));
+                    PubSubOption.pollStorage(2));
         }
 
-        return new Trigger(() -> dataSubscriber.readQueueValues().length > 0).onTrue(command.get());
+        return new Trigger(() -> dataSubscriber.readQueueValues().length > 0).onTrue(Commands.runOnce(
+                () -> CommandScheduler.getInstance()
+                        .schedule(command.get().until(() -> dataSubscriber.readQueueValues().length > 0))
+
+        ));
     }
 
-    //Opt Group Methods
+    // Opt Group Methods
 
-    public Trigger bindOptGroup(String topic, Supplier<Command> command) {
-        datatable.getDoubleTopic(topic).publish();
+    public static Trigger bindOptGroup(String topic, Supplier<Command> command) {
         StringSubscriber dataSubscriber;
 
         if (DoubleSubscriberMap.containsKey(topic)) {
             dataSubscriber = StringSubscriberMap.get(topic);
         } else {
             dataSubscriber = datatable.getStringTopic(topic).subscribe("",
-                    PubSubOption.pollStorage(1));
+                    PubSubOption.pollStorage(2));
         }
 
-        return new Trigger(() -> dataSubscriber.readQueueValues().length > 0).onTrue(command.get());
+        return new Trigger(() -> dataSubscriber.readQueueValues().length > 0).onTrue(Commands.runOnce(
+                () -> CommandScheduler.getInstance()
+                        .schedule(command.get().until(() -> dataSubscriber.readQueueValues().length > 0))
+
+        ));
     }
 
     // OPT GROUP + DROPDOWN COMPONENT value getter
-    public String getStringValue(String topic) {
+    public static String getStringValue(String topic) {
         if (StringSubscriberMap.containsKey(topic)) {
             return StringSubscriberMap.get(topic).get();
         } else {
             final StringSubscriber dataSubscriber = datatable.getStringTopic(topic).subscribe("",
-                    PubSubOption.pollStorage(1));
+                    PubSubOption.pollStorage(2));
 
             StringSubscriberMap.put(topic, dataSubscriber);
 
