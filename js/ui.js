@@ -36,10 +36,11 @@
 //Multiple topics may be bound to one component, but as of now they will NOT update each other.
 //So usage of multiple is not recommnded besides action and one shot buttons. 
 
-
-if (localStorage.getItem("layout")) {
-    loadLayoutFromJson(localStorage.getItem("layout"))
+let subscribedTopics = {
+    //"Topic": [{jQueryReference :$, parentRefernce: $, valueHandler: function()/false}]
 }
+
+
 
 const MathUtils = {
 
@@ -158,9 +159,6 @@ export function pxToCq(container, pixels) {
     return cqValues
 }
 
-let subscribedTopics = {
-    //"Topic": [{jQueryReference :$, parentRefernce: $, valueHandler: function()/false}]
-}
 
 if (localStorage.getItem(getHtmlFileName() + "currentPath") == null) {
     localStorage.setItem(getHtmlFileName() + "currentPath", "")
@@ -177,19 +175,18 @@ $("html").on("click", (event) => {
         $(".select").removeClass("selectOpen").scrollTop(0)
     }
 })
-// setAnimatable()
-// function setAnimatable(){
-let $ab = $(".animatedButton, .oneShotButton")
-for (let i = 0; i < $ab.length; i++) {
 
 
-    let text = $ab.eq(i).text()
-    $ab.eq(i).text(" ")
+
+function addButtonToAnimate(jQueryReference) {
+    let text = jQueryReference.addClass("animatedButton").text()
+    console.log(jQueryReference.text())
+    jQueryReference.css("color", "white").css("font-size", "0px")
 
     if (typeof text === "string") {
         text = text.split(" ")
         for (let j = 0; j < text.length; j++) {
-            let $word = $("<div>").appendTo($ab.eq(i)).css('display', 'flex').addClass("buttonWord");
+            let $word = $("<div>").appendTo(jQueryReference).css('display', 'flex').addClass("buttonWord");
             for (let I = 0; I < text[j].length; I++) {
                 $("<p>").text(text[j][I]).addClass('funkyLetter').appendTo($word)
             }
@@ -197,13 +194,7 @@ for (let i = 0; i < $ab.length; i++) {
 
 
     }
-}
-// }
-
-
-
-function addButtonToAnimate(jQueryReference) {
-    jQueryReference.on("pointerdown ", (event) => {
+    jQueryReference.off("pointerdown.animateButton").on("pointerdown.animateButton", (event) => {
 
         let $spawnedCircle
         let $ct = $(event.currentTarget)
@@ -640,8 +631,6 @@ $("#connect").on("click", () => {
     }
 })
 
-let rawDecoder = new TextDecoder('utf-8')
-let rawEncoder = new TextEncoder('utf-8')
 
 let OdometryFrequencyKeys = []
 let OdometryFrequencyValues = []
@@ -746,7 +735,7 @@ for (let i = 0; i < $reefBtns.length; i++) {
 }
 
 function onConnectCb() {
-    //on everything ts is NOT on callback
+    //on everything this is NOT on callback
 
     setTimeout(() => {
 
@@ -786,12 +775,8 @@ function onConnectCb() {
                         nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), $uiElements.eq(i).attr("data-value"))
 
                     } else if ($uiElements.eq(i).attr("data-type") === "double") {
-                        if ($uiElements.eq(i).attr("data-persist") == "true") {
-                            nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), parseFloat(localStorage.getItem(getHtmlFileName() + $uiElements.eq(i).attr("data-topic"))))
-                        } else {
-                            nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), parseFloat($uiElements.eq(i).attr("data-value")))
-                        }
-
+                        nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), parseFloat($uiElements.eq(i).attr("data-value")))
+                        console.log($uiElements.eq(i).attr("data-value"))
                     } else {
                         nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), JSON.parse($uiElements.eq(i).attr("data-value")))
 
@@ -799,10 +784,11 @@ function onConnectCb() {
                 }
             }
         }
-
+        let editTabs = $(".editTabs")
         for (let i = 0; i < $uiElements.length; i++) {
             if ($uiElements.eq(i).hasClass("actionButton")) {
                 $($uiElements.eq(i)).on(" pointerdown", (event) => {
+                    if (editTabs.hasClass("editingTabs")) return
                     nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), true)
                     $uiElements.eq(i).attr("data-value", "true")
                 }).on("pointerup   mouseleave touchcancel", (event) => {
@@ -811,9 +797,11 @@ function onConnectCb() {
                 })
             } else if ($uiElements.eq(i).hasClass("toggleButton")) {
                 $uiElements.eq(i).on(" pointerdown", (event) => {
+                    if (editTabs.hasClass("editingTabs")) return
+
                     nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), !(JSON.parse($uiElements.eq(i).attr("data-value"))))
                     $uiElements.eq(i).toggleClass("toggledOn")
-                    let oldBG = $uiElements.eq(i).css("background-color").replace(/^([^,]*,[^,]*,[^,]*),.*$/, '$1')
+                    let oldBG = $uiElements.eq(i).css(" background-color").replace(/^([^,]*,[^,]*,[^,]*),.*$/, '$1')
 
                     if ($uiElements.eq(i).hasClass("toggledOn")) {
                         $uiElements.eq(i).css("background-color", oldBG + ", 0.6)")
@@ -824,8 +812,11 @@ function onConnectCb() {
                     $uiElements.eq(i).attr("data-value", JSON.stringify(!(JSON.parse($uiElements.eq(i).attr("data-value")))))
                 })
             } else if ($uiElements.eq(i).hasClass("oneShotButton")) {
+
                 nt4Client.subscribe(["/touchboard/" + $uiElements.eq(i).attr("data-topic")])
                 $uiElements.eq(i).on(" pointerdown", (event) => {
+                    if (editTabs.hasClass("editingTabs")) return
+
                     nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), true)
                 })
             } else if ($uiElements.eq(i).hasClass("numberComponent")) {
@@ -838,9 +829,10 @@ function onConnectCb() {
                 //         $uiElements.eq(i).children(".numberTextInput").attr("value", currentPersitant)
                 //     }
                 // }
-                nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), parseFloat(localStorage.getItem(getHtmlFileName() + $uiElements.eq(i).attr("data-topic"))))
 
                 $uiElements.eq(i).children(".numberPlus").on("pointerdown ", (event) => {
+                    if (editTabs.hasClass("editingTabs")) return
+
                     let $ct = $(event.currentTarget)
                     let max = parseFloat($ct.parent().attr("data-max"))
                     let step = parseFloat($ct.parent().attr("data-step"))
@@ -856,6 +848,8 @@ function onConnectCb() {
                     }
                 })
                 $uiElements.eq(i).children(".numberMinus").on("pointerdown ", (event) => {
+                    if (editTabs.hasClass("editingTabs")) return
+
                     let $ct = $(event.currentTarget)
                     let min = parseFloat($ct.parent().attr("data-min"))
                     let step = parseFloat($ct.parent().attr("data-step"))
@@ -871,6 +865,7 @@ function onConnectCb() {
                     }
                 })
                 $uiElements.eq(i).children(".numberTextInput").on("blur", (event) => {
+                    if (editTabs.hasClass("editingTabs")) return
 
                     let $ct = $(event.currentTarget)
                     let max = parseFloat($ct.parent().attr("data-max"))
@@ -888,7 +883,10 @@ function onConnectCb() {
                     // }
                 })
             } else if ($uiElements.eq(i).hasClass("select")) {
+
                 $uiElements.eq(i).children(".selectOption").on("pointerdown", (event) => {
+                    if (editTabs.hasClass("editingTabs")) return
+
                     let $ct = $(event.target)
                     $uiElements.eq(i).attr("data-value", $ct.attr("data-value")).css("background-color", $ct.attr("data-hex") + "6b").attr("data-index", $ct.attr("data-index"))
                     $uiElements.eq(i).children(".selectTitle").text($ct.text())
@@ -897,11 +895,12 @@ function onConnectCb() {
                 })
             } else if ($uiElements.eq(i).hasClass("axis") || $uiElements.eq(i).hasClass("verticalAxis")) {
 
-
                 $uiElements.eq(i).attr("data-value", 0)
                 $uiElements.eq(i).children(".axisKnob, .verticalAxisKnob").val(0)
 
                 $uiElements.eq(i).children(".axisKnob, .verticalAxisKnob").on("input", (event) => {
+                    if (editTabs.hasClass("editingTabs")) return
+
                     let $ct = $(event.target)
                     $uiElements.eq(i).attr("data-value", $ct.val())
                     nt4Client.addSample("/touchboard/" + $ct.parent().attr("data-topic"), parseFloat($ct.parent().attr("data-value")))
@@ -922,7 +921,9 @@ function onConnectCb() {
             //     $uiElements.eq(i).addClass($uiElements.eq(i).attr('data-topic').replaceAll("/", "esc-Sl-esc").replaceAll(".", "esc-period-esc"))
             // } 
             else if ($uiElements.eq(i).hasClass("buttonOptGroup")) {
+
                 $uiElements.eq(i).children(".optGroupButton").on("pointerdown", (event) => {
+                    if (editTabs.hasClass("editingTabs")) return
 
                     let cI = $uiElements.eq(i).children(".optGroupButton")
                     for (let j = 0; j < cI.length; j++) {
@@ -969,7 +970,7 @@ function onDisconnectCb() {
         $(".tabNav").css("background-color", "rgb(64, 12, 12)")
         $(".currentTab").css("background-color", "rgb(128, 32, 32)")
         setTimeout(() => {
-            // window.location.reload()
+            window.location.reload()
 
         }, 1000);
     }
@@ -1027,6 +1028,8 @@ $(".editTabs").on("click", () => {
 
     $("#connect").css("pointer-events", "none")
 
+    $(".tabHidden").toggleClass("hideSideTab")
+
     $(".editTabs").toggleClass("editingTabs");
     $("body").toggleClass("bodyEdit")
     $(".tab").toggleClass("tabsEditActivated")
@@ -1077,8 +1080,12 @@ $(".editTabs").on("click", () => {
 
         })
     } else {
-        $("*").removeClass("removeShake").off("pointerdown.remove").off("pointermove.dragComponent").off("pointerdown.editHandler")
+        $("*").removeClass("removeShake").off("pointerdown.remove").off("pointermove.dragComponent")//.off("pointerdown.editHandler")
         $(".trashCan").removeClass("trashActive")
+
+        if ($(".connectionText").text() == "Connected") {
+            window.location.reload();
+        }
 
     }
 
@@ -2514,6 +2521,7 @@ $(".optionAdder").on("submit.addDiv", () => {
 
 function addEditHandler(element, valueType, specificClass = false) {
     element.on("pointerdown.editHandler", (event) => {
+        if (!$(".editTabs").hasClass("editingTabs")) { return }
         // allow for blur event to execute
         $(".sideBar").off("pointerup.setEdit pointermove.setEdit")
 
@@ -2581,10 +2589,10 @@ function bindEditorResetter(element) {
         $("*").off("pointermove.dragComponent").off("pointerup.dragComponent").off("pointerdown.dragComponent")
     })
 }
-bindTabChanger($(".tabNav"))
+bindTabChanger()
 
-function bindTabChanger(element) {
-    element.on("pointerdown ", (event) => {
+function bindTabChanger() {
+    $(".tabNav").on("pointerdown ", (event) => {
         let $ct = $(event.target)
 
         if (!$ct.hasClass("tab")) {
@@ -2608,6 +2616,53 @@ function bindTabChanger(element) {
             tabGrid(parseFloat(currentPage$.attr("columns")), parseFloat(currentPage$.attr("rows")), currentPage$)
         }
 
+    })
+
+    $(".manager").on("pointerdown.changeTab ", (event) => {
+        if ($(".editTabs").hasClass("editingTabs")) return
+
+
+        let $ct = $(event.target)
+
+        if (!$ct.hasClass("sideTab")) {
+            return
+        }
+
+        $(".page, .pageF").css("display", "none")
+        $(".tab").removeClass("currentTab").css("background-color", "rgb(12, 12, 12)")
+
+        $(".manager").removeClass("managerOpen")
+        $(".pTAB" + $ct.attr("data-page").slice(1)).addClass("currentTab").css("background-color", "rgb(32, 32, 32)")
+
+        console.log(".pTAB" + $ct.attr("data-page").slice(1))
+
+        if ($ct.attr("data-displaytype") == null) {
+            $($ct.attr("data-page")).css("display", "grid")
+        } else {
+            $($ct.attr("data-page")).css("display", $ct.attr("data-displaytype"))
+
+        }
+
+        let currentPage$ = $($ct.attr("data-page"))
+
+        setGridInput(currentPage$)
+        if (!$($ct.attr("data-page")).hasClass("pageF")) {
+            tabGrid(parseFloat(currentPage$.attr("columns")), parseFloat(currentPage$.attr("rows")), currentPage$)
+        }
+
+    })
+
+    $(".manager").on("pointerdown.removeTab", (event) => {
+        let t$ = $(event.target)
+
+        console.log(t$)
+
+        if (!t$.hasClass("removeTab")) return
+
+        $(t$.parent().attr("data-page")).remove()
+        $(".pTAB" + t$.parent().attr("data-page").slice(1)).remove()
+
+        t$.parent().remove()
     })
 }
 
@@ -2672,9 +2727,14 @@ function bindEditMenu(element, valueType, specificClass = false) {
     function bindName(inputBeingBound) {
         //defaults selection to all text for easy deletion
         let nameInputText = editComponent.currentTarget.text()
+        if (editComponent.currentTarget.hasClass("animatedButton")) {
+            nameInputText = editComponent.currentTarget.clone().children().remove().end().text()
+        } 
         if (editComponent.currentTarget.children(".editThisName").length > 0) {
             nameInputText = editComponent.currentTarget.children(".editThisName").text()
         }
+
+
         inputBeingBound.val(nameInputText).off(`focus.selectText`).on(`focus.selectText`, (event) => setTimeout(() => $(event.currentTarget)[0].setSelectionRange(0, $(event.currentTarget).val().length), 100))
 
         inputBeingBound.off("input.typing  blur.typing").on("input.typing blur.typing", (event) => {
@@ -2688,8 +2748,12 @@ function bindEditMenu(element, valueType, specificClass = false) {
                 $comp.text($ct.val())
             }
 
-
+            if ($comp.hasClass("animatedButton")) {
+                addButtonToAnimate($comp)
+            }
         })
+
+
     }
 
     function bindNumbers(inputBeingBound) {
@@ -3423,16 +3487,17 @@ function emulateMeterColors(min = 0, max = 360, low = "", high = "", optimum = "
 }
 
 $(".testbtn").on("click", () => {
-    alert(saveLayoutToJSON())
-    console.log(JSON.parse(saveLayoutToJSON()))
-    console.log(saveLayoutToJSON())
+    alert("Copied To Clipboard")
+    navigator.clipboard.writeText(saveLayoutToJSON())
 
 })
 $(".testbtn2").on("click", () => {
-    loadLayoutFromJson(prompt("GIVE ME THAT JSHON"))
+    localStorage.setItem("layout", prompt("Input Json"));
+    clear = true;
+    window.location.reload();
 })
 function saveLayoutToJSON() {
-    let tabs = $(".userTab")
+    let tabs = $(".tab")
 
     let json = {}
 
@@ -3468,6 +3533,7 @@ function saveLayoutToJSON() {
             let componentType = comp$.attr("data-componentType")
 
 
+
             component = {
                 type: componentType,
                 row: comp$.attr("data-row"),
@@ -3482,10 +3548,19 @@ function saveLayoutToJSON() {
             components.push({ ...component, ...(getComponentSpecificAsObject(comp$)) })
         }
 
+        let state = "tabVisible"
+
+        if (tabs.eq(i).hasClass("tabMinimized")) {
+            state = "tabMinimized"
+        } else if (tabs.eq(i).hasClass("tabHidden")) {
+            state = "tabHidden"
+        }
+
         json[tabs.eq(i).attr("data-page")] = {
             tabTitle: tabs.eq(i).text(),
             tabRows: tab.attr("rows"),
             tabColumns: tab.attr("columns"),
+            "state": state,
             "components": components,
         }
     }
@@ -3509,11 +3584,21 @@ function loadLayoutFromJson(json) {
             .attr("data-page", tab)
             .text(json[tab].tabTitle)
             .insertBefore(".tabCreator")
+            .addClass(json[tab].state)
 
-        createSideTab(json[tab].tabTitle, tab)
+
+        createSideTab(json[tab].tabTitle, tab, json[tab].state)
 
         // <div class="uiTestTab page" style="display: grid;">/
         bindEditorResetter($loadedTab)
+
+        if (tab == ".autonomus") {
+            $loadedTab.addClass("autoTab")
+            $loadedTab.removeClass("userTab")
+            $loadedTab.removeClass("tabConnection")
+
+            continue
+        }
 
         let page$ = $("<div>").addClass("page").addClass(tab.slice(1)).css("display", "grid").attr("rows", json[tab].tabRows).attr("columns", json[tab].tabColumns).insertAfter(".autonomus")
 
@@ -3527,18 +3612,20 @@ function loadLayoutFromJson(json) {
                 .appendTo(page$)
         }
 
-        let $ct = $(".autoTab")
-        $(".page, .pageF").css("display", "none")
-        $(".tab").removeClass("currentTab").css("background-color", "rgb(12, 12, 12)")
-        $ct.addClass("currentTab").css("background-color", "rgb(32, 32, 32)")
-        if ($ct.attr("data-displaytype") == null) {
-            $($ct.attr("data-page")).css("display", "grid")
-        } else {
-            $($ct.attr("data-page")).css("display", $ct.attr("data-displaytype"))
-        }
-
-
     }
+    let $ct = $(".tabNav").children(".tab").eq(0)
+    let currentPage$ = $($ct.attr("data-page"))
+    $(".page, .pageF").css("display", "none")
+    $(".tab").removeClass("currentTab").css("background-color", "rgb(12, 12, 12)")
+    $ct.addClass("currentTab").css("background-color", "rgb(32, 32, 32)")
+    if ($ct.attr("data-displaytype") == null) {
+        $(currentPage$).css("display", "grid")
+        tabGrid(parseFloat(currentPage$.attr("columns")), parseFloat(currentPage$.attr("rows")), currentPage$)
+
+    } else {
+        $(currentPage$).css("display", $ct.attr("data-displaytype"))
+    }
+
 }
 
 function getComponentSpecificAsObject(comp$) {
@@ -3550,12 +3637,12 @@ function getComponentSpecificAsObject(comp$) {
         case "actionButton":
         case "oneShotButton":
             return {
-                displayName: comp$.text(),
+                displayName: comp$.clone().children().remove().end().text(),
                 color: comp$.attr("data-color")
             }
         case "toggleButton":
             let returning = {
-                displayName: comp$.text(),
+                displayName: comp$.clone().children().remove().end().text(),
                 color: comp$.attr("data-color"),
                 //if persist
                 value: comp$.attr("data-value"),
@@ -3846,7 +3933,8 @@ function handleTabDrag() {
 
                 tabDragInfo.phased.insertBefore($hov)
 
-                $(".pTAB" + tabDragInfo.phased.attr("data-page").slice(1)).removeClass("tabVisible").removeClass("tabHidden").removeClass("tabMinimized").addClass(tabDragInfo.phased.prev(".sectionTitcle").attr("data-classset"))
+                $(".pTAB" + tabDragInfo.phased.attr("data-page").slice(1)).add(tabDragInfo.phased).removeClass("tabVisible").removeClass("tabHidden").removeClass("tabMinimized").offset()
+                $(".pTAB" + tabDragInfo.phased.attr("data-page").slice(1)).add(tabDragInfo.phased).addClass(tabDragInfo.phased.prevAll(".sectionTitle").eq(0).attr("data-classset"))
 
                 if (!tabDragInfo.phased.hasClass("sectionTitle") && !$hov.hasClass("sectionTitle")) {
 
@@ -3869,7 +3957,8 @@ function handleTabDrag() {
 
                 tabDragInfo.phased.insertAfter($hov)
 
-                $(".pTAB" + tabDragInfo.phased.attr("data-page").slice(1)).removeClass("tabVisible").removeClass("tabHidden").removeClass("tabMinimized").addClass(tabDragInfo.phased.prev(".sectionTitle").attr("data-classset"))
+                $(".pTAB" + tabDragInfo.phased.attr("data-page").slice(1)).add(tabDragInfo.phased).removeClass("tabVisible").removeClass("tabHidden").removeClass("tabMinimized").offset()
+                $(".pTAB" + tabDragInfo.phased.attr("data-page").slice(1)).add(tabDragInfo.phased).addClass(tabDragInfo.phased.prevAll(".sectionTitle").eq(0).attr("data-classset"))
 
                 if (!tabDragInfo.phased.hasClass("sectionTitle") && !$hov.hasClass("sectionTitle")) {
 
@@ -3888,8 +3977,16 @@ $(".tabManager").on("click", () => {
 })
 
 
-function createSideTab(name, page) {
-    let div = $("<div>").addClass("sideTab").insertBefore(".titleMinimized").attr("data-page", page).addClass("sTAB" + page.slice(1))
+function createSideTab(name, page, state = "") {
+    let div = $("<div>").addClass("sideTab").attr("data-page", page).addClass("sTAB" + page.slice(1)).addClass(state)
+
+    if (state == "") {
+        div.insertBefore(".titleMinimized")
+    }
+    else {
+        console.log(".insert" + state.slice(3))
+        div.insertBefore(".insert" + state.slice(3))
+    }
 
     let ham = $("<h1>").addClass("ham").addClass("onlyOnEdit").text("☰").appendTo(div)
     $("<h1>").addClass("tabName").text(name).appendTo(div)
@@ -3900,13 +3997,32 @@ function createSideTab(name, page) {
         x.addClass("onlyEditShowing")
 
     }
+
+    if (state == "tabHidden") {
+        div.addClass("hideSideTab")
+    }
 }
+
+let clear = false
 
 $(document).on('visibilitychange', () => {
     if (document.visibilityState === "hidden") {
+        if(clear){
+            return
+        }
+
         let layout = saveLayoutToJSON()
 
         localStorage.setItem("layout", layout)
     }
 
 })
+
+
+if (localStorage.getItem("layout")) {
+    loadLayoutFromJson(localStorage.getItem("layout"))
+} else {
+    localStorage.setItem("layout", JSON.stringify({}))
+
+    loadLayoutFromJson(localStorage.getItem("layout"))
+}

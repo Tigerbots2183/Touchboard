@@ -5,7 +5,7 @@ if (require('electron-squirrel-startup')) app.quit();
 const createWindow = () => {
   const win = new BrowserWindow()
   // win.webContents.openDevTools()
-  // win.setMenu(null)
+  // win.setMenu(null) 
 
   win.loadFile('index.html')
 }

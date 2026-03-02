@@ -42,7 +42,7 @@ SOFTWARE. -->
             <!-- Insert tab buttons after this or between existing buttons after here -->
             <div class="tabManager">☰</div>
 
-            <div class="tab autoTab currentTab pTABautonomus" data-page=".autonomus">PosePlotter</div>
+            <!-- <div class="tab autoTab currentTab pTABautonomus" data-page=".autonomus">PosePlotter</div> -->
             <div class="tabCreator">
                 <form class="tabCreatorForm">
                     <input type="text" placeholder="New Tab Name" required maxlength="12" class="nameInput">
@@ -62,8 +62,8 @@ SOFTWARE. -->
                 <input id="connect" type="checkbox">
                 <span class="slider round"></span>
             </label>
-            <button class="testbtn">T</button>
-            <button class="testbtn2">I</button>
+            <button class="testbtn navBTN">⇪</button>
+            <button class="testbtn2 navBTN" style="rotate: 180deg;">⇪</button>
 
             <button class="editTabs">✎</button>
             <button class="teamNumber">#</button>
@@ -79,7 +79,7 @@ SOFTWARE. -->
             <input type="text" class="textInput teamNumberInput" placeholder="">
             <p class="simHint">Use localhost for simulator</p>
             <input type="button" class="setTeam" value="Set">
-            <p class="version">Developed by Tigerbots 2183, Touchboard Version 2.0.0 </p>
+            <p class="version">Developed by Tigerbots 2183, Touchboard Version 2.0.0 (Beta) </p>
         </div>
 
         <div class="manager">
@@ -90,19 +90,21 @@ SOFTWARE. -->
 
             <h1 class="sectionTitle onlyOnEdit immoveable" data-classset="tabVisible">Visible</h1>
 
-            <div class="sideTab sTABautonomus" data-page=".autonomus">
+            <!-- <div class="sideTab sTABautonomus" data-page=".autonomus">
                 <h1 class="ham onlyOnEdit">☰</h1>
                 <h1 class="tabName">PosePlotter</h1>
                 <h1 class="removeTab onlyOnEdit">❌</h1>
-            </div>
+            </div> -->
           
-            <h1 class="sectionTitle onlyOnEdit titleMinimized" data-classset="tabMinimized">Minimized</h1>
+            <h1 class="sectionTitle onlyOnEdit titleMinimized insertVisible" data-classset="tabMinimized">Minimized</h1>
 
-            <h1 class="sectionTitle onlyOnEdit" data-classset="tabHidden">Hidden</h1>
+            <h1 class="sectionTitle onlyOnEdit insertMinimized" data-classset="tabHidden">Hidden</h1>
+
+            <h1 style="display: none;" class="insertHidden"></h1>
 
         </div>
 
-        <div class="autonomus pageF" style="display: grid;">
+        <div class="autonomus pageF" style="display: none;">
 
             <div class="commands commandName">
                 <div class="commandNav">
@@ -785,7 +787,7 @@ SOFTWARE. -->
     </div>
 
     <div class="bottomBar">
-        <div class="numberInput setGridRow setGrid hiddenClickless" data-step="1" data-min="1" data-max="100"
+        <div class="numberInput setGridRow setGrid " data-step="1" data-min="1" data-max="100"
             style="grid-area: R;" data-value="4">
             <p class="numberInputTitle">Rows:</p>
             <button class="numberMinus animatedButton">-</button>
@@ -793,7 +795,7 @@ SOFTWARE. -->
             <button class="numberPlus animatedButton">+</button>
         </div>
 
-        <div class="numberInput setGridColumn setGrid hiddenClickless" data-type="double" data-step="1" data-min="1"
+        <div class="numberInput setGridColumn setGrid " data-type="double" data-step="1" data-min="1"
             data-max="100" style="grid-area: C;" data-value="9">
             <p class="numberInputTitle">Cols:</p>
             <button class="numberMinus animatedButton">-</button>

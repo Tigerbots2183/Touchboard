@@ -170,29 +170,7 @@ body {
     background-color: #00000000 !important
 }
 
-.funkyLetter {
-    animation-duration: 0.5s;
-    animation-timing-function: cubic-bezier(0.165, 0.84, 0.44, 1);
-    animation-iteration-count: 1;
-    animation-fill-mode: backwards;
-    transform: scaleY(1);
-    pointer-events: none;
-}
 
-.funkyHolder {
-    pointer-events: none;
-
-}
-
-.freakyLetter {
-    animation-duration: 0.5s;
-    animation-timing-function: cubic-bezier(0.165, 0.84, 0.44, 1);
-    animation-iteration-count: infinite;
-    transform: scaleY(1);
-    pointer-events: none;
-
-
-}
 
 @keyframes streachUp {
     0% {
@@ -1210,6 +1188,20 @@ input[type=number] {
         height: 7cqh;
     }
 
+    .navBTN {
+        touch-action: none;
+        color: white;
+        border: none;
+        background-color: transparent;
+        font-size: 6cqh;
+        line-height: 7cqh;
+        font-weight: 900;
+        font-family: monospace;
+        width: 9cqh;
+        border-radius: 2cqh 2cqh 0 0;
+        height: 7cqh;
+    }
+
     .editingTabs {
         color: chartreuse;
     }
@@ -1475,7 +1467,8 @@ input[type=number] {
 
 
     .tabConnection {
-        opacity: 0.25;
+        opacity: 1;
+        color: rgb(112, 112, 112);
     }
 
     .tabsEditActivated {
@@ -1810,6 +1803,8 @@ input[type=number] {
     .selectTitle {
         /* background-color: rgba(0, 255, 85, 0.247); */
         font-size: 7cqmin;
+        line-height: 8.1cqmin;
+        height: 8.1cqmin;
         /* padding:0.4cqh; */
         border: rgba(255, 255, 255, 0.123) 0.5cqmin solid;
         color: white;
@@ -1927,6 +1922,36 @@ input[type=number] {
         justify-content: center;
         user-select: none;
         touch-action: none;
+    }
+
+    .funkyLetter {
+        color: white;
+        animation-duration: 0.5s;
+        animation-timing-function: cubic-bezier(0.165, 0.84, 0.44, 1);
+        animation-iteration-count: 1;
+        animation-fill-mode: backwards;
+        transform: scaleY(1);
+        pointer-events: none;
+        font-size: 4cqmin;
+
+    }
+
+    .funkyHolder {
+        pointer-events: none;
+
+    }
+
+    .freakyLetter {
+        color: white;
+        font-size: 4cqmin;
+
+        animation-duration: 0.5s;
+        animation-timing-function: cubic-bezier(0.165, 0.84, 0.44, 1);
+        animation-iteration-count: infinite;
+        transform: scaleY(1);
+        pointer-events: none;
+
+
     }
 
     .toggleButton {
@@ -4038,7 +4063,15 @@ meter:not([value]) {
         touch-action: none;
         align-content: center;
     }
-
+    .sidebarOption p{
+        height: 4.25vh;
+        max-width: calc(100cqw - 0.25vh - 4vh - 0.25vh - 4vh - 4vh);
+        flex-wrap: nowrap;
+        overflow-x: scroll;
+        white-space:	nowrap;
+        overflow-y: scroll;
+        text-overflow: clip;
+    }
 
 }
 
@@ -4316,84 +4349,8 @@ meter:not([value]) {
 
 
 
-@media (max-aspect-ratio: 4/3) {
-    body {
-        width: 100%;
-        box-sizing: border-box;
-        height: 100%;
-        margin: 0px;
-        padding: 0px;
-        overflow: hidden;
-        border-radius: 0 0 3vh 3vh;
-        display: grid;
-        grid-template-columns: 100%;
-        transition: all 300ms ease;
-        grid-template-rows: 100%;
-        grid-template-areas:
-            "D S"
-            "B B";
-    }
-
-    .sideBarNav h1 {
-        width: 40%;
-        min-width: 10vh;
-        text-align: center;
-        padding: 1%;
-        user-select: none;
-        padding-top: 5%;
-        padding-bottom: 5%;
-        font-size: 2vh;
-        /* background-color: rgb(32, 32, 32); */
-    }
-
-    .bodyEdit {
-        grid-template-rows: 85%;
-        grid-template-columns: 80%;
-
-    }
-
-    .bottomBar {
-        border-top: rgb(5, 5, 5) solid 0.5vw;
-        background-color: rgb(18, 18, 18);
-        width: 100%;
-        height: 15cqh;
-        grid-area: B;
-        align-items: center;
-        box-sizing: border-box;
-        justify-items: center;
-        display: grid;
-        grid-template-areas:
-            "R 🗑 ⚙"
-            "C 🗑 ⚙";
-        grid-template-columns: 35vmin fit-content auto;
-    }
-}
-
-@media (max-aspect-ratio: 9/16) {
 
 
-    .bodyEdit {
-        grid-template-rows: 90%;
-        grid-template-columns: 80%;
-
-    }
-
-    .bottomBar {
-        border-top: rgb(5, 5, 5) solid 0.5vw;
-        background-color: rgb(18, 18, 18);
-        width: 100%;
-        height: 10cqh;
-        grid-area: B;
-        align-items: center;
-        box-sizing: border-box;
-        justify-items: center;
-        display: grid;
-        grid-template-areas:
-            "R 🗑 ⚙"
-            "C 🗑 V";
-        grid-template-columns: 35vmin fit-content auto;
-    }
-}
 
 .manager {
 
@@ -4406,16 +4363,24 @@ meter:not([value]) {
     z-index: 3;
     /* outline: .5vh #46009c solid; */
     /* display: flex; */
-    display: none;
     flex-direction: column;
     flex-wrap: wrap;
     align-content: space-evenly;
+    display: flex;
     justify-content: start;
     border-right: rgb(48, 48, 48) solid 0.5vh;
+    opacity: 0;
+    pointer-events: none;
+    transition: clip-path 150ms ease, opacity 150ms ease;
+    clip-path: xywh(0% 0% 0cqh 100cqh);
 }
 
-.managerOpen{
-    display: flex;
+.managerOpen {
+    pointer-events: all;
+    clip-path: xywh(0% 0% 50cqh 100cqh);
+
+    opacity: 1;
+
 }
 
 .titleBar {
@@ -4442,7 +4407,7 @@ meter:not([value]) {
     width: 100%;
     padding-top: 0.5cqh;
     padding-bottom: 0.5cqh;
-    background-color: rgba(12,12,12,0.5);
+    background-color: rgba(12, 12, 12, 0.5);
     user-select: none;
     transition: margin-top ease;
 
@@ -4486,7 +4451,7 @@ meter:not([value]) {
     font-size: 5cqh;
     user-select: none;
     width: 100%;
-    text-align: center; 
+    text-align: center;
     padding-top: 1cqh;
     transition: margin-top ease;
     height: 5cqh;
@@ -4500,13 +4465,6 @@ meter:not([value]) {
     display: none;
 }
 
-.onlyEditShowing {
-    display: initial;
-}
-
-.sectionTitle.onlyEditShowing {
-    display: block
-}
 
 .marginedTab {
     margin-top: 6.5cqh;
@@ -4518,14 +4476,128 @@ meter:not([value]) {
     z-index: 2;
 }
 
-.tabHidden{
+.tabHidden {
     display: none;
 }
 
-.tabMinimized{
+.tabMinimized {
     display: none;
 }
 
-.tabVisible{
+
+.tabVisible {
     display: initial;
+}
+
+.onlyEditShowing {
+    display: initial;
+}
+
+.sectionTitle.onlyEditShowing {
+    display: block
+}
+
+.sideTab.tabMinimized {
+    display: flex;
+}
+
+.sideTab.tabHidden {
+    display: flex;
+}
+
+.sideTab.tabHidden.hideSideTab {
+    display: none;
+}
+
+.sideTab.tabVisible {
+    display: flex;
+}
+
+.sideTab .tabName {
+    pointer-events: none;
+}
+
+@media (max-aspect-ratio: 9/16) {
+
+
+    .bodyEdit {
+        grid-template-rows: 90%;
+        grid-template-columns: 80%;
+
+    }
+
+    .bottomBar {
+        border-top: rgb(5, 5, 5) solid 0.5vw;
+        background-color: rgb(18, 18, 18);
+        width: 100%;
+        height: 10cqh;
+        grid-area: B;
+        align-items: center;
+        box-sizing: border-box;
+        justify-items: center;
+        display: grid;
+        grid-template-areas:
+            "R 🗑 ⚙"
+            "C 🗑 V";
+        grid-template-columns: 35vmin fit-content auto;
+    }
+
+}
+
+@media (max-aspect-ratio: 4/3) {
+    body {
+        width: 100%;
+        box-sizing: border-box;
+        height: 100%;
+        margin: 0px;
+        padding: 0px;
+        overflow: hidden;
+        border-radius: 0 0 3vh 3vh;
+        display: grid;
+        grid-template-columns: 100%;
+        transition: all 300ms ease;
+        grid-template-rows: 100%;
+        grid-template-areas:
+            "D S"
+            "B B";
+    }
+
+    .sideBarNav h1 {
+        width: 40%;
+        min-width: 10vh;
+        text-align: center;
+        padding: 1%;
+        user-select: none;
+        padding-top: 5%;
+        padding-bottom: 5%;
+        font-size: 2vh;
+        /* background-color: rgb(32, 32, 32); */
+    }
+
+    .bodyEdit {
+        grid-template-rows: 85%;
+        grid-template-columns: 80%;
+
+    }
+
+
+    .tab.tabVisible {
+        display: none;
+    }
+
+    .bottomBar {
+        border-top: rgb(5, 5, 5) solid 0.5vw;
+        background-color: rgb(18, 18, 18);
+        width: 100%;
+        height: 15cqh;
+        grid-area: B;
+        align-items: center;
+        box-sizing: border-box;
+        justify-items: center;
+        display: grid;
+        grid-template-areas:
+            "R 🗑 ⚙"
+            "C 🗑 ⚙";
+        grid-template-columns: 35vmin fit-content auto;
+    }
 }
