@@ -40,6 +40,40 @@ let subscribedTopics = {
     //"Topic": [{jQueryReference :$, parentRefernce: $, valueHandler: function()/false}]
 }
 
+var toastOpen = false
+var toastTimeout;
+
+function toastMessage(message, color = "#7300ff") {
+
+    $(".toast").css("background-color", color).css("display", "inherit")
+    $(".toast").offset()
+    if (!toastOpen) {
+        document.querySelector(".toast").classList.toggle("toasted")
+        $("#toastMessage").text(message)
+        toastOpen = true
+        toastTimeout = setTimeout(() => {
+            if (toastOpen) {
+                document.querySelector(".toast").classList.toggle("toasted")
+                setTimeout(() => {
+                    $(".toast").css("display", "none")
+                }, 400);
+                toastOpen = false
+            }
+        }, 3000);
+    } else {
+        $("#toastMessage").text(message)
+        clearTimeout(toastTimeout)
+        toastTimeout = setTimeout(() => {
+            if (toastOpen) {
+                document.querySelector(".toast").classList.toggle("toasted")
+                setTimeout(() => {
+                    $(".toast").css("display", "none")
+                }, 400);
+                toastOpen = false
+            }
+        }, 2000);
+    }
+}
 
 
 const MathUtils = {
@@ -347,9 +381,10 @@ function oneShotAnimation(elemClass) {
 }
 setSelectOpener()
 function setSelectOpener() {
-    $(".select").not(".sideBarSelect").off("pointerdown.selectOpener").on(" pointerdown.selectOpener", (event) => {
+    $(".select").not(".sideBarSelect").off("pointerdown.selectOpener").on("pointerdown.selectOpener", (event) => {
         if (!$(event.target).hasClass("textInput") && !$(event.target).hasClass("delete") && !$(event.target).hasClass("save") && !$(event.target).hasClass("saveManager")) {
             $(event.currentTarget).toggleClass("selectOpen")
+
         }
     })
 }
@@ -571,28 +606,7 @@ function topicToSidebar(topic) {
 
 function doNothing() { }
 
-if (localStorage.getItem(getHtmlFileName() + "connect") === "true") {
-    $("#connect")[0].checked = true
-    $(".connectionText").text("Retrying")
-    $(".tabConnection").removeClass("tabConnection")
 
-    nt4Client.connect()
-
-} else {
-    $(".fullScreen").css("background-color", "rgb(32, 32, 32)")
-
-    $("html").css("background-color", "rgb(32, 32, 32)")
-    $(".tab").css("background-color", "rgb(12, 12, 12)")
-    $(".addTab").css("background-color", "rgb(32, 32, 32)")
-    $(".tabManager").css("background-color", "rgb(32, 32, 32)")
-
-    $(".tabCreator").css("background-color", "rgb(32, 32, 32)")
-
-    $(".tabNav").css("background-color", "rgb(12, 12, 12)")
-    $(".currentTab").css("background-color", "rgb(32, 32, 32)")
-    nt4Client.disconnect()
-
-}
 
 $("#connect").on("click", () => {
     if (!$("#connect").is(":checked")) {
@@ -738,7 +752,8 @@ function onConnectCb() {
     //on everything this is NOT on callback
 
     setTimeout(() => {
-
+                setSelectOpener()
+ 
         $(".tabConnection").removeClass("tabConnection")
 
         $(".fullScreen").css("background-color", "rgb(32, 32, 32)")
@@ -773,7 +788,7 @@ function onConnectCb() {
                 if ($uiElements.eq(i).attr("data-value")) {
                     if ($uiElements.eq(i).attr("data-type") === "string") {
                         nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), $uiElements.eq(i).attr("data-value"))
-
+                        // console.log($uiElements.eq(i).attr("data-value"))
                     } else if ($uiElements.eq(i).attr("data-type") === "double") {
                         nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), parseFloat($uiElements.eq(i).attr("data-value")))
                         console.log($uiElements.eq(i).attr("data-value"))
@@ -801,7 +816,8 @@ function onConnectCb() {
 
                     nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), !(JSON.parse($uiElements.eq(i).attr("data-value"))))
                     $uiElements.eq(i).toggleClass("toggledOn")
-                    let oldBG = $uiElements.eq(i).css(" background-color").replace(/^([^,]*,[^,]*,[^,]*),.*$/, '$1')
+                    console.log($uiElements.eq(i));
+                    let oldBG = $uiElements.eq(i).css("background-color").replace(/^([^,]*,[^,]*,[^,]*),.*$/, '$1')
 
                     if ($uiElements.eq(i).hasClass("toggledOn")) {
                         $uiElements.eq(i).css("background-color", oldBG + ", 0.6)")
@@ -1681,7 +1697,6 @@ function createDropdown(topic, append = false, hex = 0, initialOptionIndex = 0, 
         dropdown.div.appendTo(append)
     }
 
-    setSelectOpener()
     setSimilarOptions(dropdown.div, similarOptions)
     addEditHandler(dropdown.div, "string")
 
@@ -1777,7 +1792,7 @@ function createBasicSubscription(displayName, topic, append = false, hex = false
 
     let basicSubscriptionHandler = (value, timestamp) => {
         // console.log(value, "basicSubscriptionHandler")
-        topicReference.text(value)
+        topicReference.text(value.toFixed(3))
     }
 
 
@@ -2618,7 +2633,7 @@ function bindTabChanger() {
 
     })
 
-    $(".manager").on("pointerdown.changeTab ", (event) => {
+    $(".manager").on("click.changeTab", (event) => {
         if ($(".editTabs").hasClass("editingTabs")) return
 
 
@@ -2729,7 +2744,7 @@ function bindEditMenu(element, valueType, specificClass = false) {
         let nameInputText = editComponent.currentTarget.text()
         if (editComponent.currentTarget.hasClass("animatedButton")) {
             nameInputText = editComponent.currentTarget.clone().children().remove().end().text()
-        } 
+        }
         if (editComponent.currentTarget.children(".editThisName").length > 0) {
             nameInputText = editComponent.currentTarget.children(".editThisName").text()
         }
@@ -3486,16 +3501,16 @@ function emulateMeterColors(min = 0, max = 360, low = "", high = "", optimum = "
 
 }
 
-$(".testbtn").on("click", () => {
-    alert("Copied To Clipboard")
+$(".exportBtn").on("click", () => {
+    toastMessage("Layout Copied")
     navigator.clipboard.writeText(saveLayoutToJSON())
 
 })
-$(".testbtn2").on("click", () => {
-    localStorage.setItem("layout", prompt("Input Json"));
-    clear = true;
-    window.location.reload();
-})
+// $(".testbtn2").on("click", () => {
+//     localStorage.setItem("layout", prompt("Input Json"));
+//     clear = true;
+//     window.location.reload();
+// })
 function saveLayoutToJSON() {
     let tabs = $(".tab")
 
@@ -3600,17 +3615,22 @@ function loadLayoutFromJson(json) {
             continue
         }
 
-        let page$ = $("<div>").addClass("page").addClass(tab.slice(1)).css("display", "grid").attr("rows", json[tab].tabRows).attr("columns", json[tab].tabColumns).insertAfter(".autonomus")
+        if ($(tab).length <= 0) {
+            let page$ = $("<div>").addClass("page").addClass(tab.slice(1)).css("display", "grid").attr("rows", json[tab].tabRows).attr("columns", json[tab].tabColumns).insertAfter(".autonomus")
 
-        for (let i = 0; i < components.length; i++) {
-            makeComponentFromJson(components[i])
-                .attr("data-row", components[i].row)
-                .attr("data-column", components[i].col)
-                .attr("data-endrow", components[i].endrow)
-                .attr("data-endcolumn", components[i].endcol)
-                .css("grid-area", components[i].area)
-                .appendTo(page$)
+            for (let i = 0; i < components.length; i++) {
+                makeComponentFromJson(components[i])
+                    .attr("data-row", components[i].row)
+                    .attr("data-column", components[i].col)
+                    .attr("data-endrow", components[i].endrow)
+                    .attr("data-endcolumn", components[i].endcol)
+                    .css("grid-area", components[i].area)
+                    .appendTo(page$)
+            }
+        } else{
+            $(tab).css("display", "grid").attr("rows", json[tab].tabRows).attr("columns", json[tab].tabColumns).insertAfter(".autonomus")
         }
+
 
     }
     let $ct = $(".tabNav").children(".tab").eq(0)
@@ -3915,7 +3935,7 @@ function handleTabDrag() {
 
         if (!tabDragInfo.phased) return
 
-        tabDragInfo.phased.css("top", event.pageY - vh(6.5 / 2) + "px")
+        tabDragInfo.phased.css("top", event.pageY - vh(6.5 / 2) + "px")  
 
         if ($hov.is(tabDragInfo.phased.prev())) {
             if ($hov.hasClass("marginedTab") || $hov.hasClass("transitioning") || $hov.hasClass("immoveable")) {
@@ -4007,7 +4027,7 @@ let clear = false
 
 $(document).on('visibilitychange', () => {
     if (document.visibilityState === "hidden") {
-        if(clear){
+        if (clear) {
             return
         }
 
@@ -4026,3 +4046,56 @@ if (localStorage.getItem("layout")) {
 
     loadLayoutFromJson(localStorage.getItem("layout"))
 }
+
+function mapDragHandler(){
+    let map = $(".map");
+
+    clientDragHandler()
+}
+
+if (localStorage.getItem(getHtmlFileName() + "connect") === "true") {
+    $("#connect")[0].checked = true
+    $(".connectionText").text("Retrying")
+    $(".tabConnection").removeClass("tabConnection")
+
+    nt4Client.connect()
+
+} else {
+    $(".fullScreen").css("background-color", "rgb(32, 32, 32)")
+
+    $("html").css("background-color", "rgb(32, 32, 32)")
+    $(".tab").css("background-color", "rgb(12, 12, 12)")
+    $(".addTab").css("background-color", "rgb(32, 32, 32)")
+    $(".tabManager").css("background-color", "rgb(32, 32, 32)")
+
+    $(".tabCreator").css("background-color", "rgb(32, 32, 32)")
+
+    $(".tabNav").css("background-color", "rgb(12, 12, 12)")
+    $(".currentTab").css("background-color", "rgb(32, 32, 32)")
+    nt4Client.disconnect()
+
+}
+
+$(".teamNumber").on("click", ()=>{
+    $(".setTeamNumberOrIp").toggleClass("showTeamSet")
+    
+})
+
+$(".importBtn").on("click", ()=>{
+    $(".importJson").toggleClass("showTeamSet")
+        $(".manager").removeClass("managerOpen")
+    
+})
+
+$(".doImport").on("click", () => {
+    let json = $(".importBox").val()
+
+    localStorage.setItem("layout", json);
+    clear = true;
+    window.location.reload();
+})
+
+$(".cancelImport").on("click", ()=>{
+    $(".importJson").removeClass("showTeamSet")
+
+})

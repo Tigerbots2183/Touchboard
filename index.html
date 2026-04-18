@@ -37,6 +37,9 @@ SOFTWARE. -->
 </head>
 
 <body>
+    <div class="toast">
+        <h2 id="toastMessage">Toast</h2>
+    </div>
     <div class="dashboardHolder">
         <div class="tabNav">
             <!-- Insert tab buttons after this or between existing buttons after here -->
@@ -53,7 +56,7 @@ SOFTWARE. -->
 
             <div class="addTab">+</div>
 
-            <!-- <div class="tab tabConnection" data-page=".jukeBox">Jukebox</div> -->
+            <!-- <div class="tab tabConnection" data-page=".guesstimator">Pose</div> -->
 
             <!-- <div class="tab tabConnection currentTab userTab" data-page=".uiTestTab">Ui Test</div> -->
 
@@ -62,8 +65,8 @@ SOFTWARE. -->
                 <input id="connect" type="checkbox">
                 <span class="slider round"></span>
             </label>
-            <button class="testbtn navBTN">⇪</button>
-            <button class="testbtn2 navBTN" style="rotate: 180deg;">⇪</button>
+            <!-- <button class="testbtn navBTN">⇪</button>
+            <button class="testbtn2 navBTN" style="rotate: 180deg;">⇪</button> -->
 
             <button class="editTabs">✎</button>
             <button class="teamNumber">#</button>
@@ -79,7 +82,16 @@ SOFTWARE. -->
             <input type="text" class="textInput teamNumberInput" placeholder="">
             <p class="simHint">Use localhost for simulator</p>
             <input type="button" class="setTeam" value="Set">
-            <p class="version">Developed by Tigerbots 2183, Touchboard Version 2.0.0 (Beta) </p>
+            <p class="version">Developed by Tigerbots 2183, Touchboard Version 2.0.1 (Beta) </p>
+        </div>
+
+        <div class="importJson">
+            <h1 class="setTeamTitle">Import Json</h1>
+            <input type="text" class="textInput importBox" placeholder="">
+            <input type="button" class="doImport" value="Import">
+            <input type="button" class="cancelImport" value="Cancel">
+
+            <p class="version">Developed by Tigerbots 2183, Touchboard Version 2.0.1 (Beta) </p>
         </div>
 
         <div class="manager">
@@ -87,21 +99,28 @@ SOFTWARE. -->
                 <div class="tabManager">☰</div>
                 <h1>Tabs</h1>
             </div>
+            <div class="tabScroll">
+                <h1 class="sectionTitle onlyOnEdit immoveable" data-classset="tabVisible">Visible</h1>
 
-            <h1 class="sectionTitle onlyOnEdit immoveable" data-classset="tabVisible">Visible</h1>
-
-            <!-- <div class="sideTab sTABautonomus" data-page=".autonomus">
+                <!-- <div class="sideTab sTABautonomus" data-page=".autonomus">
                 <h1 class="ham onlyOnEdit">☰</h1>
                 <h1 class="tabName">PosePlotter</h1>
                 <h1 class="removeTab onlyOnEdit">❌</h1>
             </div> -->
-          
-            <h1 class="sectionTitle onlyOnEdit titleMinimized insertVisible" data-classset="tabMinimized">Minimized</h1>
 
-            <h1 class="sectionTitle onlyOnEdit insertMinimized" data-classset="tabHidden">Hidden</h1>
+                <h1 class="sectionTitle onlyOnEdit titleMinimized insertVisible" data-classset="tabMinimized">Minimized
+                </h1>
 
-            <h1 style="display: none;" class="insertHidden"></h1>
+                <h1 class="sectionTitle onlyOnEdit insertMinimized" data-classset="tabHidden">Hidden</h1>
 
+                <h1 style="display: none;" class="insertHidden"></h1>
+            </div>
+            <div class="sideTabF importBtn" style="margin-top: auto;">
+                <h1 class="tabName">Import</h1>
+            </div> 
+            <div class="sideTabF exportBtn">
+                <h1 class="tabName">Export</h1>
+            </div> 
         </div>
 
         <div class="autonomus pageF" style="display: none;">
@@ -272,7 +291,7 @@ SOFTWARE. -->
             </div>
         </div>
 
-        <!-- <div class="uiTestTab page" style="display: grid;"></div> -->
+
 
         <div class="jukeBox pageF">
             <div class="songSelector">
@@ -787,16 +806,16 @@ SOFTWARE. -->
     </div>
 
     <div class="bottomBar">
-        <div class="numberInput setGridRow setGrid " data-step="1" data-min="1" data-max="100"
-            style="grid-area: R;" data-value="4">
+        <div class="numberInput setGridRow setGrid " data-step="1" data-min="1" data-max="100" style="grid-area: R;"
+            data-value="4">
             <p class="numberInputTitle">Rows:</p>
             <button class="numberMinus animatedButton">-</button>
             <input class="numberTextInput" type="number" value="4"> <!-- value must match data-value -->
             <button class="numberPlus animatedButton">+</button>
         </div>
 
-        <div class="numberInput setGridColumn setGrid " data-type="double" data-step="1" data-min="1"
-            data-max="100" style="grid-area: C;" data-value="9">
+        <div class="numberInput setGridColumn setGrid " data-type="double" data-step="1" data-min="1" data-max="100"
+            style="grid-area: C;" data-value="9">
             <p class="numberInputTitle">Cols:</p>
             <button class="numberMinus animatedButton">-</button>
             <input class="numberTextInput" type="number" value="9"> <!-- value must match data-value -->

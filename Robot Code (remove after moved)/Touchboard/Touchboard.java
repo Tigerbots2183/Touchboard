@@ -1,4 +1,4 @@
-package frc.robot.subsystems.Touchboard;
+package frc.robot.util;
 
 import java.util.HashMap;
 import java.util.function.Supplier;
@@ -38,10 +38,10 @@ public class Touchboard {
         datatable.getBooleanTopic(topic).publish();
         final BooleanSubscriber dataSubscriber = datatable.getBooleanTopic(topic).subscribe(false);
 
-        return new Trigger(() -> dataSubscriber.readQueueValues().length > 0).onTrue(Commands.run(
+        return new Trigger(() -> dataSubscriber.get()).onTrue(Commands.runOnce(
                 () -> CommandScheduler.getInstance().schedule(command.get().until(() -> !dataSubscriber.get()))
 
-        ));
+        ).ignoringDisable(true));
     }
 
     // Toggle Button Methods
@@ -58,10 +58,10 @@ public class Touchboard {
         datatable.getBooleanTopic(topic).publish();
         final BooleanSubscriber dataSubscriber = datatable.getBooleanTopic(topic).subscribe(false);
 
-        return new Trigger(() -> dataSubscriber.readQueueValues().length > 0).onTrue(Commands.run(
+        return new Trigger(() -> dataSubscriber.get()).onTrue(Commands.runOnce(
                 () -> CommandScheduler.getInstance().schedule(command.get().until(() -> !dataSubscriber.get()))
 
-        ));
+        ).ignoringDisable(true));
 
     }
 
@@ -71,7 +71,8 @@ public class Touchboard {
         final BooleanPublisher dataPublisher = datatable.getBooleanTopic(topic).publish();
         final BooleanSubscriber dataSubscriber = datatable.getBooleanTopic(topic).subscribe(false);
 
-        Command setter = command.alongWith(Commands.runOnce(() -> dataPublisher.set(false)));
+        Command setter = command.alongWith(Commands.waitSeconds(0).ignoringDisable(true)
+                .andThen(Commands.runOnce(() -> dataPublisher.set(false)).ignoringDisable(true)));
 
         return new Trigger(() -> dataSubscriber.get()).whileTrue(setter);
     }
@@ -81,66 +82,88 @@ public class Touchboard {
         final BooleanPublisher dataPublisher = datatable.getBooleanTopic(topic).publish();
         final BooleanSubscriber dataSubscriber = datatable.getBooleanTopic(topic).subscribe(false);
 
-        Command setter = command.get().alongWith(Commands.runOnce(() -> dataPublisher.set(false)));
+        Supplier<Command> setter = () -> command.get().alongWith(Commands.waitSeconds(0).ignoringDisable(true)
+                .andThen(Commands.runOnce(() -> dataPublisher.set(false)).ignoringDisable(true)));
 
-        return new Trigger(() -> dataSubscriber.readQueueValues().length > 0).onTrue(Commands.runOnce(
+        return new Trigger(() -> dataSubscriber.get()).onTrue(Commands.runOnce(
                 () -> CommandScheduler.getInstance()
-                        .schedule(command.get().until(() -> dataSubscriber.readQueueValues().length > 0))
-
-        ));
+                        .schedule(setter.get().until(() -> !dataSubscriber.get())))
+                .ignoringDisable(true));
     }
 
     // Array of doubleSubscribers to avoid recreation on every trigger
 
     private static HashMap<String, DoubleSubscriber> DoubleSubscriberMap = new HashMap<String, DoubleSubscriber>();
+    private static HashMap<String, Double> DoubleOverrideMap = new HashMap<String, Double>();
 
+    public static void setDoubleOverrideKey(String binder, Double OverrideKey) {
+        DoubleOverrideMap.put(binder, OverrideKey);
+    }
+
+    public static Double getDoubleOverrideKey(String binder) {
+        return DoubleOverrideMap.get(binder);
+    }
     // Axis Methods
 
     public static Trigger bindAxis(String topic, Supplier<Command> command) {
         datatable.getDoubleTopic(topic).publish();
+        String binder = topic + Math.random();
+
         DoubleSubscriber dataSubscriber;
 
         if (DoubleSubscriberMap.containsKey(topic)) {
             dataSubscriber = DoubleSubscriberMap.get(topic);
         } else {
             dataSubscriber = datatable.getDoubleTopic(topic).subscribe(0,
-                    PubSubOption.pollStorage(1));
+                    PubSubOption.pollStorage(1), PubSubOption.keepDuplicates(true));
         }
 
-        return new Trigger(() -> dataSubscriber.readQueueValues().length > 0).onTrue(Commands.runOnce(
-                () -> CommandScheduler.getInstance()
-                        .schedule(command.get().until(() -> dataSubscriber.readQueueValues().length > 0))
+        return new Trigger(() -> dataSubscriber.readQueue().length > 0).onChange(
+                Commands.runOnce(
+                        () -> {
+                            Double currentKey = Math.random();
+                            setDoubleOverrideKey(binder, currentKey);
 
-        ));
+                            CommandScheduler.getInstance().schedule(
+                                    command.get().until(() -> getDoubleOverrideKey(binder) != currentKey));
+                        }
+
+                ).ignoringDisable(true));
     }
 
     // Number Component Methods
 
     public static Trigger bindNumberComponent(String topic, Supplier<Command> command) {
         datatable.getDoubleTopic(topic).publish();
+        String binder = topic + Math.random();
+
         DoubleSubscriber dataSubscriber;
 
         if (DoubleSubscriberMap.containsKey(topic)) {
             dataSubscriber = DoubleSubscriberMap.get(topic);
         } else {
             dataSubscriber = datatable.getDoubleTopic(topic).subscribe(0,
-                    PubSubOption.pollStorage(2));
+                    PubSubOption.keepDuplicates(true), PubSubOption.pollStorage(2));
         }
 
         return new Trigger(() -> dataSubscriber.readQueueValues().length > 0).onTrue(Commands.runOnce(
-                () -> CommandScheduler.getInstance()
-                        .schedule(command.get().until(() -> dataSubscriber.readQueueValues().length > 0))
+                () -> {
+                    Double currentKey = Math.random();
+                    setDoubleOverrideKey(binder, currentKey);
 
-        ));
+                    CommandScheduler.getInstance()
+                            .schedule(command.get().until(() -> currentKey != getDoubleOverrideKey(binder)));
+                }));
     }
 
     // AXIS + NUMBER COMPONENT value getter
     public static double getDoubleValue(String topic) {
         if (DoubleSubscriberMap.containsKey(topic)) {
+            // System.out.println(DoubleSubscriberMap.size());
             return DoubleSubscriberMap.get(topic).get();
         } else {
             final DoubleSubscriber dataSubscriber = datatable.getDoubleTopic(topic).subscribe(0,
-                    PubSubOption.pollStorage(2));
+                    PubSubOption.keepDuplicates(true), PubSubOption.pollStorage(2));
 
             DoubleSubscriberMap.put(topic, dataSubscriber);
 
@@ -149,11 +172,20 @@ public class Touchboard {
     }
 
     private static HashMap<String, StringSubscriber> StringSubscriberMap = new HashMap<String, StringSubscriber>();
+    private static HashMap<String, Double> StringOverrideMap = new HashMap<String, Double>();
 
+    public static void setStringOverrideKey(String binder, Double OverrideKey) {
+        StringOverrideMap.put(binder, OverrideKey);
+    }
+
+    public static Double getStringOverrideKey(String binder) {
+        return StringOverrideMap.get(binder);
+    }
     // Dropdown Methods
 
     public static Trigger bindDropdown(String topic, Supplier<Command> command) {
         StringSubscriber dataSubscriber;
+        String binder = topic + Math.random();
 
         if (DoubleSubscriberMap.containsKey(topic)) {
             dataSubscriber = StringSubscriberMap.get(topic);
@@ -163,16 +195,22 @@ public class Touchboard {
         }
 
         return new Trigger(() -> dataSubscriber.readQueueValues().length > 0).onTrue(Commands.runOnce(
-                () -> CommandScheduler.getInstance()
-                        .schedule(command.get().until(() -> dataSubscriber.readQueueValues().length > 0))
+                () -> {
+                    Double currentKey = Math.random();
+                    setStringOverrideKey(binder, currentKey);
+                    CommandScheduler.getInstance()
+                        .schedule(command.get().until(() -> currentKey != getStringOverrideKey(binder))
+                                .ignoringDisable(true));
+                            }
 
-        ));
+        ).ignoringDisable(true));
     }
 
     // Opt Group Methods
 
     public static Trigger bindOptGroup(String topic, Supplier<Command> command) {
         StringSubscriber dataSubscriber;
+        String binder = topic + Math.random();
 
         if (DoubleSubscriberMap.containsKey(topic)) {
             dataSubscriber = StringSubscriberMap.get(topic);
@@ -182,10 +220,15 @@ public class Touchboard {
         }
 
         return new Trigger(() -> dataSubscriber.readQueueValues().length > 0).onTrue(Commands.runOnce(
-                () -> CommandScheduler.getInstance()
-                        .schedule(command.get().until(() -> dataSubscriber.readQueueValues().length > 0))
+                () -> {
+                    Double currentKey = Math.random();
+                    setStringOverrideKey(binder, currentKey);
+                    
+                    CommandScheduler.getInstance()
+                        .schedule(command.get().until(() -> currentKey != getStringOverrideKey(binder))
+                                .ignoringDisable(true));}
 
-        ));
+        ).ignoringDisable(true));
     }
 
     // OPT GROUP + DROPDOWN COMPONENT value getter

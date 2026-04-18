@@ -942,7 +942,7 @@ function triggerGraphEffector(graphEffector, animationClass) {
 
 }
 
-function dragPsuedoEvent($elementBound, fn, fireEndOnLeave = true, executeFnOnLeave = false, storeNativeEvents = false) {
+export function dragPsuedoEvent($elementBound, fn, fireEndOnLeave = true, executeFnOnLeave = false, storeNativeEvents = false) {
     //storeNativeEvents prevents logging of event argument
 
     let psuedoEvent = {

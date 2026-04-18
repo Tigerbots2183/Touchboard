@@ -208,7 +208,3 @@ function goToPrevSong(){
     nt4Client.addSample("/touchboard/stopMusic", true);
 }
 
-$(".teamNumber").on("click", ()=>{
-    $(".setTeamNumberOrIp").toggleClass("showTeamSet")
-    
-})
