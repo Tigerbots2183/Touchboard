@@ -449,13 +449,15 @@ foreignObject input[type=range]::-webkit-slider-thumb {
   /* top: 8dvh; */
   z-index: 9;
   left: 50dvw;
-  max-width: 100dvw;
-  max-height: 6dvh;
+  max-width: 90dvw;
+  /* max-height: max-height; */
   text-wrap: wrap;
   padding: 0.5dvh;
   border-radius: 0.7svh;
   top: -6dvh;
   transform: translate(-50%, 0%);
+  pointer-events: none;
+  user-select: none;
   transition: top 400ms ease-out;
   /* overflow: hidden; */
   display: none;
@@ -463,9 +465,10 @@ foreignObject input[type=range]::-webkit-slider-thumb {
 
 #toastMessage {
   width: max-content;
-  max-width: 100dvw;
+  max-width: 90dvw;
   color: white  ;
-  max-height: 6dvh;
+  text-align: center;
+  /* max-height: 6dvh; */
 }
 
 .toasted {

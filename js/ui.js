@@ -40,10 +40,12 @@ let subscribedTopics = {
     //"Topic": [{jQueryReference :$, parentRefernce: $, valueHandler: function()/false}]
 }
 
+const isObject = (val) => val !== null && typeof val === 'object';
+
 var toastOpen = false
 var toastTimeout;
 
-function toastMessage(message, color = "#7300ff") {
+export function toastMessage(message, color = "#7300ff") {
 
     $(".toast").css("background-color", color).css("display", "inherit")
     $(".toast").offset()
@@ -423,182 +425,252 @@ function topicAnnounce(topic) {
 
 
 }
+// type: [topics...]
+let awaitingSchemas = {}
 
 function topicToSidebar(topic) {
-    // if(topic.type.includes("struct")) return
+    if (topic.type.includes("proto") || topic.type.includes("structschema")) return
 
     let split = topic.name.split("/")
     split.shift();
 
     let currentPath = topicObject
     // console.log(topicObject)
+    //decodes topic path into an object and makes them appear in the sdiebar
     for (let i = 0; i < split.length; i++) {
         // if(i == 0 && split[i] == "touchboard") continue
-        if (currentPath[split[i]]) {
+        if (currentPath[split[i]] && i < split.length - 1) {
+            
             currentPath = currentPath[split[i]]
 
             continue
         } else {
-            if (i >= split.length - 1) {
-                let parentDiv
-                if (i == 0) parentDiv = $("<div>").addClass("topicPathDiv").appendTo(currentPath["esc-esc-$-esc-esc"])
-                else parentDiv = $("<div>").addClass("topicPathDiv").appendTo(currentPath["esc-esc-$-esc-esc"].children(".subPaths"))
 
-                let src = ""
-                let typeString
+            if (i >= split.length - 1 && !topic.type.includes('struct')) {
+                //If last in topic, make the button for it, unless its a struct then it will be treated as a folder
+                createButton(split[i], i)
+                continue
+            } 
+            else if (i >= split.length - 1 && topic.type.includes('struct')) {
 
-                let image = $("<img>").appendTo(parentDiv)
-                let h1 = $("<h1>").text(split[i]).appendTo(parentDiv)
-                currentPath[split[i]] = topic
-                currentPath[split[i]]["esc-esc-$-esc-esc"] = parentDiv
+                //If last in topic- and struct, make a folder
+                createFolder(split[i], i)
 
-                let $allOf = $(parentDiv).add(image).add(h1)
+                let finalTypes = Object.keys(nt4Client.typeLengths)
+                let type = topic.type.slice(7)
+                // console.log(type)
 
-                if (topic.type.includes('string')) {
-                    src = "TextIcon.png"
-                    typeString = 'string'
-                }
-                else if (topic.type.includes('struct')) {
-                    src = "StructIcon.png"
-                    typeString = 'struct'
-                    parentDiv.css("display", "none")
-                }
-                else if (topic.type.includes('int')) {
-                    src = "IntIcon.png"
-                    typeString = 'int'
-                }
-                else if (topic.type.includes('double') || topic.type.includes('float64')) {
-                    src = "DoubleIcon.png"
-                    typeString = 'double'
-                }
-                else if (topic.type.includes('float')) {
-                    src = "FloatIcon.png"
-                    typeString = 'float'
-                }
-                else if (topic.type.includes('bool')) {
-                    src = "BoolIcon.png"
-                    typeString = 'bool'
-                }
+                let schemas = nt4Client.schemas
 
-                if (topic.type.includes("[]")) {
-                    src = "Array" + src
-                    typeString = "array" + typeString
-                    parentDiv.css("display", "none")
+                decodeStruct(type);
+                continue;
+                // let currentType = type);
+                function decodeStruct(type) {
+                    let currentSchema;
 
-                }
-
-                $allOf.on("pointerdown.openOutputComponents", () => {
-                    $(".ioComponents").css("display", "none")
-                    $(".editSidebar").css("display", "none")
-                    if (outputComponents.changing) {
-                        outputComponents.changingSidebar.css("display", "flex")
-
-                        console.log(subscribedTopics)
-
-
-
-                        if (!subscribedTopics.hasOwnProperty(topic.name)) {
-                            subscribedTopics[topic.name] = []
-                        }
-
-                        let newSubscriptionReference = subscribedTopics[editComponent.currentTarget.attr('data-topic')].slice(editComponent.currentTarget.attr("data-subscriptionIndex"), parseInt(editComponent.currentTarget.attr("data-subscriptionIndex")) + 1)
-                        subscribedTopics[topic.name].push(newSubscriptionReference[0])
-
-                        console.log(subscribedTopics)
-
-                        subscribedTopics[editComponent.currentTarget.attr('data-topic')][editComponent.currentTarget.attr("data-subscriptionIndex")] = false
-
-                        editComponent.currentTarget.attr("data-topic", topic.name).attr("data-subscriptionindex", subscribedTopics[editComponent.currentTarget.attr('data-topic')].length - 1).find(".editThisName").text(split[i])
-
-
-
-
-                        if (nt4Client.serverTopics.get(topic.name)) {
-                            let val = "null"
-                            if (nt4Client.serverTopics.get(topic.name).value) {
-                                val = nt4Client.serverTopics.get(topic.name).value
-                            }
-                            if (newSubscriptionReference[0].topicChangeHandler) {
-                                newSubscriptionReference[0].topicChangeHandler(topic.name, val)
-                            }
-
-                            newSubscriptionReference[0].valueHandeler(val)
-                        } else {
-                            if (newSubscriptionReference[0].topicChangeHandler) {
-                                newSubscriptionReference[0].topicChangeHandler(topic.name, "")
-                            }
-
-                            newSubscriptionReference[0].valueHandeler("")
-                        }
-
-
-
-                        outputComponents.changingSidebar.find(".topicShower").text(topic.name)
-                        outputComponents.changingSidebar.find(".nameInput").val(split[i])
-
-
-                        setTimeout(() => {
-                            outputComponents.changing = false
-                        }, 100);
-
-                        console.log(subscribedTopics)
+                    if (schemas.get(type)) {
+                        currentSchema = schemas.get(type)
                     } else {
-                        $("." + typeString + "OutputComponents").css("display", "flex")
+
+                        if (awaitingSchemas.hasOwnProperty(type)) {
+                            awaitingSchemas[type].push(topic)
+                        } else {
+                            awaitingSchemas[type] = [topic]
+                        }
+                        return
                     }
 
-                    outputComponents.topic = topic
 
-                })
-
-                image.attr("src", "./js/Icons/" + src)
-
-                continue
-            }
-            let parentDiv
-            if (i == 0) {
-                parentDiv = $("<div>").addClass("topicPathDiv").appendTo(currentPath["esc-esc-$-esc-esc"])
-            }
-            else {
-                parentDiv = $("<div>").addClass("topicPathDiv").appendTo(currentPath["esc-esc-$-esc-esc"].children(".subPaths"))
-            }
-            let h2Holder = $("<div>").addClass("h2Holder").appendTo(parentDiv)
-            let h2 = $("<h2>").text("▲").appendTo(h2Holder)
-
-            let h1 = $("<h1>").text(split[i]).appendTo(parentDiv)
-
-            let subDiv = $("<div>").addClass("subPaths").appendTo(parentDiv)
-
-            let currentTimeout
-
-            h1.add(h2).add(h2Holder).on("pointerdown.open", (event) => {
-                let $ct = $(event.currentTarget).parent()
-                // console.log($ct)
-                clearTimeout(currentTimeout)
-                $ct.toggleClass("openTopic")
-                $ct.children(".h2Holder").children("h2").toggleClass("openArrow")
-
-                if ($ct.hasClass("openTopic")) {
-                    $ct.css("max-height", ($ct.children(".subPaths").outerHeight() + vh(5) + "px"))
-                    currentTimeout = setTimeout(() => {
-                        $ct.css("max-height", "unset")
-                    }, 300);
-                } else {
-                    $ct.css("max-height", $ct.children(".subPaths").outerHeight() + vh(5) + "px")
-                    $ct.offset()
-
-                    $ct.css("max-height", "5vh")
-
+                    for (let [name, type] of currentSchema) {
+                        if (finalTypes.includes(type)) {
+                            console.log(createButton(name, i, name, type))
+                            continue;
+                        } else {
+                            createFolder(name, i, name, type);
+                            decodeStruct(type);
+                            continue;
+                        }
+                    }
                 }
-            })
 
 
-            currentPath[split[i]] = {
-                "esc-esc-$-esc-esc": parentDiv
             }
-            currentPath = currentPath[split[i]]
+            createFolder(split[i], i)
         }
     }
+    function createButton(split, i, topicname = topic.name, topictype = topic.type) {
+        let parentDiv
+        if (i == 0) parentDiv = $("<div>").addClass("topicPathDiv").appendTo(currentPath["esc-esc-$-esc-esc"])
+        else parentDiv = $("<div>").addClass("topicPathDiv").appendTo(currentPath["esc-esc-$-esc-esc"].children(".subPaths"))
 
+
+        let src = ""
+        let typeString
+
+        let image = $("<img>").appendTo(parentDiv)
+        let h1 = $("<h1>").text(split).appendTo(parentDiv)
+        currentPath[split] = topic
+        currentPath[split]["esc-esc-$-esc-esc"] = parentDiv
+
+        let $allOf = $(parentDiv).add(image).add(h1)
+
+        if (topictype.includes('string')) {
+            src = "TextIcon.png"
+            typeString = 'string'
+        }
+        // else if (topic.type.includes('struct')) {
+        //     src = "StructIcon.png"
+        //     typeString = 'struct'
+        //     // parentDiv.css("display", "none")
+        // }
+        else if (topictype.includes('int')) {
+            src = "IntIcon.png"
+            typeString = 'int'
+        }
+        else if (topictype.includes('double') || topictype.includes('float64')) {
+            src = "DoubleIcon.png"
+            typeString = 'double'
+        }
+        else if (topictype.includes('float')) {
+            src = "FloatIcon.png"
+            typeString = 'float'
+        }
+        else if (topictype.includes('bool')) {
+            src = "BoolIcon.png"
+            typeString = 'bool'
+        }
+
+        if (topictype.includes("[]")) {
+            src = "Array" + src
+            typeString = "array" + typeString
+            parentDiv.css("display", "none")
+
+        }
+
+        $allOf.on("click.openOutputComponents", () => {
+            $(".ioComponents").css("display", "none")
+            $(".editSidebar").css("display", "none")
+            if (outputComponents.changing) {
+                outputComponents.changingSidebar.css("display", "flex")
+
+                console.log(subscribedTopics)
+
+
+
+                if (!subscribedTopics.hasOwnProperty(topicname)) {
+                    subscribedTopics[topicname] = []
+                }
+
+                let newSubscriptionReference = subscribedTopics[editComponent.currentTarget.attr('data-topic')].slice(editComponent.currentTarget.attr("data-subscriptionIndex"), parseInt(editComponent.currentTarget.attr("data-subscriptionIndex")) + 1)
+                subscribedTopics[topicname].push(newSubscriptionReference[0])
+
+                console.log(subscribedTopics)
+
+                subscribedTopics[editComponent.currentTarget.attr('data-topic')][editComponent.currentTarget.attr("data-subscriptionIndex")] = false
+
+                editComponent.currentTarget.attr("data-topic", topicname).attr("data-subscriptionindex", subscribedTopics[editComponent.currentTarget.attr('data-topic')].length - 1).find(".editThisName").text(split)
+
+
+
+
+                if (nt4Client.serverTopics.get(topicname)) {
+                    let val = "null"
+                    if (nt4Client.serverTopics.get(topicname).value) {
+                        val = nt4Client.serverTopics.get(topicname).value
+                    }
+                    if (newSubscriptionReference[0].topicChangeHandler) {
+                        newSubscriptionReference[0].topicChangeHandler(topicname, val)
+                    }
+
+                    newSubscriptionReference[0].valueHandeler(val)
+                } else {
+                    if (newSubscriptionReference[0].topicChangeHandler) {
+                        newSubscriptionReference[0].topicChangeHandler(topicname, "")
+                    }
+
+                    newSubscriptionReference[0].valueHandeler("")
+                }
+
+
+
+                outputComponents.changingSidebar.find(".topicShower").text(topicname)
+                outputComponents.changingSidebar.find(".nameInput").val(split)
+
+
+                setTimeout(() => {
+                    outputComponents.changing = false
+                }, 100);
+
+                console.log(subscribedTopics)
+            } else {
+                $("." + typeString + "OutputComponents").css("display", "flex")
+            }
+
+            outputComponents.topic = topic
+
+        })
+
+        image.attr("src", "./js/Icons/" + src)
+
+        return parentDiv
+    }
+
+    function createFolder(split, i) {
+        //creates a folder in the side bar and a object in the topic object 
+        let parentDiv
+
+        //esc-esc-$-esc-esc is the parent div, it is stored in the topic object. So if you are in a 
+        //folder of a folder, the objects closest esc-esc-$-esc-esc is the closed folders jquery reference
+        if (i == 0) {
+            //Top level does not have a subpaths container for the folders and topic buttons
+            parentDiv = $("<div>").addClass("topicPathDiv").appendTo(currentPath["esc-esc-$-esc-esc"])
+        }
+        else {
+            parentDiv = $("<div>").addClass("topicPathDiv").appendTo(currentPath["esc-esc-$-esc-esc"].children(".subPaths"))
+        }
+        //Create the folder name and the dropdown icon
+        let h2Holder = $("<div>").addClass("h2Holder").appendTo(parentDiv)
+        let h2 = $("<h2>").text("▲").appendTo(h2Holder)
+
+        let h1 = $("<h1>").text(split).appendTo(parentDiv)
+
+        //This will be where the actual sidebar buttons are stored
+        let subDiv = $("<div>").addClass("subPaths").appendTo(parentDiv)
+
+        let currentTimeout
+
+        //Click handler to expand the current 
+        h1.add(h2).add(h2Holder).on("click.open", (event) => {
+            let $ct = $(event.currentTarget).parent()
+            // console.log($ct)
+            clearTimeout(currentTimeout)
+            $ct.toggleClass("openTopic")
+            $ct.children(".h2Holder").children("h2").toggleClass("openArrow")
+
+            if ($ct.hasClass("openTopic")) {
+                $ct.css("max-height", ($ct.children(".subPaths").outerHeight() + vh(5) + "px"))
+                currentTimeout = setTimeout(() => {
+                    $ct.css("max-height", "unset")
+                }, 300);
+            } else {
+                $ct.css("max-height", $ct.children(".subPaths").outerHeight() + vh(5) + "px")
+                $ct.offset()
+
+                $ct.css("max-height", "5vh")
+
+            }
+        })
+
+        //Since we made a folder, this will be the container for subfolders and topic buttons
+        //earlier we mentioned that esc-esc-$-esc-esc is the objects reference for the parent 
+        //in topic object. 
+        currentPath[split] = {
+            "esc-esc-$-esc-esc": parentDiv
+        }
+
+        //Traverse down for the next loop.
+        currentPath = currentPath[split]
+    }
     // console.log(topicObject)
 
 }
@@ -663,6 +735,26 @@ export function drawOdom() {
 
 
 function handleNewData(topic, timestamp, value, RawValue) {
+    if (topic.type.includes('structschema')) {
+            // debugger
+        
+        let currentlyAwaiting
+
+        if (awaitingSchemas.hasOwnProperty(topic.name.replace("/.schema/struct:", ""))) {
+            currentlyAwaiting = awaitingSchemas[topic.name.replace("/.schema/struct:", "")]
+        } else {
+
+            return
+        }
+
+        for (let i = 0; i < currentlyAwaiting.length; i++) {
+            topicToSidebar(currentlyAwaiting[i]);
+        }
+        delete awaitingSchemas[topic.name.replace("/.schema/struct:", "")]
+
+        return
+    }
+    if (topic.type.includes("proto")) return
     // console.log(topic.name)
     // console.log(value)
     // console.log(topic)
@@ -678,6 +770,7 @@ function handleNewData(topic, timestamp, value, RawValue) {
         if (i >= topicSplit.length - 1) {
             // console.log(currentPath, topicName, value)
             currentPath[topicSplit[i]]["value"] = value
+
             continue
         }
 
@@ -686,19 +779,13 @@ function handleNewData(topic, timestamp, value, RawValue) {
         }
     }
 
-    if (topic.type.includes("struct:") && topic.type.includes("Pose2d[]")) {
-        for (let i = 0; i < value.length; i++) {
-            // console.log(value[i].translation.x.value, value[i].translation.y.value)
-        }
-    }
-
-    if (topic.name.includes("OdometryFrequency") && timestamp % 10 == 0) {
-        OdometryFrequencyKeys.push(timestamp / CONVERSIONRATE)
-        OdometryFrequencyValues.push(value - 250)
-        currentodomts = timestamp
 
 
-    }
+    // if (topic.name.includes("OdometryFrequency") && timestamp % 10 == 0) {
+    //     OdometryFrequencyKeys.push(timestamp / CONVERSIONRATE)
+    //     OdometryFrequencyValues.push(value - 250)
+    //     currentodomts = timestamp
+    // }
 
     if (topic.name.includes('streams')) {
         console.log(topic, value)
@@ -719,41 +806,51 @@ function handleNewData(topic, timestamp, value, RawValue) {
     // }
     // console.log(topic.name, topicSplit)
     // console.log(nt4Client.serverTopics, "test")
-
     // console.log(topic.name, subscribedTopics)
     if (subscribedTopics.hasOwnProperty(topic.name)) {
 
         for (let i = 0; i < subscribedTopics[topic.name].length; i++) {
-            if (!subscribedTopics[topic.name][i]) continue;
+            if (!subscribedTopics[topic.name][i]) continue; //Pass if value is null
             // console.log(subscribedTopics[topic.name][i])
 
 
-            subscribedTopics[topic.name][i].valueHandeler(value, timestamp)
+            subscribedTopics[topic.name][i].valueHandeler(value, timestamp) // Send value to topic handler
         }
     }
 
 }
 
+setTimeout(() => {
+    console.log(topicObject)
+    console.log(nt4Client.schemas)
+
+    console.log(nt4Client.serverTopics)
+}, 5000);
+
+// function structAsFolder(topic, timestamp, value){
+
+// }
+
 nt4Client.subscribe(["/touchboard/musicIsFinished"])
 
-let $reefBtns = $(".reefPFHolder").children()
+// let $reefBtns = $(".reefPFHolder").children()
 
-for (let i = 0; i < $reefBtns.length; i++) {
-    let hue = i * (180 / (($reefBtns.length - 1) / 2))
-    if (i % 2 !== 0) {
-        hue = (i - 1) * (180 / (($reefBtns.length - 1) / 2))
+// for (let i = 0; i < $reefBtns.length; i++) {
+//     let hue = i * (180 / (($reefBtns.length - 1) / 2))
+//     if (i % 2 !== 0) {
+//         hue = (i - 1) * (180 / (($reefBtns.length - 1) / 2))
 
-    }
+//     }
 
-    $reefBtns.eq(i).css("background-color", "hsl(" + hue + " 100 25").css("border-color", "hsl(" + hue + " 100 50").css("grid-area", $reefBtns.eq(i).attr("data-topic").slice(0, 2))
-}
+//     $reefBtns.eq(i).css("background-color", "hsl(" + hue + " 100 25").css("border-color", "hsl(" + hue + " 100 50").css("grid-area", $reefBtns.eq(i).attr("data-topic").slice(0, 2))
+// }
 
 function onConnectCb() {
     //on everything this is NOT on callback
 
     setTimeout(() => {
-                setSelectOpener()
- 
+        setSelectOpener()
+
         $(".tabConnection").removeClass("tabConnection")
 
         $(".fullScreen").css("background-color", "rgb(32, 32, 32)")
@@ -973,7 +1070,7 @@ function onConnectCb() {
 
 }
 
-function onDisconnectCb() {
+function onDisconnectCb(errored) {
     if ($("#connect").is(":checked")) {
         $(".fullScreen").css("background-color", "rgb(128, 32, 32)")
 
@@ -985,6 +1082,7 @@ function onDisconnectCb() {
 
         $(".tabNav").css("background-color", "rgb(64, 12, 12)")
         $(".currentTab").css("background-color", "rgb(128, 32, 32)")
+
         setTimeout(() => {
             window.location.reload()
 
@@ -3627,7 +3725,7 @@ function loadLayoutFromJson(json) {
                     .css("grid-area", components[i].area)
                     .appendTo(page$)
             }
-        } else{
+        } else {
             $(tab).css("display", "grid").attr("rows", json[tab].tabRows).attr("columns", json[tab].tabColumns).insertAfter(".autonomus")
         }
 
@@ -3935,7 +4033,7 @@ function handleTabDrag() {
 
         if (!tabDragInfo.phased) return
 
-        tabDragInfo.phased.css("top", event.pageY - vh(6.5 / 2) + "px")  
+        tabDragInfo.phased.css("top", event.pageY - vh(6.5 / 2) + "px")
 
         if ($hov.is(tabDragInfo.phased.prev())) {
             if ($hov.hasClass("marginedTab") || $hov.hasClass("transitioning") || $hov.hasClass("immoveable")) {
@@ -4047,7 +4145,7 @@ if (localStorage.getItem("layout")) {
     loadLayoutFromJson(localStorage.getItem("layout"))
 }
 
-function mapDragHandler(){
+function mapDragHandler() {
     let map = $(".map");
 
     clientDragHandler()
@@ -4076,15 +4174,15 @@ if (localStorage.getItem(getHtmlFileName() + "connect") === "true") {
 
 }
 
-$(".teamNumber").on("click", ()=>{
+$(".teamNumber").on("click", () => {
     $(".setTeamNumberOrIp").toggleClass("showTeamSet")
-    
+
 })
 
-$(".importBtn").on("click", ()=>{
+$(".importBtn").on("click", () => {
     $(".importJson").toggleClass("showTeamSet")
-        $(".manager").removeClass("managerOpen")
-    
+    $(".manager").removeClass("managerOpen")
+
 })
 
 $(".doImport").on("click", () => {
@@ -4095,7 +4193,7 @@ $(".doImport").on("click", () => {
     window.location.reload();
 })
 
-$(".cancelImport").on("click", ()=>{
+$(".cancelImport").on("click", () => {
     $(".importJson").removeClass("showTeamSet")
 
 })
