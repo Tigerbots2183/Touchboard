@@ -20,6 +20,9 @@ public class Touchboard {
     private static NetworkTableInstance inst = NetworkTableInstance.getDefault();
     private static NetworkTable datatable = inst.getTable("touchboard");
 
+    private static int globalKeyIncrement = 0;
+    private static double globalValueIncrement = 0.0;
+
     public Touchboard() {
 
     }
@@ -65,16 +68,62 @@ public class Touchboard {
 
     }
 
-    // One Shot Button methods
+    // // One Shot Button methods
+    // public static Trigger bindOneShotButton(String topic, Command command) {
+
+    // final BooleanPublisher dataPublisher =
+    // datatable.getBooleanTopic(topic).publish();
+    // final BooleanSubscriber dataSubscriber =
+    // datatable.getBooleanTopic(topic).subscribe(false);
+
+    // Command setter =
+    // command.alongWith(Commands.waitSeconds(0).ignoringDisable(true)
+    // .andThen(Commands.runOnce(() ->
+    // dataPublisher.set(false)).ignoringDisable(true)));
+
+    // return new Trigger(() -> dataSubscriber.get()).onTrue(setter);
+    // }
+
+    // public static Trigger bindOneShotButton(String topic, Supplier<Command>
+    // command) {
+
+    // final BooleanPublisher dataPublisher =
+    // datatable.getBooleanTopic(topic).publish();
+    // final BooleanSubscriber dataSubscriber =
+    // datatable.getBooleanTopic(topic).subscribe(false);
+
+    // Supplier<Command> setter = () ->
+    // command.get().alongWith(Commands.waitSeconds(0).ignoringDisable(true)
+    // .andThen(Commands.runOnce(() ->
+    // dataPublisher.set(false)).ignoringDisable(true)));
+
+    // return new Trigger(() -> dataSubscriber.get()).onTrue(Commands.runOnce(
+    // () -> CommandScheduler.getInstance()
+    // .schedule(setter.get().until(() -> !dataSubscriber.get())))
+    // .ignoringDisable(true));
+    // }
+    private static HashMap<String, Double> BooleanOverrideMap = new HashMap<String, Double>();
+
+    public static void setBooleanOverrideKey(String binder, Double OverrideKey) {
+        BooleanOverrideMap.put(binder, OverrideKey);
+    }
+
+    public static Double getBooleanOverrideKey(String binder) {
+        return BooleanOverrideMap.get(binder);
+    }
+
     public static Trigger bindOneShotButton(String topic, Command command) {
 
         final BooleanPublisher dataPublisher = datatable.getBooleanTopic(topic).publish();
         final BooleanSubscriber dataSubscriber = datatable.getBooleanTopic(topic).subscribe(false);
 
-        Command setter = command.alongWith(Commands.waitSeconds(0).ignoringDisable(true)
-                .andThen(Commands.runOnce(() -> dataPublisher.set(false)).ignoringDisable(true)));
+        return new Trigger(() -> dataSubscriber.get()).onTrue(Commands.runOnce(() -> {
 
-        return new Trigger(() -> dataSubscriber.get()).whileTrue(setter);
+            CommandScheduler.getInstance().schedule(command);// .until(()-> getBooleanOverrideKey(binder) !=
+                                                             // currentKey));
+            dataPublisher.set(false);
+
+        }).ignoringDisable(true));
     }
 
     public static Trigger bindOneShotButton(String topic, Supplier<Command> command) {
@@ -82,13 +131,19 @@ public class Touchboard {
         final BooleanPublisher dataPublisher = datatable.getBooleanTopic(topic).publish();
         final BooleanSubscriber dataSubscriber = datatable.getBooleanTopic(topic).subscribe(false);
 
-        Supplier<Command> setter = () -> command.get().alongWith(Commands.waitSeconds(0).ignoringDisable(true)
-                .andThen(Commands.runOnce(() -> dataPublisher.set(false)).ignoringDisable(true)));
+        globalKeyIncrement++;
+        String binder = topic + globalKeyIncrement;
 
-        return new Trigger(() -> dataSubscriber.get()).onTrue(Commands.runOnce(
-                () -> CommandScheduler.getInstance()
-                        .schedule(setter.get().until(() -> !dataSubscriber.get())))
-                .ignoringDisable(true));
+        return new Trigger(() -> dataSubscriber.get()).onTrue(Commands.runOnce(() -> {
+            globalValueIncrement++;
+
+            double currentKey = globalValueIncrement;
+            setBooleanOverrideKey(binder, globalValueIncrement);
+
+            CommandScheduler.getInstance()
+                    .schedule(command.get().until(() -> getBooleanOverrideKey(binder) != currentKey));
+            dataPublisher.set(false);
+        }).ignoringDisable(true));
     }
 
     // Array of doubleSubscribers to avoid recreation on every trigger
@@ -107,7 +162,8 @@ public class Touchboard {
 
     public static Trigger bindAxis(String topic, Supplier<Command> command) {
         datatable.getDoubleTopic(topic).publish();
-        String binder = topic + Math.random();
+        globalKeyIncrement++;
+        String binder = topic + globalKeyIncrement;
 
         DoubleSubscriber dataSubscriber;
 
@@ -121,8 +177,10 @@ public class Touchboard {
         return new Trigger(() -> dataSubscriber.readQueue().length > 0).onChange(
                 Commands.runOnce(
                         () -> {
-                            Double currentKey = Math.random();
-                            setDoubleOverrideKey(binder, currentKey);
+                            globalValueIncrement++;
+
+                            double currentKey = globalValueIncrement;
+                            setDoubleOverrideKey(binder, globalValueIncrement);
 
                             CommandScheduler.getInstance().schedule(
                                     command.get().until(() -> getDoubleOverrideKey(binder) != currentKey));
@@ -135,7 +193,8 @@ public class Touchboard {
 
     public static Trigger bindNumberComponent(String topic, Supplier<Command> command) {
         datatable.getDoubleTopic(topic).publish();
-        String binder = topic + Math.random();
+        globalKeyIncrement++;
+        String binder = topic + globalKeyIncrement;
 
         DoubleSubscriber dataSubscriber;
 
@@ -148,11 +207,13 @@ public class Touchboard {
 
         return new Trigger(() -> dataSubscriber.readQueueValues().length > 0).onTrue(Commands.runOnce(
                 () -> {
-                    Double currentKey = Math.random();
-                    setDoubleOverrideKey(binder, currentKey);
+                    globalValueIncrement++;
 
-                    CommandScheduler.getInstance()
-                            .schedule(command.get().until(() -> currentKey != getDoubleOverrideKey(binder)));
+                    double currentKey = globalValueIncrement;
+                    setDoubleOverrideKey(binder, globalValueIncrement);
+
+                    CommandScheduler.getInstance().schedule(
+                            command.get().until(() -> getDoubleOverrideKey(binder) != currentKey));
                 }));
     }
 
@@ -185,7 +246,8 @@ public class Touchboard {
 
     public static Trigger bindDropdown(String topic, Supplier<Command> command) {
         StringSubscriber dataSubscriber;
-        String binder = topic + Math.random();
+        globalKeyIncrement++;
+        String binder = topic + globalKeyIncrement;
 
         if (DoubleSubscriberMap.containsKey(topic)) {
             dataSubscriber = StringSubscriberMap.get(topic);
@@ -196,12 +258,14 @@ public class Touchboard {
 
         return new Trigger(() -> dataSubscriber.readQueueValues().length > 0).onTrue(Commands.runOnce(
                 () -> {
-                    Double currentKey = Math.random();
-                    setStringOverrideKey(binder, currentKey);
-                    CommandScheduler.getInstance()
-                        .schedule(command.get().until(() -> currentKey != getStringOverrideKey(binder))
-                                .ignoringDisable(true));
-                            }
+                    globalValueIncrement++;
+
+                    double currentKey = globalValueIncrement;
+                    setStringOverrideKey(binder, globalValueIncrement);
+
+                    CommandScheduler.getInstance().schedule(
+                            command.get().until(() -> getStringOverrideKey(binder) != currentKey));
+                }
 
         ).ignoringDisable(true));
     }
@@ -210,7 +274,8 @@ public class Touchboard {
 
     public static Trigger bindOptGroup(String topic, Supplier<Command> command) {
         StringSubscriber dataSubscriber;
-        String binder = topic + Math.random();
+        globalKeyIncrement++;
+        String binder = topic + globalKeyIncrement;
 
         if (DoubleSubscriberMap.containsKey(topic)) {
             dataSubscriber = StringSubscriberMap.get(topic);
@@ -221,12 +286,14 @@ public class Touchboard {
 
         return new Trigger(() -> dataSubscriber.readQueueValues().length > 0).onTrue(Commands.runOnce(
                 () -> {
-                    Double currentKey = Math.random();
-                    setStringOverrideKey(binder, currentKey);
-                    
-                    CommandScheduler.getInstance()
-                        .schedule(command.get().until(() -> currentKey != getStringOverrideKey(binder))
-                                .ignoringDisable(true));}
+                    globalValueIncrement++;
+
+                    double currentKey = globalValueIncrement;
+                    setStringOverrideKey(binder, globalValueIncrement);
+
+                    CommandScheduler.getInstance().schedule(
+                            command.get().until(() -> getStringOverrideKey(binder) != currentKey));
+                }
 
         ).ignoringDisable(true));
     }

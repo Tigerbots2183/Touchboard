@@ -1,5 +1,11 @@
 // import "./nt4.js"
 
+//TODO:
+// Fix removing the last tab still displaying the removed tab 
+// Fix the row and column buttons not being bound by defualt
+// Fix changing topic for a struct
+
+
 // MIT License
 // Copyright (c) 2025 Tigerbots
 // https://github.com/Tigerbots2183
@@ -426,11 +432,11 @@ function topicAnnounce(topic) {
 
 }
 // type: [topics...]
-let awaitingSchemas = {}
 
-function topicToSidebar(topic) {
+function topicToSidebar(topic, schemasPassed = false) {
     if (topic.type.includes("proto") || topic.type.includes("structschema")) return
-
+    if (topic.type.includes("struct") && !schemasPassed) return;
+    let actualName = topic.name;
     let split = topic.name.split("/")
     split.shift();
 
@@ -440,65 +446,66 @@ function topicToSidebar(topic) {
     for (let i = 0; i < split.length; i++) {
         // if(i == 0 && split[i] == "touchboard") continue
         if (currentPath[split[i]] && i < split.length - 1) {
-            
+
             currentPath = currentPath[split[i]]
 
             continue
+        } else if (i >= split.length - 1 && topic.type.includes('struct')) {
+            //If last in topic- and struct, make a folder
+
+            createFolder(split[i], i)
+
+            let finalTypes = Object.keys(nt4Client.typeLengths)
+            let type = topic.type.slice(7)
+            // console.log(type)
+
+            let schemas = nt4Client.schemas
+            topic.structName = topic.name + "|"
+            decodeStruct(type);
+            continue;
+            // let currentType = type);
+            function decodeStruct(type) {
+                let currentSchema;
+
+                if (schemas.get(type)) {
+                    currentSchema = schemas.get(type)
+                } else {
+                    return
+                }
+
+                let loopStartPath = currentPath
+                let loopStartName = topic.structName
+
+                for (let [name, type] of currentSchema) {
+                    currentPath = loopStartPath
+                    topic.structName = loopStartName
+
+
+                    if (name == "esc-esc-length-esc-esc") continue;
+                    if (finalTypes.includes(type)) {
+                        console.log(createButton(name, i, name, type, topic.structName + "/" + name))
+
+                        continue;
+                    } else {
+                        createFolder(name, i, name, type);
+                        topic.structName += "/" + name
+                        decodeStruct(type);
+                        continue;
+                    }
+                }
+            }
         } else {
 
             if (i >= split.length - 1 && !topic.type.includes('struct')) {
                 //If last in topic, make the button for it, unless its a struct then it will be treated as a folder
                 createButton(split[i], i)
                 continue
-            } 
-            else if (i >= split.length - 1 && topic.type.includes('struct')) {
-
-                //If last in topic- and struct, make a folder
-                createFolder(split[i], i)
-
-                let finalTypes = Object.keys(nt4Client.typeLengths)
-                let type = topic.type.slice(7)
-                // console.log(type)
-
-                let schemas = nt4Client.schemas
-
-                decodeStruct(type);
-                continue;
-                // let currentType = type);
-                function decodeStruct(type) {
-                    let currentSchema;
-
-                    if (schemas.get(type)) {
-                        currentSchema = schemas.get(type)
-                    } else {
-
-                        if (awaitingSchemas.hasOwnProperty(type)) {
-                            awaitingSchemas[type].push(topic)
-                        } else {
-                            awaitingSchemas[type] = [topic]
-                        }
-                        return
-                    }
-
-
-                    for (let [name, type] of currentSchema) {
-                        if (finalTypes.includes(type)) {
-                            console.log(createButton(name, i, name, type))
-                            continue;
-                        } else {
-                            createFolder(name, i, name, type);
-                            decodeStruct(type);
-                            continue;
-                        }
-                    }
-                }
-
-
             }
+
             createFolder(split[i], i)
         }
     }
-    function createButton(split, i, topicname = topic.name, topictype = topic.type) {
+    function createButton(split, i, topicname = topic.name, topictype = topic.type, fullpath = "") {
         let parentDiv
         if (i == 0) parentDiv = $("<div>").addClass("topicPathDiv").appendTo(currentPath["esc-esc-$-esc-esc"])
         else parentDiv = $("<div>").addClass("topicPathDiv").appendTo(currentPath["esc-esc-$-esc-esc"].children(".subPaths"))
@@ -547,15 +554,13 @@ function topicToSidebar(topic) {
 
         }
 
-        $allOf.on("click.openOutputComponents", () => {
+        $allOf.off("click.openOutputComponents").on("click.openOutputComponents", () => {
             $(".ioComponents").css("display", "none")
             $(".editSidebar").css("display", "none")
             if (outputComponents.changing) {
                 outputComponents.changingSidebar.css("display", "flex")
 
                 console.log(subscribedTopics)
-
-
 
                 if (!subscribedTopics.hasOwnProperty(topicname)) {
                     subscribedTopics[topicname] = []
@@ -605,8 +610,17 @@ function topicToSidebar(topic) {
             } else {
                 $("." + typeString + "OutputComponents").css("display", "flex")
             }
+            console.log(topic.name)
 
             outputComponents.topic = topic
+
+            if (topic.type.includes("struct")) {
+                // outputComponents.topic.name = fullpath
+                outputComponents.fullpath = fullpath
+            } else {
+                outputComponents.fullpath = topic.name
+
+            }
 
         })
 
@@ -733,34 +747,21 @@ export function drawOdom() {
     return { name: "OdomFrequency", keyArray: kr, valArray: vr, timestamp: currentodomts / CONVERSIONRATE }
 }
 
+let sidebaredStructs = []
 
 function handleNewData(topic, timestamp, value, RawValue) {
-    if (topic.type.includes('structschema')) {
-            // debugger
-        
-        let currentlyAwaiting
 
-        if (awaitingSchemas.hasOwnProperty(topic.name.replace("/.schema/struct:", ""))) {
-            currentlyAwaiting = awaitingSchemas[topic.name.replace("/.schema/struct:", "")]
-        } else {
+    if (topic.type.includes("proto") || topic.type.includes("structschema")) return
 
-            return
-        }
+    if (topic.type.includes("struct") && !sidebaredStructs.includes(topic.name.split("|")[0])) {
+        if (topic.type.includes("[]")) return;
 
-        for (let i = 0; i < currentlyAwaiting.length; i++) {
-            topicToSidebar(currentlyAwaiting[i]);
-        }
-        delete awaitingSchemas[topic.name.replace("/.schema/struct:", "")]
-
-        return
+        topicToSidebar(topic, true)
+        sidebaredStructs.push(topic.name.split("|")[0])
     }
-    if (topic.type.includes("proto")) return
-    // console.log(topic.name)
-    // console.log(value)
-    // console.log(topic)
+
     let topicSplit = topic.name.split("/")
     let topicName = topicSplit[topicSplit.length - 1]
-    // console.log(topicSplit)
 
     topicSplit.shift()
 
@@ -769,7 +770,12 @@ function handleNewData(topic, timestamp, value, RawValue) {
     for (let i = 0; i < topicSplit.length; i++) {
         if (i >= topicSplit.length - 1) {
             // console.log(currentPath, topicName, value)
-            currentPath[topicSplit[i]]["value"] = value
+
+            try {
+                currentPath[topicSplit[i]]["value"] = value
+            } catch {
+                console.log(topic)
+            }
 
             continue
         }
@@ -806,18 +812,50 @@ function handleNewData(topic, timestamp, value, RawValue) {
     // }
     // console.log(topic.name, topicSplit)
     // console.log(nt4Client.serverTopics, "test")
-    // console.log(topic.name, subscribedTopics)
+
+    if (topic.type.includes("struct")) {
+        console.log(topic, value)
+        console.log(subscribedTopics)
+
+    }
+
     if (subscribedTopics.hasOwnProperty(topic.name)) {
+        let foundValue = value;
 
         for (let i = 0; i < subscribedTopics[topic.name].length; i++) {
             if (!subscribedTopics[topic.name][i]) continue; //Pass if value is null
             // console.log(subscribedTopics[topic.name][i])
 
+            if (topic.type.includes("struct")) {
+                console.log(topic, value)
+                foundValue = getStructValue(subscribedTopics[topic.name][i].structPath, value)
+            }
 
-            subscribedTopics[topic.name][i].valueHandeler(value, timestamp) // Send value to topic handler
+            subscribedTopics[topic.name][i].valueHandeler(foundValue, timestamp) // Send value to topic handler
+        }
+    }
+}
+
+// setInterval(() => {
+//     console.log(nt4Client.serverTopics)
+
+//     console.log(subscribedTopics)
+
+// }, 1000);
+
+function getStructValue(structTopic, value) {
+    let path = structTopic.split("|")[1];
+    let pathArr = path.split("/")
+
+
+    for (let i = 0; i < pathArr.length; i++) {
+        let key = pathArr[i];
+        if (value.hasOwnProperty(key)) {
+            value = value[key]
         }
     }
 
+    return value.value;
 }
 
 setTimeout(() => {
@@ -1070,7 +1108,7 @@ function onConnectCb() {
 
 }
 
-function onDisconnectCb(errored) {
+function onDisconnectCb() {
     if ($("#connect").is(":checked")) {
         $(".fullScreen").css("background-color", "rgb(128, 32, 32)")
 
@@ -1230,7 +1268,7 @@ $(".ioComponents").children().off().on("pointerdown.addComponent ", (event) => {
     let jQueryReference
 
     if ($(event.currentTarget).parent().hasClass("outputComponents")) {
-        jQueryReference = createDefaultOf(componentType, ".dashboardHolder", outputComponents.topic.name)
+        jQueryReference = createDefaultOf(componentType, ".dashboardHolder", outputComponents.fullpath)
     } else {
         jQueryReference = createDefaultOf(componentType, ".dashboardHolder", "esc-UNDEFINED-esc")
     }
@@ -1858,6 +1896,10 @@ function createBasicSubscription(displayName, topic, append = false, hex = false
     if (displayName == null) {
         let topicSplit = topic.split("/")
         displayName = topicSplit[topicSplit.length - 1]
+
+        if (displayName == "value" && topicSplit.length > 1) {
+            displayName = topicSplit[topicSplit.length - 2]
+        }
     }
     // console.log(topicClass)
 
@@ -1884,9 +1926,9 @@ function createBasicSubscription(displayName, topic, append = false, hex = false
     setSimilarOptions(basicSubscription, similarOptions)
     addEditHandler(basicSubscription, "subscription")
 
-    if (!subscribedTopics.hasOwnProperty(topic)) {
-        subscribedTopics[topic] = []
-    }
+    if (topic == "esc-UNSET-esc") return basicSubscription
+
+
 
     let basicSubscriptionHandler = (value, timestamp) => {
         // console.log(value, "basicSubscriptionHandler")
@@ -1900,12 +1942,29 @@ function createBasicSubscription(displayName, topic, append = false, hex = false
         'valueHandeler': basicSubscriptionHandler,
     }
 
-    subscribedTopics[topic].push(subscribedReference)
+    if (topic.includes("|")) {
+        if (!subscribedTopics.hasOwnProperty(topic.split("|")[0])) {
+            subscribedTopics[topic.split("|")[0]] = []
+        }
+        subscribedReference.structPath = topic
+        subscribedTopics[topic.split("|")[0]].push(subscribedReference)
+        basicSubscription.attr("data-subscriptionIndex", subscribedTopics[topic.split("|")[0]].length - 1)
 
-    basicSubscription.attr("data-subscriptionIndex", subscribedTopics[topic].length - 1)
+    } else {
+        if (!subscribedTopics.hasOwnProperty(topic)) {
+            subscribedTopics[topic] = []
+        }
+        subscribedTopics[topic].push(subscribedReference)
+        basicSubscription.attr("data-subscriptionIndex", subscribedTopics[topic].length - 1)
 
+    }
+
+    // console.log(topic, nt4Client.serverTopics.get(topic.split("|")[0]))
     if (nt4Client.serverTopics.get(topic)) {
         basicSubscriptionHandler(nt4Client.serverTopics.get(topic).value)
+    } else if (nt4Client.serverTopics.get(topic.split("|")[0])) {
+        let topicRef = nt4Client.serverTopics.get(topic.split("|")[0]);
+        basicSubscriptionHandler(getStructValue(topic, topicRef.value))
     }
 
     // console.log(topic)
@@ -1921,6 +1980,10 @@ function createBasicLogger(displayName, topic, append = false, hex = "#0c0c0c", 
     if (displayName == null) {
         let topicSplit = topic.split("/")
         displayName = topicSplit[topicSplit.length - 1]
+
+        if (displayName == "value" && topicSplit.length > 1) {
+            displayName = topicSplit[topicSplit.length - 2]
+        }
     }
     // console.log(topicClass)
 
@@ -2011,9 +2074,7 @@ function createBasicLogger(displayName, topic, append = false, hex = "#0c0c0c", 
     setSimilarOptions(basicLogger, similarOptions)
     addEditHandler(basicLogger, "subscription")
 
-    if (!subscribedTopics.hasOwnProperty(topic)) {
-        subscribedTopics[topic] = []
-    }
+    if (topic == "esc-UNSET-esc") return basicLogger
 
     let basicLoggerHandler = (value, timestamp) => {
         // console.log(value, "basicSubscriptionHandler")
@@ -2077,12 +2138,29 @@ function createBasicLogger(displayName, topic, append = false, hex = "#0c0c0c", 
         'topicChangeHandler': topicChangeHandler
     }
 
-    subscribedTopics[topic].push(subscribedReference)
+    if (topic.includes("|")) {
+        if (!subscribedTopics.hasOwnProperty(topic.split("|")[0])) {
+            subscribedTopics[topic.split("|")[0]] = []
+        }
+        subscribedReference.structPath = topic
+        subscribedTopics[topic.split("|")[0]].push(subscribedReference)
+        basicLogger.attr("data-subscriptionIndex", subscribedTopics[topic.split("|")[0]].length - 1)
 
-    basicLogger.attr("data-subscriptionIndex", subscribedTopics[topic].length - 1)
+    } else {
+        if (!subscribedTopics.hasOwnProperty(topic)) {
+            subscribedTopics[topic] = []
+        }
+        subscribedTopics[topic].push(subscribedReference)
+        basicLogger.attr("data-subscriptionIndex", subscribedTopics[topic].length - 1)
 
+    }
+
+    // console.log(topic, nt4Client.serverTopics.get(topic.split("|")[0]))
     if (nt4Client.serverTopics.get(topic)) {
         basicLoggerHandler(nt4Client.serverTopics.get(topic).value)
+    } else if (nt4Client.serverTopics.get(topic.split("|")[0])) {
+        let topicRef = nt4Client.serverTopics.get(topic.split("|")[0]);
+        basicLoggerHandler(getStructValue(topic, topicRef.value))
     }
 
     // console.log(topic)
@@ -2100,6 +2178,7 @@ function createNumberLine(displayName, topic, append = false, hex = "#0c0c0c", m
         .css("border-color", hex)
         .attr("data-color", hex)
         .attr("data-deriveAttributes", 'true')
+        .attr("data-deriveAttributesMin", 'true')
         .attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
 
     if (append) {
@@ -2109,6 +2188,10 @@ function createNumberLine(displayName, topic, append = false, hex = "#0c0c0c", m
     if (displayName == null) {
         let topicSplit = topic.split("/")
         displayName = topicSplit[topicSplit.length - 1]
+
+        if (displayName == "value" && topicSplit.length > 1) {
+            displayName = topicSplit[topicSplit.length - 2]
+        }
     }
 
     $("<h1>").text(displayName).addClass('numberLineTitle').addClass("editThisName").appendTo(numberLine)
@@ -2146,9 +2229,7 @@ function createNumberLine(displayName, topic, append = false, hex = "#0c0c0c", m
     setSimilarOptions(numberLine, similarOptions)
     addEditHandler(numberLine, "subscription", ".numberLineSpecific")
 
-    if (!subscribedTopics.hasOwnProperty(topic)) {
-        subscribedTopics[topic] = []
-    }
+    if (topic == "esc-UNSET-esc") return numberLine
 
     let numberLineHandler = (value) => {
         if (Array.isArray(value)) {
@@ -2168,8 +2249,15 @@ function createNumberLine(displayName, topic, append = false, hex = "#0c0c0c", m
 
                     meter.attr("data-avgch", meterTopTextChAvgLength)
                 }
+            }
+            if (numberLine.attr("data-deriveAttributesMin") == "true") {
+                if (Math.round(value) < parseFloat(meter.attr("min"))) {
+                    meter.attr("min", Math.round(value))
 
+                    let meterTopTextChAvgLength = (("0" + Math.round(value / 4) + "" + Math.round(value / 2) + "" + Math.round(value * 0.75) + "" + Math.round(parseFloat(value))).length) / 5
 
+                    meter.attr("data-avgch", meterTopTextChAvgLength)
+                }
             }
 
             meter.attr("value", value)
@@ -2187,12 +2275,29 @@ function createNumberLine(displayName, topic, append = false, hex = "#0c0c0c", m
         'topicChangeHandler': topicChangeHandler
     }
 
-    subscribedTopics[topic].push(subscribedReference)
+    if (topic.includes("|")) {
+        if (!subscribedTopics.hasOwnProperty(topic.split("|")[0])) {
+            subscribedTopics[topic.split("|")[0]] = []
+        }
+        subscribedReference.structPath = topic
+        subscribedTopics[topic.split("|")[0]].push(subscribedReference)
+        numberLine.attr("data-subscriptionIndex", subscribedTopics[topic.split("|")[0]].length - 1)
 
-    numberLine.attr("data-subscriptionIndex", subscribedTopics[topic].length - 1)
+    } else {
+        if (!subscribedTopics.hasOwnProperty(topic)) {
+            subscribedTopics[topic] = []
+        }
+        subscribedTopics[topic].push(subscribedReference)
+        numberLine.attr("data-subscriptionIndex", subscribedTopics[topic].length - 1)
 
+    }
+
+    // console.log(topic, nt4Client.serverTopics.get(topic.split("|")[0]))
     if (nt4Client.serverTopics.get(topic)) {
         numberLineHandler(nt4Client.serverTopics.get(topic).value)
+    } else if (nt4Client.serverTopics.get(topic.split("|")[0])) {
+        let topicRef = nt4Client.serverTopics.get(topic.split("|")[0]);
+        numberLineHandler(getStructValue(topic, topicRef.value))
     }
 
 
@@ -2203,7 +2308,12 @@ function createRadialGauge(displayName, topic, append, hex = "#0c0c0c", maxDeg =
     if (displayName == null) {
         let topicSplit = topic.split("/")
         displayName = topicSplit[topicSplit.length - 1]
+
+        if (displayName == "value" && topicSplit.length > 1) {
+            displayName = topicSplit[topicSplit.length - 2]
+        }
     }
+
     let radialGauge = $("<div>").addClass("radialGauge")
         .attr("data-topic", topic)
         .addClass("editableComponent")
@@ -2249,9 +2359,7 @@ function createRadialGauge(displayName, topic, append, hex = "#0c0c0c", maxDeg =
     setSimilarOptions(radialGauge, similarOptions)
     addEditHandler(radialGauge, "subscription", ".radialGaugeSpecific")
 
-    if (!subscribedTopics.hasOwnProperty(topic)) {
-        subscribedTopics[topic] = []
-    }
+    if (topic == "esc-UNSET-esc") return radialGauge
 
     let gaugeHandler = (value) => {
         let whichMax = gauge.attr("data-maxNumber")
@@ -2264,10 +2372,17 @@ function createRadialGauge(displayName, topic, append, hex = "#0c0c0c", maxDeg =
 
         if (gauge.attr("data-maxNumber")) {
             gauge.removeAttr("data-valDeg")
+
+            let min = parseFloat( gauge.attr("data-minNumber") )
+            let range = parseFloat( gauge.attr("data-maxNumber") ) - min
+
+            value = ((value - min) % range) + min
+
             gauge.attr("data-valNumber", value)
 
             return
         }
+
         gauge.attr("data-valDeg", value)
     }
 
@@ -2277,12 +2392,29 @@ function createRadialGauge(displayName, topic, append, hex = "#0c0c0c", maxDeg =
         'valueHandeler': gaugeHandler,
     }
 
-    subscribedTopics[topic].push(subscribedReference)
+    if (topic.includes("|")) {
+        if (!subscribedTopics.hasOwnProperty(topic.split("|")[0])) {
+            subscribedTopics[topic.split("|")[0]] = []
+        }
+        subscribedReference.structPath = topic
+        subscribedTopics[topic.split("|")[0]].push(subscribedReference)
+        radialGauge.attr("data-subscriptionIndex", subscribedTopics[topic.split("|")[0]].length - 1)
 
-    radialGauge.attr("data-subscriptionIndex", subscribedTopics[topic].length - 1)
+    } else {
+        if (!subscribedTopics.hasOwnProperty(topic)) {
+            subscribedTopics[topic] = []
+        }
+        subscribedTopics[topic].push(subscribedReference)
+        radialGauge.attr("data-subscriptionIndex", subscribedTopics[topic].length - 1)
 
+    }
+
+    // console.log(topic, nt4Client.serverTopics.get(topic.split("|")[0]))
     if (nt4Client.serverTopics.get(topic)) {
         gaugeHandler(nt4Client.serverTopics.get(topic).value)
+    } else if (nt4Client.serverTopics.get(topic.split("|")[0])) {
+        let topicRef = nt4Client.serverTopics.get(topic.split("|")[0]);
+        gaugeHandler(getStructValue(topic, topicRef.value))
     }
 
 
@@ -2884,6 +3016,14 @@ function bindEditMenu(element, valueType, specificClass = false) {
                     let meter = editComponent.currentTarget.find(".numberLineHasValue").eq(0)
                     setExampleMeter(meter.attr("min"), meter.attr("max"), meter.attr("low"), meter.attr("high"), meter.attr("optimum"))
                 }
+            } else if (inputBeingBound.hasClass("min")) {
+                if (editComponent.currentTarget.attr("data-deriveAttributesMin") == "true") {
+
+                } else {
+                    boundEditing = editComponent.currentTarget.find(".numberLineHasValue").eq(0).attr(inputBeingBound.attr("data-editing"))
+                    let meter = editComponent.currentTarget.find(".numberLineHasValue").eq(0)
+                    setExampleMeter(meter.attr("min"), meter.attr("max"), meter.attr("low"), meter.attr("high"), meter.attr("optimum"))
+                }
             } else {
                 boundEditing = editComponent.currentTarget.find(".numberLineHasValue").eq(0).attr(inputBeingBound.attr("data-editing"))
                 let meter = editComponent.currentTarget.find(".numberLineHasValue").eq(0)
@@ -2926,6 +3066,16 @@ function bindEditMenu(element, valueType, specificClass = false) {
                         $comp.attr("data-deriveAttributes", "false")
                     }
                 }
+                if (inputBeingBound.attr("data-editing") == "min") {
+                    if ($ct.val().length == 0) {
+                        $comp.attr("data-deriveAttributesMin", "true")
+                        $comp.find(".numberLineHasValue").attr("min", "0")
+                        return
+                    } else {
+                        $comp.attr("data-deriveAttributesMin", "false")
+                    }
+                }
+
 
 
                 let meter = $comp.find(".numberLineHasValue")
@@ -3836,8 +3986,8 @@ function getComponentSpecificAsObject(comp$) {
             return {
                 displayName: comp$.find(".editThisName").text(),
                 color: comp$.attr("data-color"),
-                min: gauge.attr("data-min"),
-                max: gauge.attr("data-max"),
+                min: gauge.attr("data-minNumber"),
+                max: gauge.attr("data-maxNumber"),
                 maxDeg: gauge.attr("data-maxdeg"),
                 offsetDeg: gauge.attr("data-offsetDeg"),
                 low: gauge.attr("data-low"),
