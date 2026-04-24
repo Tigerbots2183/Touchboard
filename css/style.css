@@ -477,6 +477,11 @@ foreignObject input[type=range]::-webkit-slider-thumb {
 }
 
 
+
+.noClick{
+    pointer-events: none;
+}
+
 .numberComponent {
     display: grid;
     height: min-content;
@@ -4721,4 +4726,8 @@ meter:not([value]) {
             "C 🗑 ⚙";
         grid-template-columns: 35vmin fit-content auto;
     }
+}
+
+.topicPathDiv .typeHiddenTopic{
+    display: none;
 }

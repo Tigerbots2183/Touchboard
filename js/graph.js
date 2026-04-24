@@ -1,5 +1,5 @@
 import { NT4_Client } from "../lib/nt4.js";
-import { pxToCq, nt4Client, clamp, drawOdom } from "./ui.js";
+import { pxToCq, nt4Client, clamp} from "./ui.js";
 import { WebGPULineGraph } from "../lib/gpuDrawer.js"
 
 

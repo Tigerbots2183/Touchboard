@@ -1,8 +1,6 @@
 // import "./nt4.js"
 
 //TODO:
-// Fix removing the last tab still displaying the removed tab 
-// Fix the row and column buttons not being bound by defualt
 // Fix changing topic for a struct
 
 
@@ -387,6 +385,7 @@ function oneShotAnimation(elemClass) {
 
     }
 }
+
 setSelectOpener()
 function setSelectOpener() {
     $(".select").not(".sideBarSelect").off("pointerdown.selectOpener").on("pointerdown.selectOpener", (event) => {
@@ -483,7 +482,15 @@ function topicToSidebar(topic, schemasPassed = false) {
 
                     if (name == "esc-esc-length-esc-esc") continue;
                     if (finalTypes.includes(type)) {
-                        console.log(createButton(name, i, name, type, topic.structName + "/" + name))
+
+                        let nameSplitArray = topic.structName.split("/");
+                        if (name == "value" && nameSplitArray.length > 1) {
+                            let displayName = nameSplitArray[nameSplitArray.length-1]
+                            createButton(name, i, topic.structName + "/" + name, type, displayName)
+
+                            continue
+                        }
+                        createButton(name, i, topic.structName + "/" + name, type)
 
                         continue;
                     } else {
@@ -498,24 +505,25 @@ function topicToSidebar(topic, schemasPassed = false) {
 
             if (i >= split.length - 1 && !topic.type.includes('struct')) {
                 //If last in topic, make the button for it, unless its a struct then it will be treated as a folder
-                createButton(split[i], i)
+                createButton(split[i], i, topic.name)
                 continue
             }
 
             createFolder(split[i], i)
         }
     }
-    function createButton(split, i, topicname = topic.name, topictype = topic.type, fullpath = "") {
+    function createButton(split, i, fullpath = "", topictype = topic.type, altDisplayName = false) {
         let parentDiv
         if (i == 0) parentDiv = $("<div>").addClass("topicPathDiv").appendTo(currentPath["esc-esc-$-esc-esc"])
         else parentDiv = $("<div>").addClass("topicPathDiv").appendTo(currentPath["esc-esc-$-esc-esc"].children(".subPaths"))
 
+        parentDiv.addClass(topictype + "Topic")
 
         let src = ""
         let typeString
 
-        let image = $("<img>").appendTo(parentDiv)
-        let h1 = $("<h1>").text(split).appendTo(parentDiv)
+        let image = $("<img>").addClass("noClick").appendTo(parentDiv)
+        let h1 = $("<h1>").addClass("noClick").text(split).appendTo(parentDiv)
         currentPath[split] = topic
         currentPath[split]["esc-esc-$-esc-esc"] = parentDiv
 
@@ -557,61 +565,92 @@ function topicToSidebar(topic, schemasPassed = false) {
         $allOf.off("click.openOutputComponents").on("click.openOutputComponents", () => {
             $(".ioComponents").css("display", "none")
             $(".editSidebar").css("display", "none")
+
+            //If the changetopic button is pressed on an output component
             if (outputComponents.changing) {
                 outputComponents.changingSidebar.css("display", "flex")
 
-                console.log(subscribedTopics)
+                console.log(subscribedTopics[0])
 
-                if (!subscribedTopics.hasOwnProperty(topicname)) {
-                    subscribedTopics[topicname] = []
+                //If the current topic does not have a subscription handler array, make one
+                if (!subscribedTopics.hasOwnProperty(fullpath.split("|")[0])) {
+                    subscribedTopics[fullpath.split("|")[0]] = []
                 }
 
-                let newSubscriptionReference = subscribedTopics[editComponent.currentTarget.attr('data-topic')].slice(editComponent.currentTarget.attr("data-subscriptionIndex"), parseInt(editComponent.currentTarget.attr("data-subscriptionIndex")) + 1)
-                subscribedTopics[topicname].push(newSubscriptionReference[0])
+                //Javascript nonsense to swap the value without referenceing. 
+                let newSubscriptionReference = subscribedTopics[(editComponent.currentTarget.attr('data-topic').split("|")[0])].slice(editComponent.currentTarget.attr("data-subscriptionIndex"), parseInt(editComponent.currentTarget.attr("data-subscriptionIndex")) + 1)
 
-                console.log(subscribedTopics)
+                //Store the struct path for later decoding when the value is updated
+                if (fullpath != "") {
+                    newSubscriptionReference[0].structPath = fullpath
+                }
 
-                subscribedTopics[editComponent.currentTarget.attr('data-topic')][editComponent.currentTarget.attr("data-subscriptionIndex")] = false
+                //Move the subsciption clone to the acutal array. 
+                subscribedTopics[fullpath.split("|")[0]].push(newSubscriptionReference[0])
 
-                editComponent.currentTarget.attr("data-topic", topicname).attr("data-subscriptionindex", subscribedTopics[editComponent.currentTarget.attr('data-topic')].length - 1).find(".editThisName").text(split)
+                //Replace old handler with false
+                subscribedTopics[editComponent.currentTarget.attr('data-topic').split("|")[0]][editComponent.currentTarget.attr("data-subscriptionIndex")] = false
 
+                //Set components topic, its subscription index, and its name 
+                editComponent.currentTarget.attr("data-topic", fullpath).attr("data-subscriptionindex", subscribedTopics[editComponent.currentTarget.attr('data-topic').split("|")[0]].length - 1).find(".editThisName").text(split)
+                
+                if(altDisplayName){
+                    editComponent.currentTarget.find(".editThisName").text(altDisplayName)
+                }
 
-
-
-                if (nt4Client.serverTopics.get(topicname)) {
+                //If this topic currently exists on the server,
+                if (nt4Client.serverTopics.get(fullpath.split("|")[0])) {
                     let val = "null"
-                    if (nt4Client.serverTopics.get(topicname).value) {
-                        val = nt4Client.serverTopics.get(topicname).value
-                    }
-                    if (newSubscriptionReference[0].topicChangeHandler) {
-                        newSubscriptionReference[0].topicChangeHandler(topicname, val)
+
+                    //If this topic has a value, assign val to it. 
+                    if (nt4Client.serverTopics.get(fullpath.split("|")[0]).value) {
+                        val = nt4Client.serverTopics.get(fullpath.split("|")[0]).value
                     }
 
-                    newSubscriptionReference[0].valueHandeler(val)
+                    if (topic.type.includes("struct")) {
+                        //If it is struct, we must decode the js object that the struct has the value stored in
+                        //This sets the inital value once it changes. 
+                        newSubscriptionReference[0].valueHandeler(getStructValue(fullpath, val))
+
+                        if (newSubscriptionReference[0].topicChangeHandler) {
+                            newSubscriptionReference[0].topicChangeHandler(fullpath.split("|")[0], getStructValue(fullpath, val))
+                        }
+                    } else {
+                        //Else assign inital value. 
+                        newSubscriptionReference[0].valueHandeler(val)
+
+                        if (newSubscriptionReference[0].topicChangeHandler) {
+                            newSubscriptionReference[0].topicChangeHandler(fullpath.split("|")[0], val)
+                        }
+                    }
+
                 } else {
+                    //If it does not exist on the server, put a blank string. 
                     if (newSubscriptionReference[0].topicChangeHandler) {
-                        newSubscriptionReference[0].topicChangeHandler(topicname, "")
+                        newSubscriptionReference[0].topicChangeHandler(fullpath.split("|")[0], "")
                     }
 
                     newSubscriptionReference[0].valueHandeler("")
                 }
 
-
-
-                outputComponents.changingSidebar.find(".topicShower").text(topicname)
+                //Sets the name and path of the sidebar
+                outputComponents.changingSidebar.find(".topicShower").text(fullpath)
                 outputComponents.changingSidebar.find(".nameInput").val(split)
 
+                if(altDisplayName){
+                    outputComponents.changingSidebar.find(".nameInput").find(".editThisName").text(altDisplayName)
+                }
 
                 setTimeout(() => {
                     outputComponents.changing = false
                 }, 100);
 
-                console.log(subscribedTopics)
+
             } else {
                 $("." + typeString + "OutputComponents").css("display", "flex")
             }
-            console.log(topic.name)
 
+            //Object that holds sidebar data, set the current topic to that.
             outputComponents.topic = topic
 
             if (topic.type.includes("struct")) {
@@ -732,27 +771,30 @@ $("#connect").on("click", () => {
 })
 
 
-let OdometryFrequencyKeys = []
-let OdometryFrequencyValues = []
-let currentodomts
+// let OdometryFrequencyKeys = []
+// let OdometryFrequencyValues = []
+// let currentodomts
 
-export function drawOdom() {
+// export function drawOdom() {
 
-    let kr = new Float32Array(OdometryFrequencyKeys)
-    let vr = new Float32Array(OdometryFrequencyValues)
+//     let kr = new Float32Array(OdometryFrequencyKeys)
+//     let vr = new Float32Array(OdometryFrequencyValues)
 
-    OdometryFrequencyKeys = []
-    OdometryFrequencyValues = []
+//     OdometryFrequencyKeys = []
+//     OdometryFrequencyValues = []
 
-    return { name: "OdomFrequency", keyArray: kr, valArray: vr, timestamp: currentodomts / CONVERSIONRATE }
-}
+//     return { name: "OdomFrequency", keyArray: kr, valArray: vr, timestamp: currentodomts / CONVERSIONRATE }
+// }
 
 let sidebaredStructs = []
 
 function handleNewData(topic, timestamp, value, RawValue) {
-
+    //Protos are not supported, and structschemas show no useful data to user. 
     if (topic.type.includes("proto") || topic.type.includes("structschema")) return
 
+    // So most topics are sent to the sidebar when they are created, but we cannot decode structs
+    // without their values being sent, so if the topic is a struct, and the array of sidebared structs
+    // does not have the topic, then send the topic to the sidebar.
     if (topic.type.includes("struct") && !sidebaredStructs.includes(topic.name.split("|")[0])) {
         if (topic.type.includes("[]")) return;
 
@@ -785,40 +827,10 @@ function handleNewData(topic, timestamp, value, RawValue) {
         }
     }
 
-
-
-    // if (topic.name.includes("OdometryFrequency") && timestamp % 10 == 0) {
-    //     OdometryFrequencyKeys.push(timestamp / CONVERSIONRATE)
-    //     OdometryFrequencyValues.push(value - 250)
-    //     currentodomts = timestamp
-    // }
-
-    if (topic.name.includes('streams')) {
-        console.log(topic, value)
-    }
-
+    //Random data that the user shouldnt see usually has . in it
     if (topic.name.includes(".")) return
 
-    if (topicName == "musicIsFinished") {
-        if (value == true) {
-            goToNextSong()
-        }
-    }
-    // if ($("." + topic.name.replaceAll("/", "esc-Sl-esc")).hasClass("basicSubscription")) {
-    //     // console.log(value)
-    //     $("." + (topic.name.replaceAll("/", "esc-Sl-esc"))).children(".bSValue").text(JSON.stringify(value))
-    // } else if ($("." + topicName).hasClass("oneShotButton")) {
-    //     oneShotAnimation("." + topicName)
-    // }
-    // console.log(topic.name, topicSplit)
-    // console.log(nt4Client.serverTopics, "test")
-
-    if (topic.type.includes("struct")) {
-        console.log(topic, value)
-        console.log(subscribedTopics)
-
-    }
-
+    //If the value is currently used by a component, send the value to the component handler.
     if (subscribedTopics.hasOwnProperty(topic.name)) {
         let foundValue = value;
 
@@ -827,7 +839,6 @@ function handleNewData(topic, timestamp, value, RawValue) {
             // console.log(subscribedTopics[topic.name][i])
 
             if (topic.type.includes("struct")) {
-                console.log(topic, value)
                 foundValue = getStructValue(subscribedTopics[topic.name][i].structPath, value)
             }
 
@@ -844,6 +855,7 @@ function handleNewData(topic, timestamp, value, RawValue) {
 // }, 1000);
 
 function getStructValue(structTopic, value) {
+    //Structtopic must have the full path, with the stuct path following the "|"
     let path = structTopic.split("|")[1];
     let pathArr = path.split("/")
 
@@ -865,23 +877,6 @@ setTimeout(() => {
     console.log(nt4Client.serverTopics)
 }, 5000);
 
-// function structAsFolder(topic, timestamp, value){
-
-// }
-
-nt4Client.subscribe(["/touchboard/musicIsFinished"])
-
-// let $reefBtns = $(".reefPFHolder").children()
-
-// for (let i = 0; i < $reefBtns.length; i++) {
-//     let hue = i * (180 / (($reefBtns.length - 1) / 2))
-//     if (i % 2 !== 0) {
-//         hue = (i - 1) * (180 / (($reefBtns.length - 1) / 2))
-
-//     }
-
-//     $reefBtns.eq(i).css("background-color", "hsl(" + hue + " 100 25").css("border-color", "hsl(" + hue + " 100 50").css("grid-area", $reefBtns.eq(i).attr("data-topic").slice(0, 2))
-// }
 
 function onConnectCb() {
     //on everything this is NOT on callback
@@ -1128,6 +1123,7 @@ function onDisconnectCb() {
     }
 }
 
+//If no team is currently set, open the team setter ui. 
 if (localStorage.getItem(getHtmlFileName() + "teamNumber") == null) {
     $(".connectionText").text("No Team")
     $(".setTeamNumberOrIp").toggleClass("showTeamSet")
@@ -1137,14 +1133,14 @@ if (localStorage.getItem(getHtmlFileName() + "teamNumber") == null) {
 $(".setTeam").on("click", () => {
     let currentTeamOrIp = $(".teamNumberInput").val().toString().replace(/\s/g, "");
     if (currentTeamOrIp.length > 0) {
-
+        //If team number, set ip to 10.XXX.YY.2
         if (currentTeamOrIp.includes(".")) {
             localStorage.setItem(getHtmlFileName() + "teamNumber", currentTeamOrIp)
         } else if (currentTeamOrIp.includes("localhost")) {
             localStorage.setItem(getHtmlFileName() + "teamNumber", "localhost")
         } else if (currentTeamOrIp.length <= 5) {
             let madeIp = "10."
-            //could probably code this better but in a rush
+
             if (currentTeamOrIp.length == 5) {
                 madeIp = "10." + currentTeamOrIp.slice(0, 3) + "." + currentTeamOrIp.slice(3, 5) + ".2"
             } else if (currentTeamOrIp.length == 4) {
@@ -1931,7 +1927,6 @@ function createBasicSubscription(displayName, topic, append = false, hex = false
 
 
     let basicSubscriptionHandler = (value, timestamp) => {
-        // console.log(value, "basicSubscriptionHandler")
         topicReference.text(value.toFixed(3))
     }
 
@@ -2373,8 +2368,8 @@ function createRadialGauge(displayName, topic, append, hex = "#0c0c0c", maxDeg =
         if (gauge.attr("data-maxNumber")) {
             gauge.removeAttr("data-valDeg")
 
-            let min = parseFloat( gauge.attr("data-minNumber") )
-            let range = parseFloat( gauge.attr("data-maxNumber") ) - min
+            let min = parseFloat(gauge.attr("data-minNumber"))
+            let range = parseFloat(gauge.attr("data-maxNumber")) - min
 
             value = ((value - min) % range) + min
 
@@ -2812,6 +2807,8 @@ function addEditHandler(element, valueType, specificClass = false) {
     })
 }
 
+
+
 // 
 bindEditorResetter($(".editNavBack, .trashCan, .editTabs, .tab, .addTab, .tabCreator"))
 
@@ -2826,6 +2823,10 @@ function bindEditorResetter(element) {
         $(".editSidebar").css("display", "none")
         $(".ioComponents").css("display", "none")
         $(".outputComponents").css("display", "none")
+
+        outputComponents.changing = false;
+
+        $(".typeHiddenTopic").removeClass("typeHiddenTopic")
 
         $("." + $(".sideBarUnderline").attr("data-sidebarClass")).css("display", "flex")
 
@@ -2906,9 +2907,20 @@ function bindTabChanger() {
 
         $(t$.parent().attr("data-page")).remove()
         $(".pTAB" + t$.parent().attr("data-page").slice(1)).remove()
+        $(".gridUnderlay").empty()
+        $(".setGridRow").addClass("hiddenClickless")
+        $(".setGridColumn").addClass("hiddenClickless")
 
         t$.parent().remove()
     })
+}
+
+let nonSupportedTypes = {
+    "basicSubscription": false,
+    "basicLogger": false,
+    "numberLine": ["string", "boolean"],
+    "radialGauge": ["string", "boolean"],
+
 }
 
 function bindEditMenu(element, valueType, specificClass = false) {
@@ -3319,6 +3331,18 @@ function bindEditMenu(element, valueType, specificClass = false) {
 
         inputBeingBound.off("pointerdown.changeTopic").on("pointerdown.changeTopic", () => {
             outputComponents.changing = true
+
+            $(".typeHiddenTopic").removeClass("typeHiddenTopic");
+
+            let currentlyNonAllowedTypes = nonSupportedTypes[element.attr("data-componentType")]
+            console.log(currentlyNonAllowedTypes)
+            if (currentlyNonAllowedTypes) {
+                for (let i = 0; i < currentlyNonAllowedTypes.length; i++) {
+                    $("." + currentlyNonAllowedTypes[i] + "Topic").addClass("typeHiddenTopic")
+                }
+            }
+
+
             outputComponents.changingSidebar = $("." + valueType + "Sidebar")
             outputComponents.changingSidebar.css("display", "none")
             $(".outputTopics").css("display", "flex")
@@ -3892,6 +3916,12 @@ function loadLayoutFromJson(json) {
 
     } else {
         $(currentPage$).css("display", $ct.attr("data-displaytype"))
+    }
+
+    setGridInput(currentPage$)
+    if (Object.keys(json).length == 0) {
+        $(".setGridRow").addClass("hiddenClickless")
+        $(".setGridColumn").addClass("hiddenClickless")
     }
 
 }
