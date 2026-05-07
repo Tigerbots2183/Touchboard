@@ -44,6 +44,8 @@ let subscribedTopics = {
     //"Topic": [{jQueryReference :$, parentRefernce: $, valueHandler: function()/false}]
 }
 
+let connectionDate = "";
+
 const isObject = (val) => val !== null && typeof val === 'object';
 
 var toastOpen = false
@@ -110,6 +112,7 @@ import { serialize, deserialize } from "../lib/msgpack.js";
 import { goToNextSong } from "./jukebox.js";
 import { setFromString, moveTo, lineTo } from "./autoBuilder.js";
 import { drawNewData, CONVERSIONRATE } from "./graph.js";
+// import { app } from "electron";
 
 //if removing jukebox, get rid of the gotonextsong() in the handle data callback function, remove from html, and remove import
 export function getHtmlFileName() {
@@ -485,7 +488,7 @@ function topicToSidebar(topic, schemasPassed = false) {
 
                         let nameSplitArray = topic.structName.split("/");
                         if (name == "value" && nameSplitArray.length > 1) {
-                            let displayName = nameSplitArray[nameSplitArray.length-1]
+                            let displayName = nameSplitArray[nameSplitArray.length - 1]
                             createButton(name, i, topic.structName + "/" + name, type, displayName)
 
                             continue
@@ -505,6 +508,10 @@ function topicToSidebar(topic, schemasPassed = false) {
 
             if (i >= split.length - 1 && !topic.type.includes('struct')) {
                 //If last in topic, make the button for it, unless its a struct then it will be treated as a folder
+                if (split[0] == "CameraPublisher" && split[i] == "streams") {
+                    createButton("Stream", i, topic.name, "stream", split[i - 1])
+                }
+
                 createButton(split[i], i, topic.name)
                 continue
             }
@@ -538,6 +545,10 @@ function topicToSidebar(topic, schemasPassed = false) {
         //     typeString = 'struct'
         //     // parentDiv.css("display", "none")
         // }
+        else if (topictype.includes("stream")) {
+            src = "StreamIcon.png"
+            typeString = "stream"
+        }
         else if (topictype.includes('int')) {
             src = "IntIcon.png"
             typeString = 'int'
@@ -593,8 +604,8 @@ function topicToSidebar(topic, schemasPassed = false) {
 
                 //Set components topic, its subscription index, and its name 
                 editComponent.currentTarget.attr("data-topic", fullpath).attr("data-subscriptionindex", subscribedTopics[editComponent.currentTarget.attr('data-topic').split("|")[0]].length - 1).find(".editThisName").text(split)
-                
-                if(altDisplayName){
+
+                if (altDisplayName) {
                     editComponent.currentTarget.find(".editThisName").text(altDisplayName)
                 }
 
@@ -637,7 +648,7 @@ function topicToSidebar(topic, schemasPassed = false) {
                 outputComponents.changingSidebar.find(".topicShower").text(fullpath)
                 outputComponents.changingSidebar.find(".nameInput").val(split)
 
-                if(altDisplayName){
+                if (altDisplayName) {
                     outputComponents.changingSidebar.find(".nameInput").find(".editThisName").text(altDisplayName)
                 }
 
@@ -905,6 +916,17 @@ function onConnectCb() {
         nt4Client.addSample("/touchboard/musicIsFinished", true)
 
         nt4Client.subscribe([""], true, true)
+
+        const now = new Date(); // Creates a date object with the current date and time
+
+        const year = now.getFullYear();   // e.g., 2024
+        const month = now.getMonth() + 1; // getMonth() is 0-indexed (0=Jan), so add 1
+        const day = now.getDate();        // Day of the month (1-31)
+        const hours = now.getHours();      // 24-hour format (0-23)
+        const minutes = now.getMinutes();  // 0-59
+        const seconds = now.getSeconds();  // 0-59
+
+        connectionDate = `${year}-${month}-${day}_${hours}-${minutes}-${seconds}`;
 
         let $uiElements = $(".page").children().add($(".btnHolder").children())
 
@@ -1629,6 +1651,8 @@ function createDefaultOf(component, append, topic = "esc-UNSET-esc") {
             return createNumberLine(undefined, topic, append)
         case "radialGauge":
             return createRadialGauge(undefined, topic, append)
+        case "camera":
+            return createCamera(undefined, topic, append)
     }
 }
 
@@ -1887,6 +1911,7 @@ function createOptGroup(topic, append, hex = 0, initialOptionIndex = 0, options 
 
 }
 
+
 function createBasicSubscription(displayName, topic, append = false, hex = false, similarOptions = defaultSimilarOptions) {
 
     if (displayName == null) {
@@ -1897,7 +1922,6 @@ function createBasicSubscription(displayName, topic, append = false, hex = false
             displayName = topicSplit[topicSplit.length - 2]
         }
     }
-    // console.log(topicClass)
 
     let basicSubscription = $("<div>")
         .addClass("editableComponent")
@@ -1927,7 +1951,11 @@ function createBasicSubscription(displayName, topic, append = false, hex = false
 
 
     let basicSubscriptionHandler = (value, timestamp) => {
-        topicReference.text(value.toFixed(3))
+        if (typeof value === 'number') {
+            topicReference.text(value.toFixed(3).replace(".000", ""))
+        } else {
+            topicReference.text(value)
+        }
     }
 
 
@@ -1970,7 +1998,6 @@ function createBasicSubscription(displayName, topic, append = false, hex = false
 
 function createBasicLogger(displayName, topic, append = false, hex = "#0c0c0c", similarOptions = defaultSimilarOptions) {
 
-    let topicClass = topic.replaceAll(".", "esc-period-esc").replaceAll("/", "esc-Sl-esc")
 
     if (displayName == null) {
         let topicSplit = topic.split("/")
@@ -1980,7 +2007,6 @@ function createBasicLogger(displayName, topic, append = false, hex = "#0c0c0c", 
             displayName = topicSplit[topicSplit.length - 2]
         }
     }
-    // console.log(topicClass)
 
     let basicLogger = $("<div>")
         .addClass("editableComponent")
@@ -2299,7 +2325,7 @@ function createNumberLine(displayName, topic, append = false, hex = "#0c0c0c", m
     return numberLine
 }
 
-function createRadialGauge(displayName, topic, append, hex = "#0c0c0c", maxDeg = 360, subTickCount = 5, maxNumber, minNumber, low, high, optimum, degOffset = 0, similarOptions = defaultSimilarOptions,) {
+function createRadialGauge(displayName, topic, append, hex = "#0c0c0c", maxDeg = 360, subTickCount = 5, maxNumber, minNumber = 0, low, high, optimum, degOffset = 0, similarOptions = defaultSimilarOptions,) {
     if (displayName == null) {
         let topicSplit = topic.split("/")
         displayName = topicSplit[topicSplit.length - 1]
@@ -2325,12 +2351,21 @@ function createRadialGauge(displayName, topic, append, hex = "#0c0c0c", maxDeg =
     $("<h1>").addClass("radialGaugeTitle").addClass("editThisName").text(displayName).appendTo(radialGauge)
 
     let gauge = $("<div>").addClass("gauge").attr("data-maxDeg", maxDeg).attr("data-offsetDeg", degOffset).appendTo(radialGauge)
-
+    let min
+    let whichMax
     if (maxNumber) {
+        whichMax = maxNumber
         gauge.attr("data-maxNumber", maxNumber)
+    } else{
+        whichMax = maxDeg
     }
     if (minNumber) {
+        min = minNumber
         gauge.attr("data-minNumber", minNumber)
+    } else {
+        min = 0;
+        gauge.attr("data-minNumber", 0)
+
     }
     if (low) {
         gauge.attr("data-low", low)
@@ -2347,8 +2382,14 @@ function createRadialGauge(displayName, topic, append, hex = "#0c0c0c", maxDeg =
 
     let subTicks = $("<div>").addClass("subTicks").appendTo(pointer)
 
+
+    let step = (whichMax - min) / (subTickCount - 1)
+
     for (let i = 0; i < subTickCount; i++) {
-        $("<div>").addClass("subTick").appendTo(subTicks)
+        let text = parseFloat(((step * i) + parseFloat(min)).toFixed(3));
+        console.log(minNumber)
+
+        $("<div>").addClass("subTick").appendTo(subTicks).attr("data-text", text)
     }
 
     setSimilarOptions(radialGauge, similarOptions)
@@ -2416,7 +2457,276 @@ function createRadialGauge(displayName, topic, append, hex = "#0c0c0c", maxDeg =
     return radialGauge
 }
 
-// setGridInput(".uiTestTab")
+
+
+//Subscription Blank
+
+// function createBlank(displayName, topic, append, hex, ...similarOptions = defaultSimilarOptions) {
+//     if (displayName == null) {
+//         let topicSplit = topic.split("/")
+//         displayName = topicSplit[topicSplit.length - 1]
+
+//         if (displayName == "value" && topicSplit.length > 1) {
+//             displayName = topicSplit[topicSplit.length - 2]
+//         }
+//     }
+
+//     let blank = $("<div>")
+//         .addClass("blankComponent")
+//         .attr("data-topic", topic)
+//         .addClass("editableComponent")
+//         .attr("data-componentType", "blank")
+//         .css("border-color", hex)
+//         .attr("data-color", hex)
+//         .attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
+
+//     if (append) {
+//         blank.appendTo(append)
+//     }
+
+//     setSimilarOptions(blank, similarOptions)
+//     addEditHandler(blank, "subscription", ".blankSpecific")
+
+//     if (topic == "esc-UNSET-esc") return blank
+
+//     let blankHandler = (value) => {
+
+//     }
+
+//     let topicChangeHandler = (newTopic, val) => {
+
+//     }
+
+//     let subscribedReference = {
+//         'jQueryReference': false,
+//         'parentReference': blank,
+//         'valueHandeler': blankHandler,
+//         'topicChangeHandler': topicChangeHandler
+//     }
+
+//     if (topic.includes("|")) {
+//         if (!subscribedTopics.hasOwnProperty(topic.split("|")[0])) {
+//             subscribedTopics[topic.split("|")[0]] = []
+//         }
+//         subscribedReference.structPath = topic
+//         subscribedTopics[topic.split("|")[0]].push(subscribedReference)
+//         blank.attr("data-subscriptionIndex", subscribedTopics[topic.split("|")[0]].length - 1)
+
+//     } else {
+//         if (!subscribedTopics.hasOwnProperty(topic)) {
+//             subscribedTopics[topic] = []
+//         }
+//         subscribedTopics[topic].push(subscribedReference)
+//         blank.attr("data-subscriptionIndex", subscribedTopics[topic].length - 1)
+
+//     }
+
+//     if (nt4Client.serverTopics.get(topic)) {
+//         blankHandler(nt4Client.serverTopics.get(topic).value)
+//     } else if (nt4Client.serverTopics.get(topic.split("|")[0])) {
+//         let topicRef = nt4Client.serverTopics.get(topic.split("|")[0]);
+//         blankHandler(getStructValue(topic, topicRef.value))
+//     }
+
+//     return blank
+
+// }
+// <div class="cameraComponent">
+//  <h1>Camera Stream</h1>
+//  <img src="http://192.168.0.48:1181/stream.mjpg" crossOrigin="anonymous" class="cameraStream">
+//  <canvas class="encoder"></canvas>
+//  <div class="cameraNav">
+//      <button class="record emojiButton">🔴</button>
+//  </div>
+// </div> 
+
+function createCamera(displayName, topic, append, hideNav = false, videoFormat = "WebM", recordConditions = [], similarOptions = defaultSimilarOptions) {
+    if (displayName == null) {
+        let topicSplit = topic.split("/")
+        displayName = topicSplit[topicSplit.length - 1]
+
+        if (displayName == "value" && topicSplit.length > 1) {
+            displayName = topicSplit[topicSplit.length - 2]
+        }
+    }
+
+    let camera = $("<div>")
+        .addClass("cameraComponent")
+        .attr("data-topic", topic)
+        .addClass("editableComponent")
+        .attr("data-componentType", "camera")
+        .attr("data-videoFormat", videoFormat)
+        .attr("data-hideNav", JSON.stringify(hideNav))
+        .attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
+        .attr("data-recordConditions", JSON.stringify(recordConditions))
+
+    $("<h1>").addClass("editThisName").text(displayName).appendTo(camera)
+    let img = $("<img>").addClass("cameraStream").attr("crossOrigin", "anonymous").addClass("cameraPlaceholder").appendTo(camera)
+    let encoder = $("<canvas>").addClass("encoder").appendTo(camera)
+    let cameraNav = $("<div>").addClass("cameraNav").appendTo(camera);
+    $("<button>").addClass("record").text("🔴").appendTo(cameraNav)
+
+
+    if (append) {
+        camera.appendTo(append)
+    }
+
+    setSimilarOptions(camera, similarOptions)
+    addEditHandler(camera, "subscription", ".cameraSpecific", ".hidestream")
+
+    if (topic == "esc-UNSET-esc") return camera
+
+    let setCaptureState = captureMJPEG(camera, topic, videoFormat)
+
+    let cameraHandler = (value) => {
+        let i = 0;
+
+        // console.log(value[0])
+        setSrc()
+
+        function setSrc() {
+            console.log(value[i])
+
+            if (i > value.length - 1) {
+                let str = value[i - 1].replace("mjpg:", "")
+                console.log(str)
+                console.log(str.substring(str.lastIndexOf(":") + 1))
+                img.attr("src", "localhost:" + str.substring(str.lastIndexOf(":") + 1))
+                return
+            }
+
+            //try each url in stream list 
+
+            img.attr("src", value[i].replace("mjpg:", "")).off("error").on("error", () => {
+                i++
+                if (i > value.length) {
+                    return
+                }
+                toastMessage("Camera Connection Failed, Retrying Attempt: " + i, "#FF0000")
+                setSrc()
+            })
+        }
+
+    }
+
+    let disableDownloadCooldown = setTimeout(() => { }, 0);
+
+    let recordConditionHandler = (value) => {
+        let robotState = decodeFMSControlData(value)
+        let conditions = JSON.parse(camera.attr("data-recordConditions"))
+        console.log(conditions)
+
+        for (let i in conditions) {
+            if (objectIncludes(robotState, conditions[i])) {
+                try {
+                    clearTimeout(disableDownloadCooldown)
+                } catch {
+
+                }
+
+                setCaptureState(true)
+                return
+            }
+
+        }
+        disableDownloadCooldown = setTimeout(() => {
+            setCaptureState(false)
+        }, 8000);
+    }
+
+    // let topicChangeHandler = (newTopic, val) => {
+
+    // }
+
+    let subscribedReference = {
+        'jQueryReference': false,
+        'parentReference': camera,
+        'valueHandeler': cameraHandler,
+        // 'topicChangeHandler': topicChangeHandler
+    }
+
+    let fmsReference = {
+        'jQueryReference': false,
+        'parentReference': camera,
+        'valueHandeler': recordConditionHandler,
+        // 'topicChangeHandler': topicChangeHandler
+    }
+
+    if (topic.includes("|")) {
+        if (!subscribedTopics.hasOwnProperty(topic.split("|")[0])) {
+            subscribedTopics[topic.split("|")[0]] = []
+        }
+        subscribedReference.structPath = topic
+        subscribedTopics[topic.split("|")[0]].push(subscribedReference)
+        camera.attr("data-subscriptionIndex", subscribedTopics[topic.split("|")[0]].length - 1)
+
+    } else {
+        if (!subscribedTopics.hasOwnProperty(topic)) {
+            subscribedTopics[topic] = []
+        }
+        subscribedTopics[topic].push(subscribedReference)
+        camera.attr("data-subscriptionIndex", subscribedTopics[topic].length - 1)
+
+    }
+
+    if (!subscribedTopics.hasOwnProperty("/FMSInfo/FMSControlData")) {
+        subscribedTopics["/FMSInfo/FMSControlData"] = []
+    }
+    subscribedTopics["/FMSInfo/FMSControlData"].push(fmsReference)
+
+    if (nt4Client.serverTopics.get("/FMSInfo/FMSControlData")) {
+        recordConditionHandler(nt4Client.serverTopics.get("/FMSInfo/FMSControlData").value)
+    }
+
+    if (nt4Client.serverTopics.get(topic)) {
+        cameraHandler(nt4Client.serverTopics.get(topic).value)
+    } else if (nt4Client.serverTopics.get(topic.split("|")[0])) {
+        let topicRef = nt4Client.serverTopics.get(topic.split("|")[0]);
+        cameraHandler(getStructValue(topic, topicRef.value))
+    }
+
+    return camera
+
+}
+
+function decodeFMSControlData(state) {
+    // Define the bitmask constants
+    const ENABLED_FLAG = 1;
+    const AUTO_FLAG = 2;
+    const TEST_FLAG = 4;
+    const EMERGENCY_STOP_FLAG = 8;
+    const FMS_ATTACHED_FLAG = 16;
+    const DS_ATTACHED_FLAG = 32;
+
+    // Determine the operational mode
+    let mode = "disabled";
+    const isEnabled = (state & ENABLED_FLAG) !== 0;
+
+    if (isEnabled) {
+        if (state & AUTO_FLAG) {
+            mode = "auto";
+        } else if (state & TEST_FLAG) {
+            mode = "test";
+        } else {
+            mode = "teleop";
+        }
+    }
+
+    return {
+        mode: mode,
+        enabled: isEnabled, // True if mode is teleop, auto, or test
+        fmsAttached: (state & FMS_ATTACHED_FLAG) !== 0,
+        dsAttached: (state & DS_ATTACHED_FLAG) !== 0,
+        eStopped: (state & EMERGENCY_STOP_FLAG) !== 0
+    }
+}
+
+function objectIncludes(stateObj, criteria) {
+    // We only care about the keys present in the criteria object
+    return Object.keys(criteria).every(key => {
+        return stateObj[key] === criteria[key];
+    });
+}
 
 function setGridInput(tab) {
 
@@ -2759,7 +3069,69 @@ $(".optionAdder").on("submit.addDiv", () => {
     return false
 })
 
-function addEditHandler(element, valueType, specificClass = false) {
+
+$(".conditionPlus").on("click.addDiv", (event) => {
+    createConditionSidebarButton()
+
+})
+
+$(".conditionAdder").on("submit.addDiv", (event) => {
+    return false
+})
+
+function createConditionSidebarButton(name = document.querySelector(".condition").selectedOptions[0].text, val = $(".condition").val().replaceAll(`'`, `"`), feedback = true) {
+    let conditions = $(".sidebarCondition")
+
+    for (let i = 0; i < conditions.length; i++) {
+        if (val == conditions.eq(i).attr("data-value").replaceAll(`'`, `"`)) {
+            return false
+        }
+    }
+
+    let $sbO = $("<div>").addClass("sidebarOption").addClass("sidebarCondition").insertBefore(".conditionAdder").attr("data-name", name).attr("data-value", val)
+    $("<p>").text(name).appendTo($sbO).css("max-width", "calc(100cqw - 0.25vh - 0.25vh - 4vh - 4vh)")
+
+    if (feedback) {
+        let currentConditions = JSON.parse($(editComponent.currentTarget).attr("data-recordConditions"))
+
+        try {
+            currentConditions.push(JSON.parse(val))
+
+        }
+        catch (Err) {
+            console.error(Err)
+            return false
+        }
+        $(editComponent.currentTarget).attr("data-recordConditions", JSON.stringify(currentConditions))
+    }
+
+
+    let clear = $("<div>").text("❌").addClass("sideBarEmojiButton").addClass("trashOption").appendTo($sbO).on("pointerdown.remove", (event) => {
+
+        let currentConditions = JSON.parse(editComponent.currentTarget.attr("data-recordConditions"))
+
+        let removeIndex;
+
+        for (let i = 0; i < currentConditions.length; i++) {
+            if (currentConditions[i] == $(event.currentTarget).attr("data-value")) {
+                removeIndex = i
+
+                break;
+            }
+        }
+
+        currentConditions.splice(removeIndex, 1)
+
+        editComponent.currentTarget.attr("data-recordConditions", JSON.stringify(currentConditions))
+
+        $(event.currentTarget).parent().remove()
+    }
+    )
+
+    return false
+}
+
+function addEditHandler(element, valueType, specificClass = false, specificHideClass = false) {
     element.on("pointerdown.editHandler", (event) => {
         if (!$(".editTabs").hasClass("editingTabs")) { return }
         // allow for blur event to execute
@@ -2779,10 +3151,15 @@ function addEditHandler(element, valueType, specificClass = false) {
             $(".allComponentOptions").css("display", "")
             $(".ioComponents").css("display", "none")
             $(".specificComponent").css("display", "none")
+            $(".specificHideComponent").css("display", "")
             $(".editSidebar").css("display", "none")
 
             if (specificClass) {
                 $(specificClass).css("display", "")
+            }
+
+            if (specificHideClass) {
+                $(specificHideClass).css("display", "none")
             }
 
             $(".sideBarNav").children()
@@ -2927,6 +3304,13 @@ function bindEditMenu(element, valueType, specificClass = false) {
 
     let inputs = $("." + valueType + "Sidebar").find(".isEdit, .isntEdit").val("")
 
+    let recordMap = new Map();
+
+    recordMap.set(JSON.stringify({ "fmsAttached": true }), "FMS + Connected")
+    recordMap.set(JSON.stringify({ "fmsAttached": true, "enabled": true }), "FMS + Enabled")
+    recordMap.set(JSON.stringify({ "dsAttached": true }), "DS + Connected")
+    recordMap.set(JSON.stringify({ "dsAttached": true, "enabled": true }), "DS + Enabled")
+
 
     for (let i = 0; i < inputs.length; i++) {
         let inputBeingBound = inputs.eq(i)
@@ -2940,6 +3324,8 @@ function bindEditMenu(element, valueType, specificClass = false) {
             bindColors(inputBeingBound)
         } else if (inputBeingBound.attr("data-editing") == "axisDirection") {
             bindAxisDirection(inputBeingBound)
+        } else if (inputBeingBound.attr("data-editing") == "data-videoFormat") {
+            bindFormat(inputBeingBound)
         } else if (inputBeingBound.attr("data-editing") == "optionArray") {
             bindMultiAdder(inputBeingBound)
         } else if (inputBeingBound.attr("data-editing") == "changeTopic") {
@@ -2950,8 +3336,11 @@ function bindEditMenu(element, valueType, specificClass = false) {
             bindToggleMultiSwitch(inputBeingBound)
         } else if (inputBeingBound.attr("data-editing") == "data-snapBack") {
             bindSnapBack(inputBeingBound)
-        }
-        else {
+        } else if (inputBeingBound.attr("data-editing") == "data-hideNav") {
+            bindHideNav(inputBeingBound)
+        } else if (inputBeingBound.attr("data-editing") == "data-recordconditions") {
+            bindRecordConditions(inputBeingBound)
+        } else if (inputBeingBound.attr("data-editing") !== "na") {
             bindOtherData(inputBeingBound)
         }
 
@@ -2977,6 +3366,18 @@ function bindEditMenu(element, valueType, specificClass = false) {
                 let $ct = $(event.currentTarget)
 
                 editComponent.currentTarget.attr("data-snapBack", JSON.stringify($ct.prop("checked")))
+            })
+        }
+    }
+
+    function bindHideNav(inputBeingBound) {
+        if (editComponent.currentTarget.hasClass("cameraComponent")) {
+            inputBeingBound.prop("checked", JSON.parse(editComponent.currentTarget.attr("data-hideNav")))
+
+            inputBeingBound.off("input.hideNav").on("input.hideNav", (event) => {
+                let $ct = $(event.currentTarget)
+
+                editComponent.currentTarget.attr("data-hideNav", JSON.stringify($ct.prop("checked")))
             })
         }
     }
@@ -3110,7 +3511,25 @@ function bindEditMenu(element, valueType, specificClass = false) {
                 }
                 setExampleMeter(gauge.attr("data-minNumber"), whichMax, gauge.attr("data-low"), gauge.attr("data-high"), gauge.attr("data-optimum"))
 
+                let subticks = editComponent.currentTarget.find(".subTick")
+
+                let minNumber = 0
+                if (gauge.attr("data-minNumber")) minNumber = gauge.attr("data-minNumber");
+
+                let step = (whichMax - minNumber) / (subticks.length - 1)
+                for (let i = 0; i < subticks.length; i++) {
+                    let subtick = subticks.eq(i);
+
+                    let text = parseFloat(((step * i) + parseFloat(minNumber)).toFixed(3));
+
+                    subtick.attr("data-text", text)
+                }
+
                 if ($ct.val().length == 0) {
+                    if($ct.attr("data-editing") == "minNumber"){
+                        gauge.attr("data-minNumber", "0")
+                        return
+                    }
                     gauge.removeAttr("data-" + $ct.attr("data-editing"))
                 }
             }
@@ -3174,6 +3593,38 @@ function bindEditMenu(element, valueType, specificClass = false) {
 
             }
         })
+    }
+
+    function bindFormat(inputBeingBound) {
+        setTimeout(() => {
+            if (editComponent.currentTarget.attr("data-videoFormat") == "Mp4") {
+                multiSwitchButtonSet(inputBeingBound, "Mp4")
+            } else {
+                multiSwitchButtonSet(inputBeingBound, "WebM")
+            }
+        }, 1);
+
+        inputBeingBound.find(".multiSwitchButton").off("pointerdown.axisDirection").on("pointerdown.axisDirection", (event) => {
+            if ($(event.target).val() == "Mp4") {
+                editComponent.currentTarget.attr("data-videoFormat", "Mp4")
+            } else if ($(event.target).val() == "WebM") {
+                editComponent.currentTarget.attr("data-videoFormat", "WebM")
+            }
+        })
+    }
+
+
+    function bindRecordConditions(inputBeingBound) {
+        if (editComponent.currentTarget.hasClass("cameraComponent")) {
+
+            let conditions = JSON.parse(editComponent.currentTarget.attr("data-recordconditions"));
+            $(".sidebarCondition").remove();
+
+            for (let i = 0; i < conditions.length; i++) {
+                console.log(conditions, conditions[i], JSON.stringify(conditions[i]), recordMap, recordMap.get(JSON.stringify(conditions[i])))
+                createConditionSidebarButton(recordMap.get(JSON.stringify(conditions[i])), JSON.stringify(conditions[i]), false)
+            }
+        }
     }
 
     function bindToggleMultiSwitch(inputBeingBound) {
@@ -3434,17 +3885,8 @@ $(".fillSpaceCheckbox").on("input", () => {
 
 // captureMJPEG($(".cameraComponent"))
 
-function captureMJPEG(cameraComponent) {
-
-    //cameraComponent
-    // <div class="cameraComponent">
-    //     <h1>Camera Stream</h1>
-    //     <img src="http://localhost:1181/stream.mjpg" class="cameraStream">
-    //     <canvas class="encoder"></canvas>
-    //     <div class="cameraNav">
-    //         <button class="record emojiButton">🔴</button>
-    //     </div>
-    //</div>
+function captureMJPEG(cameraComponent, topic = "", videoFormat = "mp4") {
+    videoFormat = videoFormat.toLowerCase();
 
     //VERY HACKY WAY OF RECORDING MJPEG STREAM
     //Media recorder can only record mp4 and webm streams
@@ -3463,10 +3905,51 @@ function captureMJPEG(cameraComponent) {
 
     mJpegStream.on("load", () => {
         encoder.attr("height", mJpegStream[0].naturalHeight).attr("width", mJpegStream[0].naturalWidth)
+        mJpegStream.removeClass("cameraPlaceholder")
 
         let currentStream = encoder[0].captureStream(30); //TODO: unhardcode this
 
-        mediaRecorder = new MediaRecorder(currentStream, { mimeType: 'video/webm; codecs=vp9' })
+        let mType = ""
+        let codec = ""
+
+        if (videoFormat == "mp4") {
+            if (MediaRecorder.isTypeSupported("video/mp4;codecs=hvc1")) {
+                codec = "hvc1"
+                mType = "video/mp4"
+                console.log("Codec selected: " + "hvc1")
+            } else if (MediaRecorder.isTypeSupported("video/mp4;codecs=avc1")) {
+                codec = "avc1"
+                mType = "video/mp4"
+                console.log("Codec selected: " + "avc1")
+            } else {
+                mType = "video/mp4"
+                console.log("Codec fallback: Default")
+            }
+        } else if (videoFormat == "webm") {
+            if (MediaRecorder.isTypeSupported("video/webm;codecs=vp9")) {
+                codec = "vp9"
+                mType = "video/webm"
+                console.log("Codec selected: " + "vp9")
+
+            } else if (MediaRecorder.isTypeSupported("video/webm;codecs=vp8")) {
+                codec = "vp8"
+                mType = "video/webm"
+                console.log("Codec selected: " + "vp8")
+
+            } else {
+                mType = "video/webm"
+                console.log("Codec fallback: Default")
+            }
+        }
+        console.log(videoFormat)
+
+        let fullMimeType
+        if (codec == "") {
+            fullMimeType = `${mType}`;
+        } else {
+            fullMimeType = `${mType};codecs=${codec}`;
+        }
+        mediaRecorder = new MediaRecorder(currentStream, { mimeType: fullMimeType });
 
         mediaRecorder.ondataavailable = (event) => {
             if (event.data.size > 0) {
@@ -3476,7 +3959,7 @@ function captureMJPEG(cameraComponent) {
 
         mediaRecorder.onstop = () => {
             let blob = new Blob(recordedBlob, {
-                type: 'video/mp4' //TODO: unhardcode this let the ppl use mp4 if they want 
+                type: mType
             })
 
             let downloadUrl = URL.createObjectURL(blob)
@@ -3484,13 +3967,10 @@ function captureMJPEG(cameraComponent) {
             let filename = cameraComponent.attr("data-usTimestamp") + "" + cameraComponent.attr("data-streamTopic")
 
             let $a = $("<a>").css("display", "none").attr("href", downloadUrl)
-            $a[0].download = "video.mp4"//TODO: unhardcode this let the ppl use mp4 if they want 
-
+            $a[0].download = connectionDate + "=" + topic.replaceAll("/", "+") + "." + videoFormat
             $("body").append($a)
 
             $a[0].click();
-
-
 
             recordedBlob = [];
             // cancelAnimationFrame(animationFrame);
@@ -3512,6 +3992,7 @@ function captureMJPEG(cameraComponent) {
         animationFrame = requestAnimationFrame(drawToCanvas);
     }
 
+
     recordToggle.on("pointerdown", () => {
         recordToggle.toggleClass("recording")
 
@@ -3527,6 +4008,44 @@ function captureMJPEG(cameraComponent) {
 
         }
     })
+
+    
+
+    return (recording) => {
+        if (recording) {
+            recordToggle.addClass("recording")
+            recordToggle.text("🎬")
+            recordedBlob = []
+
+            try {
+                mediaRecorder.start()
+
+            } catch (err) {
+
+                if (!mJpegStream.complete) {
+                    mJpegStream.on("load.bufferStart", () => {
+                        mediaRecorder.start()
+                        mJpegStream.off("load.bufferStart")
+                        console.log("Recording Started")
+
+                    })
+
+                    console.log("Buffering Recording Start until load")
+                }
+
+                console.log("May Be Expected" + err)
+            }
+        } else {
+            recordToggle.text("🔴")
+
+            try {
+                mediaRecorder.stop()
+            } catch (err) {
+                console.log("May Be Expected" + err)
+            }
+
+        }
+    }
 
 }
 
@@ -4035,6 +4554,13 @@ function getComponentSpecificAsObject(comp$) {
                 high: meter.attr("high"),
                 optimum: meter.attr("optimum")
             }
+        case "camera":
+            return {
+                displayName: comp$.find(".editThisName").text(),
+                hideNav: comp$.attr("data-hideNav"),
+                videoFormat: comp$.attr("data-videoFormat"),
+                recordConditionHandler: comp$.attr("data-recordConditions")
+            }
     }
 }
 
@@ -4072,6 +4598,8 @@ function makeComponentFromJson(component) {
             return createNumberLine(component.displayName, component.topic, false, component.color, component.max, component.min, component.low, component.high, component.optimum, component.similarOptions)
         case "radialGauge":
             return createRadialGauge(component.displayName, component.topic, false, component.color, component.maxDeg, 5, component.max, component.min, component.low, component.high, component.optimum, component.offsetDeg, component.similarOptions)
+        case "camera":
+            return createCamera(component.displayName, component.topic, false, JSON.parse(component.hideNav), component.videoFormat, JSON.parse(component.recordConditionHandler), component.similarOptions)
     }
 }
 

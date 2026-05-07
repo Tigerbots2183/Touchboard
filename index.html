@@ -117,10 +117,10 @@ SOFTWARE. -->
             </div>
             <div class="sideTabF importBtn" style="margin-top: auto;">
                 <h1 class="tabName">Import</h1>
-            </div> 
+            </div>
             <div class="sideTabF exportBtn">
                 <h1 class="tabName">Export</h1>
-            </div> 
+            </div>
         </div>
 
         <div class="autonomus pageF" style="display: none;">
@@ -592,6 +592,18 @@ SOFTWARE. -->
             </div>
         </div>
 
+        <div class="streamOutputComponents outputComponents ioComponents">
+            <div class="camera cameraComponent ioDisplay">
+                <h1>Camera Stream</h1>
+                <div class="ioDisplay cameraStream"></div>
+                <canvas class="ioDisplay encoder"></canvas>
+                <div class="ioDisplay cameraNav">
+                    <button class="ioDisplay record emojiButton">🔴</button>
+                </div>
+            </div>
+
+        </div>
+
         <div class="editSidebar booleanSidebar">
             <div class="sideInputDiv">
                 <p>Name:</p>
@@ -632,18 +644,55 @@ SOFTWARE. -->
                 <input type="text" data-editing="text" class="textInput isEdit nameInput" placeholder="Unset">
             </div>
 
-            <div class="sideInputDiv">
+            <div class="sideInputDiv specificHideComponent hidestream">
                 <p>Topic:</p>
                 <p data-editing="data-topic" class="isntEdit topicShower"></p>
                 <input type="button" class="sideBarButton changeSubscriptionTopic isEdit" data-editing="changeTopic"
                     value="Change" placeholder="Unset">
             </div>
 
-            <div class="sideInputDiv">
+            <div class="sideInputDiv specificHideComponent hidestream">
                 <p>Color:</p>
                 <input type="color" data-editing="color" class="colorInput isEdit" placeholder="Unset">
             </div>
 
+            <div class="sideInputDiv specificComponent cameraSpecific">
+                <p>Hide Record Button</p>
+                <input type="checkbox" class="isEdit" data-editing="data-hideNav">
+            </div>
+
+             <div class="sideInputDiv specificComponent cameraSpecific">
+                <p>Format:</p>
+                <div class="multiSwitch isEdit" data-value="WebM" style="width: 60%;" data-editing="data-videoFormat">
+                    <div class="multiSlider">
+                        <div class="multiSliding" style="width:50%;"></div>
+                    </div>
+                    <input type="button" class="multiSwitchButton" value="WebM">
+                    <input type="button" class="multiSwitchButton" value="Mp4">
+                </div>
+            </div>
+
+            <div class="multiAdder isEdit specificComponent cameraSpecific" data-editing="data-recordconditions">
+                <p>Record Conditions:</p>
+
+                <!-- <div class="sidebarOption test1">
+                    <button class="sideBarEmojiButton hamburger">☰</button>
+                    <p>Name: 1</p>
+                    <button class="sideBarEmojiButton editOption">✎</button>
+                </div> -->
+
+                <form class="conditionAdder" name="optionAdder">
+                    <select class="condition">
+                        <option value="{'fmsAttached': true}">FMS + Connected</option>
+                        <option value="{'fmsAttached': true, 'enabled': true}">FMS + Enabled</option>
+                        <option value="{'dsAttached': true}">DS + Connected</option>
+                        <option value="{'dsAttached': true, 'enabled': true}">DS + Enabled</option>
+                    </select>
+
+                    <button class="sideBarEmojiButton plus conditionPlus">✚</button>
+
+                </form>
+            </div>
 
             <div class="sideInputDiv specificComponent radialGaugeSpecific">
                 <p>MaxDeg:</p>
@@ -696,6 +745,8 @@ SOFTWARE. -->
                 <p>Optimal:</p>
                 <input type="number" class="numberTextInput optimum isEdit" data-editing="optimum" placeholder="Half">
             </div>
+
+
         </div>
         <div class="editSidebar doubleSidebar">
             <!-- Number and axis -->
@@ -795,6 +846,7 @@ SOFTWARE. -->
             </div>
 
         </div>
+
 
         <div class="fillSpace sideInputDiv allComponentOptions" style="display: none;">
             <p>Fill?</p>

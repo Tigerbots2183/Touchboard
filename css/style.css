@@ -445,40 +445,40 @@ foreignObject input[type=range]::-webkit-slider-thumb {
 
 
 .toast {
-  position: absolute;
-  /* top: 8dvh; */
-  z-index: 9;
-  left: 50dvw;
-  max-width: 90dvw;
-  /* max-height: max-height; */
-  text-wrap: wrap;
-  padding: 0.5dvh;
-  border-radius: 0.7svh;
-  top: -6dvh;
-  transform: translate(-50%, 0%);
-  pointer-events: none;
-  user-select: none;
-  transition: top 400ms ease-out;
-  /* overflow: hidden; */
-  display: none;
+    position: absolute;
+    /* top: 8dvh; */
+    z-index: 9;
+    left: 50dvw;
+    max-width: 90dvw;
+    /* max-height: max-height; */
+    text-wrap: wrap;
+    padding: 0.5dvh;
+    border-radius: 0.7svh;
+    top: -6dvh;
+    transform: translate(-50%, 0%);
+    pointer-events: none;
+    user-select: none;
+    transition: top 400ms ease-out;
+    /* overflow: hidden; */
+    display: none;
 }
 
 #toastMessage {
-  width: max-content;
-  max-width: 90dvw;
-  color: white  ;
-  text-align: center;
-  /* max-height: 6dvh; */
+    width: max-content;
+    max-width: 90dvw;
+    color: white;
+    text-align: center;
+    /* max-height: 6dvh; */
 }
 
 .toasted {
-  top: 1.5dvh;
+    top: 1.5dvh;
 
 }
 
 
 
-.noClick{
+.noClick {
     pointer-events: none;
 }
 
@@ -1132,6 +1132,7 @@ input[type=number] {
     display: block;
     position: relative;
 
+    z-index: 4;
     top: 20%;
     left: 40%;
 
@@ -1149,6 +1150,7 @@ input[type=number] {
     content: '';
     border-radius: 9000vh;
     position: relative;
+    z-index: 5;
     /* background-color: rgb(166, 166, 166); */
     background: radial-gradient(circle, rgba(166, 166, 166, 1) 50%, rgba(105, 105, 105, 1) 55%);
     display: block;
@@ -1233,6 +1235,89 @@ input[type=number] {
     background-color: rgb(24, 24, 24);
     text-align: center;
     text-overflow: clip;
+}
+
+.ioDisplay.cameraComponent {
+    width: 18.5cqh;
+    height: 12.5cqh;
+    align-items: center;
+    justify-items: center;
+    grid-area: 4 / 6 / 1 / 1;
+}
+
+.ioDisplay.cameraNav {
+    width: fit-content;
+    border-radius: 1.5cqh;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: center;
+    border-radius: 1.5cqh;
+
+    grid-area: Nav;
+    background-color: rgba(137, 137, 137, 0.293);
+    border: rgba(255, 255, 255, 0.382) solid 0.125cqh;
+    position: relative;
+    z-index: 2;
+    bottom: 23%;
+}
+
+.ioDisplay.cameraNav>* {
+    margin-inline: 2.5cqh;
+    background-color: transparent;
+}
+
+
+.ioDisplay.cameraComponent h1 {
+    position: relative;
+    z-index: 2;
+    top: 20%;
+    border-radius: 1.5cqh;
+    color: white;
+    font-size: 1.5cqh;
+    padding-inline: 1.5cqh;
+    background-color: rgba(137, 137, 137, 0.293);
+    border: rgba(255, 255, 255, 0.382) solid 0.125cqh;
+
+}
+
+.ioDisplay.cameraStream {
+    border-radius: 1.5cqh;
+    max-height: 100%;
+    width: 18cqh;
+    height: 12cqh;
+    grid-area: Cam;
+    background-color: rgb(24, 24, 24);
+    border: none;
+    outline: none;
+    object-fit: contain;
+    border: rgb(48, 48, 48) 0.25px solid;
+
+    /* display: none; */
+
+}
+
+.ioDisplay.encoder {
+    border-radius: 1.5cqh;
+    max-height: 100%;
+    width: 100%;
+    grid-area: Cam;
+    object-fit: contain;
+    display: none;
+
+}
+
+.ioDisplay.record {
+    background-color: rgba(0, 0, 0, 0);
+    border: none;
+    outline: none;
+    height: 1.625cqh;
+    border-radius: .2cqh;
+    font-size: 1.25cqh;
+    line-height: 1.25cqh;
+    color: white;
+    min-width: 1.875cqh;
+    margin-inline: 1cqh;
 }
 
 @container dashboardHolder (width > 0px) {
@@ -1803,6 +1888,21 @@ input[type=number] {
         outline: none;
         height: 6.5cqh;
         border-radius: 1cqh;
+        font-size: 5cqh;
+        line-height: 5cqh;
+        color: white;
+        min-width: 7.5cqh;
+        margin-inline: 1cqh;
+    }
+
+    .record {
+        background-color: rgba(0, 0, 0, 0.299);
+        border: none;
+        outline: none;
+        height: 6.5cqh;
+
+        border-radius: 1cqh;
+
         font-size: 5cqh;
         line-height: 5cqh;
         color: white;
@@ -2458,12 +2558,31 @@ input[type=number] {
         align-items: center;
         justify-items: center;
         grid-area: 4 / 6 / 1 / 1;
+        --hideNav: attr(data-hideNav raw-string, "false");
+    }
+
+    .cameraComponent.currentDrag {
+        width: 32cqh;
+        height: 20cqh;
+    }
+
+    .feauxComponent>.cameraNav {
+        display: none;
+    }
+
+
+    .cameraComponent.feauxComponent>h1 {
+        display: none;
     }
 
     .cameraNav {
+
         width: fit-content;
         border-radius: 3cqh;
-        display: flex;
+        display:
+            if(style(--hideNav:"false"): flex;
+                else: none;
+            );
         flex-wrap: wrap;
         align-content: center;
         justify-content: center;
@@ -2474,7 +2593,8 @@ input[type=number] {
         border: rgba(255, 255, 255, 0.382) solid 0.125cqh;
         position: relative;
         z-index: 2;
-        bottom: 18%;
+        transform: translateY(-100%);
+        bottom: 4%;
     }
 
     .cameraNav>* {
@@ -2485,7 +2605,9 @@ input[type=number] {
     .cameraComponent h1 {
         position: relative;
         z-index: 2;
-        top: 10%;
+        height: 4cqh;
+        margin-bottom: -4cqh;
+        top: 5%;
         border-radius: 3cqh;
         color: white;
         font-size: 3cqh;
@@ -2503,6 +2625,14 @@ input[type=number] {
         object-fit: contain;
         /* display: none; */
 
+    }
+
+    .cameraPlaceholder {
+        height: 100%;
+        appearance: none;
+        outline: rgb(255, 255, 255) 0.2cqh solid;
+        outline-offset: -0.2cqh;
+        background-color: rgb(24, 24, 24);
     }
 
     .encoder {
@@ -2801,7 +2931,6 @@ input[type=number] {
 
         --valDeg: calc(attr(data-valdeg deg, calc((((var(--valNumber) - var(--minNumber)) / (var(--maxNumber) - var(--minNumber))) * var(--rawMaxDeg)) *1deg)) - 180deg);
         --difDeg: calc(attr(data-maxdeg deg, 180deg) - attr(data-mindeg deg, 0deg));
-
     }
 
     .gauge::after {
@@ -2963,6 +3092,9 @@ input[type=number] {
         container-name: subtick;
         container-type: size;
 
+        counter-set: stringify calc(((sibling-index() - 1) * var(--numericalOffset)) + var(--minNumber));
+
+        --text: attr(data-text raw-string, counter(stringify));
 
         --ticks: calc(sibling-count() - 1);
         --tickOffset: calc(var(--rawMaxDeg) / var(--ticks));
@@ -2983,8 +3115,8 @@ input[type=number] {
 
 
     .subTick::before {
-        counter-set: stringify calc(((sibling-index() - 1) * var(--numericalOffset)) + var(--minNumber));
-        content: counter(stringify);
+
+        content: var(--text);
         /* counter-set: testCount sibling-index();
         content: counter(testCount); */
         font-size: 4.5cqh;
@@ -2995,8 +3127,10 @@ input[type=number] {
         position: relative;
         z-index: 7;
         transform: rotate(calc((((sibling-index() - 1) * var(--tickOffset)) + var(--rawOffsetDeg)) * -1deg));
+       
 
-        background: radial-gradient(circle, rgb(24, 24, 24) 5%, rgba(0, 0, 0, 0) 5%);
+        background: if(style(--rawMaxDeg:360): radial-gradient(circle, rgb(24, 24, 24) 10%, rgba(0, 0, 0, 0) 10%); else: none);
+
 
     }
 
@@ -3638,16 +3772,16 @@ input[type=number] {
         position: relative;
     }
 
-    .map{
+    .map {
         height: 100%;
         width: auto;
         grid-area: M;
     }
 
-    .guesstimator{
-        grid-template-areas: 
-        "M E"
-        "M E";
+    .guesstimator {
+        grid-template-areas:
+            "M E"
+            "M E";
     }
 }
 
@@ -4076,6 +4210,13 @@ meter:not([value]) {
     background-color: rgb(24, 24, 24);
 }
 
+
+
+.condition {
+    background-color: rgb(12, 12, 12);
+    color: white;
+}
+
 .optionAdder .textInput {
     width: 28%;
     border: 0.25vh solid rgb(58, 58, 58);
@@ -4105,6 +4246,24 @@ meter:not([value]) {
 }
 
 .optionAdder p {
+    width: min-content;
+}
+
+.conditionAdder {
+    transition: margin-top ease;
+
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    align-items: center;
+    justify-content: space-evenly;
+    /* padding-top: 1vh; */
+    border: 0.25vh solid rgb(58, 58, 58);
+    width: 95%;
+    box-sizing: border-box;
+}
+
+.conditionAdder p {
     width: min-content;
 }
 
@@ -4161,12 +4320,13 @@ meter:not([value]) {
         touch-action: none;
         align-content: center;
     }
-    .sidebarOption p{
+
+    .sidebarOption p {
         height: 4.25vh;
         max-width: calc(100cqw - 0.25vh - 4vh - 0.25vh - 4vh - 4vh);
         flex-wrap: nowrap;
         overflow-x: scroll;
-        white-space:	nowrap;
+        white-space: nowrap;
         overflow-y: scroll;
         text-overflow: clip;
     }
@@ -4184,12 +4344,13 @@ meter:not([value]) {
     text-align: center;
 }
 
-.importBox{
+.importBox {
     border-radius: 1vh;
     height: 8vh;
     font-size: 7vh;
     text-align: center;
 }
+
 .hex {
     height: 4vh;
     width: 4vh;
@@ -4229,6 +4390,8 @@ meter:not([value]) {
     width: 100%;
     height: 100%;
 }
+
+
 
 
 .fill:not(.currentDrag).select {
@@ -4452,7 +4615,9 @@ meter:not([value]) {
 
 
 
-
+.topicShower {
+    white-space: nowrap;
+}
 
 
 
@@ -4470,7 +4635,7 @@ meter:not([value]) {
     flex-direction: column;
     flex-wrap: nowrap;
     align-content: space-evenly;
-    touch-action:auto;
+    touch-action: auto;
     display: flex;
     justify-content: start;
     border-right: rgb(48, 48, 48) solid 0.5vh;
@@ -4488,8 +4653,8 @@ meter:not([value]) {
 
 }
 
-.tabScroll{
-     overflow-y: scroll;
+.tabScroll {
+    overflow-y: scroll;
     overflow-x: hidden;
 }
 
@@ -4520,7 +4685,7 @@ meter:not([value]) {
     background-color: rgba(12, 12, 12, 0.5);
     user-select: none;
     transition: margin-top ease;
-    touch-action:auto;
+    touch-action: auto;
     border-bottom: rgb(24, 24, 24) solid 0.5cqh;
     display: flex;
     flex-wrap: nowrap;
@@ -4536,7 +4701,7 @@ meter:not([value]) {
     background-color: rgba(24, 24, 24);
     user-select: none;
     transition: margin-top ease;
-    touch-action:auto;
+    touch-action: auto;
     border-bottom: rgb(32, 32, 32) solid 0.5cqh;
     display: flex;
     flex-wrap: nowrap;
@@ -4728,6 +4893,13 @@ meter:not([value]) {
     }
 }
 
-.topicPathDiv .typeHiddenTopic{
+.topicPathDiv .typeHiddenTopic {
     display: none;
+}
+
+.condition {
+    height: 3vh;
+    width: fit-content;
+    font-size: 2.25vh;
+    border-width: 0.2vh;
 }

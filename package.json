@@ -1,7 +1,7 @@
 {
   "name": "touchboard",
-  "version": "2.0.2",
-  "description": "A touchscreen button board that communicates over networktables.",
+  "version": "2.1.0",
+  "description": "A touchscreen button board and dashboard that communicates over networktables.",
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

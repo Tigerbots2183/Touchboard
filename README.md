@@ -1,5 +1,5 @@
 # **Touchboard**
-A touchscreen button board that communicates over networktables.
+A touchscreen button board that communicates over NT4.
 
 
 ## **How it works**
@@ -9,7 +9,7 @@ If you're not familiar with network tables, you should still be able to use this
 
 Thanks to mechanical advantage for the nt4.js library that sends values to the robot, I have made modifications to that library for streamlining and to support struct decoding. 
 
-# **Useage**
+# **Usage**
 
 ## **Setting Team Number / IP**
 
@@ -49,7 +49,7 @@ To remove a tab, press the ❌ icon.
 
 ### **Connection Slider**
 
-To connect to the robot or simulator, ensure the team number and ip have been set correctly and flip the slider. Touchboard will constantly refresh until connected to the robot, to stop it from connecting flip the slider again. 
+To connect to the robot or simulator, ensure the team number and ip have been set correctly and flip the slider. Touchboard will constantly refresh until connected to the robot, to stop it from connecting, flip the slider again. 
 
 ### **Connection Notes**
 
@@ -57,7 +57,7 @@ The dashboard is able to connect and send values to the robot while it is disabl
 
 ## **Components**
 
-The top of right of the editor has two words, Input and Output. Clicking on each will change what components you can add. 
+The top right of the editor has two words, Input and Output. Clicking on each will change what components you can add. 
 
 ### **Input Components**
 
@@ -69,9 +69,9 @@ Output components differ based on the type of the output. The output menu shows 
 
 Touchboard has the ability to get all basic value types, and is also able to decode structs, but not protos at this time. 
 
-**Any values under Touchboard folder may not be the robot sees, they are fead back into touchboard, so there is no gaurentee that what is in the touchboard folder is the value that the robot sees, but all other values and folders are what the robot sees.**
+**Any values under the Touchboard folder may not be the robot sees, they are fed back into touchboard, so there is no guarantee that what is in the touchboard folder is the value that the robot sees, but all other values and folders are what the robot sees.**
 
-To add a output, click on the output desired and it will open up the avalaible components for that type. 
+To add an output, click on the output desired and it will open up the available components for that type. 
 
 ### **Placing Components**
 
@@ -96,11 +96,11 @@ Click the 🗑 icon to enable the remove mode, the components will shake to show
 
 # **Code Tutorial**
 
-Snippets on how to acess the values that touchboard provides. Various options are given depending on the component. 
+Snippets on how to access the values that touchboard provides. Various options are given depending on the component. 
 
 ## **Binders**
 
-Touchboard Components will send values to the robot even if commands have not been bound to them. Binders streamline the process of triggering commands when the buttons have been modified by the user. 
+Touchboard Input components will send values to the robot even if commands have not been bound to them. Binders streamline the process of triggering commands when the buttons have been modified by the user. 
 
 Touchboard works mainly due to the use of Wpilib triggers, and each binder method will return the trigger so that you can add debounce or other modifiers to it if wanted. 
 
@@ -111,7 +111,7 @@ Touchboard works mainly due to the use of Wpilib triggers, and each binder metho
 
 Action buttons behave like the trigger ` .whileTrue()` that wpilib provides. It starts the command once the button is pressed and cancels it once it is released. 
 
-The setup for a action button is as follows (Ours is in `configureBindings()`)
+The setup for an action button is as follows (Ours is in `configureBindings()`)
 
 ```java
   Touchboard.bindActionButton("*Topic", *Command);
@@ -124,8 +124,7 @@ Command suppliers are also supported:
 ```
 
 ### **Toggle Button**
-
-Toggle buttons behave like the trigger ` .toggleOnTrue()` that wpilib provides. It starts the command once the button is pressed and cancels it once it is pressed again.
+Toggle buttons behave like the trigger ` .toggleOnTrue()` that Wpilib provides. It starts the command once the button is pressed and cancels it once it is pressed again.
 
 The setup for a toggle button is as follows (Ours is in `configureBindings()`)
 ```java
@@ -137,9 +136,10 @@ Command suppliers are also supported:
 ```java
   Touchboard.bindToggleButton("*Topic", *Supplier<Command>);
 ```
+
 ### **One Shot Buttons**
 
-One Shot buttons behave like the trigger ` .onTrue()` that wpilib provides. It starts the command once the button is pressed and keeps running once it is released. If the button is pressed again the old command that was scheduled automatically gets cancelled.
+One Shot buttons behave like the trigger ` .onTrue()` that Wpilib provides. It starts the command once the button is pressed and keeps running once it is released. If the button is pressed again the old command that was scheduled automatically gets cancelled.
 
 The setup for a one shot button is as follows (Ours is in `configureBindings()`)
 ```java
@@ -154,7 +154,7 @@ Command suppliers are also supported:
 
 ### **Axis**
 
-Axis will schedule a command once the axis is moved, and will cancel and schedule a new command once it moved after the inital one. Note that the axis still schedules a command when it returns to zero, and it will remain scheduled. 
+Axis will schedule a command once the axis is moved, and will cancel and schedule a new command once it moved after the initial one. Note that the axis still schedules a command when it returns to zero, and it will remain scheduled. 
 
 This will only schedule the command when it is moved, Only command suppliers are supported:
 
@@ -171,7 +171,7 @@ To pass in the axis value once it is moved you must pass the value into the comm
 
 ### **Number Component**
 
-Number Component will schedule a command once the value changes, and will cancel and schedule a new command once it changed after the inital one. Note that the Number Component still schedules a command when it returns to zero, and it will remain scheduled. 
+Number Component will schedule a command once the value changes, and will cancel and schedule a new command once it changes after the initial one. Note that the Number Component still schedules a command when it returns to zero, and it will remain scheduled. 
 
 This will only schedule the command when it is changed, Only command suppliers are supported:
 
@@ -205,7 +205,7 @@ To pass in the Dropdowns value once it is changed you must pass the value into t
 
 ### **Opt Group**
 
-Opt Group will schedule a command once the value changes, and will cancel and schedule a new command once it changed after the inital one. Note that the command will execute once the dashboard connects. 
+Opt Group will schedule a command once the value changes, and will cancel and schedule a new command once it changes after the initial one. Note that the command will execute once the dashboard connects. 
 
 This will only schedule the command when it is changed, Only command suppliers are supported:
 
@@ -228,3 +228,30 @@ Methods are provided to retrieve Touchboard values, the parameter should be the 
   Touchboard.getDoubleValue("*Topic")
   Touchboard.getStringValue("*Topic")
 ```
+
+
+## **Output Components**
+
+There are many different components that output data retrieved from the robots networktables. Touchboard currently supports all types, but does not have any components for arrays. Touchboard also supports **struct decoding**, individual values from the structs can be displayed with the standard components for that type.
+
+### **Basic Subscription**
+
+This components lists the given name and value on the dashboard, the text will wrap in fill mode. This component supports all types.
+
+### **Basic Logger**
+
+This components logs all value updates and stores them. There is a ⏸ button that stops displaying the logged values, but they are still logged in the background while paused. The component will display the last 100 values, to show all the values, press the ⏿ button. The values will stop showing after the component is unpaused again and revert back to the 100 limit. This component supports all types.
+
+###  **Number Line**
+
+This component shows the current value of a number, the top of the number line shows 5 values. These values show the minimum, between, mid, between, and maximum amounts, even if their position isnt exactly at those points, these numbers are rounded to the nearest whole number. If no min or max is given, the number line will derive this information based on the minimum and maximum value it reads. This component supports numerical types.
+
+###  **Radial Gauge**
+
+This value displays the current value of a number on a guage. If no maximum value is given, the maximum value will be the maximum degree value. The max value can be changed and the guage values will respond accordingly. The offset value rotates the gauge by the given value. This component supports numerical types. 
+
+###  **Camera Stream / Recorder**
+
+Touchboard has the ability to show camera streams from the robot, to access it, go to the camera stream you want and click on the stream button. Streams are technically string arrays of urls, but touchboard displays it as the stream type. Touchboard will attempt each url in the list until one works.
+
+Touchboard has the ability to record camera streams in the app, without the use of OBS or other recording software. Streams can be manually recorded by pressing the 🔴 button on the component. Recordings can be automatically started by adding conditions in the sidebar. FMS = Field management software linked to driverstation, DS = driverstation linked without FMS. Connected means when touchboard connects, and enabled starts recording when any mode is enabled, then stops after the robot has been disabled for 8 seconds, this is to allow time between auto and teleop when on the field. When the recording stops, it saves and the downloads itself. But if touchboard is closed before the stream downloads, it will be lost. You can choose to save as WebM (More Effiecent) or Mp4 (More compatability), but the dashboard must be refreshed before that change will take effect for technical reasons. 
