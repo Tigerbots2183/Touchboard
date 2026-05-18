@@ -48,8 +48,8 @@ let connectionDate = "";
 
 const isObject = (val) => val !== null && typeof val === 'object';
 
-var toastOpen = false
-var toastTimeout;
+let toastOpen = false
+let toastTimeout;
 
 export function toastMessage(message, color = "#7300ff") {
 
