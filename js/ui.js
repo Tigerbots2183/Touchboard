@@ -46,7 +46,7 @@ let subscribedTopics = {
 
 let connectionDate = "";
 
-const isObject = (val) => val !== null && typeof val === 'object';
+// const isObject = (val) => val !== null && typeof val === 'object';
 
 let toastOpen = false
 let toastTimeout;
@@ -108,10 +108,7 @@ const MathUtils = {
 };
 
 import { NT4_Client } from "../lib/nt4.js";
-import { serialize, deserialize } from "../lib/msgpack.js";
-import { goToNextSong } from "./jukebox.js";
-import { setFromString, moveTo, lineTo } from "./autoBuilder.js";
-import { drawNewData, CONVERSIONRATE } from "./graph.js";
+
 // import { app } from "electron";
 
 //if removing jukebox, get rid of the gotonextsong() in the handle data callback function, remove from html, and remove import
@@ -123,8 +120,6 @@ export function getHtmlFileName() {
     return fileName.slice(0, -5);
 }
 
-document.body.addEventListener("drop", (event) => { event.preventDefault(); event.stopPropagation() }, false)
-document.body.addEventListener("dragover", (event) => { event.preventDefault() }, false)
 
 export function clamp(num, min = 0, max = 1) { return Math.min(Math.max(num, min), max) };
 
@@ -133,45 +128,8 @@ let defaultSimilarOptions = {
 }
 
 function vh(percent) {
-    var h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+    let h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
     return (percent * h) / 100;
-}
-function pxTovh(pixels) {
-    var h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0)
-
-    return ((pixels / h) * 100);
-}
-function pxTovw(pixels) {
-    var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0)
-
-    return ((pixels / w) * 100);
-}
-function pxTovmin(pixels) {
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    const smallerDimension = Math.min(viewportWidth, viewportHeight);
-    return (pixels / smallerDimension) * 100;
-}
-
-function pxTovmax(pixels) {
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    const largerDimension = Math.max(viewportWidth, viewportHeight);
-    return (pixels / largerDimension) * 100;
-}
-
-
-function vw(percent) {
-    var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-    return (percent * w) / 100;
-}
-
-function vmin(percent) {
-    return Math.min(vh(percent), vw(percent));
-}
-
-function vmax(percent) {
-    return Math.max(vh(percent), vw(percent));
 }
 
 function cq(container, percent) {
@@ -201,25 +159,6 @@ export function pxToCq(container, pixels) {
 
     return cqValues
 }
-
-
-if (localStorage.getItem(getHtmlFileName() + "currentPath") == null) {
-    localStorage.setItem(getHtmlFileName() + "currentPath", "")
-}
-
-
-$(".fullScreen").on("click", () => {
-    document.querySelector("html").requestFullscreen();
-
-
-})
-$("html").on("click", (event) => {
-    if (!$(event.target).hasClass("selectTitle") && !$(event.target).hasClass("textInput") && !$(event.target).hasClass("delete") && !$(event.target).hasClass("save") && !$(event.target).hasClass("saveManager")) {
-        $(".select").removeClass("selectOpen").scrollTop(0)
-    }
-})
-
-
 
 function addButtonToAnimate(jQueryReference) {
     let text = jQueryReference.addClass("animatedButton").text()
@@ -328,68 +267,6 @@ function addButtonToAnimate(jQueryReference) {
 //     }
 // })
 
-
-function oneShotAnimation(elemClass) {
-    //runs as callback in case input not recieved
-
-    let $spawnedCircle
-    let $ct = $(elemClass)
-
-
-
-    $spawnedCircle = $("<div>").css("background-color", $ct.css("background-color")).appendTo("body").addClass("spawnedCircle").css("top", $ct.offset().top + $ct.height() / 2 + "px").css("left", $ct.offset().left + $ct.width() / 2 + "px")
-    setTimeout(() => {
-        $($spawnedCircle.remove())
-    }, 3000);
-
-
-    $spawnedCircle.offset()
-    $spawnedCircle.addClass("spawnedBigCircle")
-    let $foundP = $ct.find("p")
-    // let $parent = $(event.currentTarget).children(".animatedButton")
-
-    // text effects
-
-    let hue = (0 / $foundP.length) * 360
-
-    let effect = Math.floor(Math.random() * 6);
-    for (let i = 0; i < $foundP.length; i++) {
-        setTimeout(() => {
-            if (effect == 0) {
-                $foundP.eq(i).css("color", "hsl(" + hue + ", 100%, 50%").css("animation-name", "streachUp")
-                // $score.css("animation-name", "streachUp")
-            } else if (effect === 1) {
-                $foundP.eq(i).css("color", "hsl(" + hue + ", 100%, 50%").css("animation-name", "spinAround")
-                // $score.css("animation-name", "spinAround")
-            } else if (effect === 2) {
-                $foundP.eq(i).css("color", "hsl(" + hue + ", 100%, 50%").css("animation-name", "rollAround")
-                // $score.css("animation-name", "rollAround")
-
-            } else if (effect === 3) {
-                $foundP.eq(i).css("color", "hsl(" + hue + ", 100%, 50%").css("animation-name", "flipAround")
-                // $score.css("animation-name", "flipAround")
-
-            } else if (effect === 4) {
-                $foundP.eq(i).css("color", "hsl(" + hue + ", 100%, 50%").css("animation-name", "jumpUp")
-                // $score.css("animation-name", "jumpUp")
-
-            } else if (effect === 5) {
-                $foundP.eq(i).css("color", "hsl(" + hue + ", 100%, 50%").css("animation-name", "squash")
-                // $score.css("animation-name", "squash") 
-            }
-
-            hue = ((i + 1) / $foundP.length) * 360
-            setTimeout(() => {
-                $foundP.eq(i).css("color", "white").css("animation-name", "")
-            }, 200 + 50 * $foundP.length);
-
-        }, 50 * i);
-
-
-    }
-}
-
-setSelectOpener()
 function setSelectOpener() {
     $(".select").not(".sideBarSelect").off("pointerdown.selectOpener").on("pointerdown.selectOpener", (event) => {
         if (!$(event.target).hasClass("textInput") && !$(event.target).hasClass("delete") && !$(event.target).hasClass("save") && !$(event.target).hasClass("saveManager")) {
@@ -408,7 +285,7 @@ function setSelectOpener() {
 
 
 // let daq = new SignalDAQNT4("localhost", ci, null, null, 
-export var nt4Client = new NT4_Client(localStorage.getItem(getHtmlFileName() + "teamNumber"),
+export let nt4Client = new NT4_Client(localStorage.getItem(getHtmlFileName() + "teamNumber"),
     "Touchboard" + Math.random().toString().slice(2),
     topicAnnounce,
     doNothing,
@@ -438,13 +315,12 @@ function topicAnnounce(topic) {
 function topicToSidebar(topic, schemasPassed = false) {
     if (topic.type.includes("proto") || topic.type.includes("structschema")) return
     if (topic.type.includes("struct") && !schemasPassed) return;
-    let actualName = topic.name;
     let split = topic.name.split("/")
     split.shift();
 
     let currentPath = topicObject
     // console.log(topicObject)
-    //decodes topic path into an object and makes them appear in the sdiebar
+    //decodes topic path into an object and makes them appear in the sidebar
     for (let i = 0; i < split.length; i++) {
         // if(i == 0 && split[i] == "touchboard") continue
         if (currentPath[split[i]] && i < split.length - 1) {
@@ -453,9 +329,9 @@ function topicToSidebar(topic, schemasPassed = false) {
 
             continue
         } else if (i >= split.length - 1 && topic.type.includes('struct')) {
-            //If last in topic- and struct, make a folder
-
-            createFolder(split[i], i)
+            //If last in topic (at the final path of string)- and topics type is a struct, make a folder for said struct
+ 
+            createFolder(split[i], i,true)
 
             let finalTypes = Object.keys(nt4Client.typeLengths)
             let type = topic.type.slice(7)
@@ -489,15 +365,19 @@ function topicToSidebar(topic, schemasPassed = false) {
                         let nameSplitArray = topic.structName.split("/");
                         if (name == "value" && nameSplitArray.length > 1) {
                             let displayName = nameSplitArray[nameSplitArray.length - 1]
-                            createButton(name, i, topic.structName + "/" + name, type, displayName)
+                            createButton(name.split(":")[0], i, topic.structName + "/" + name, type, displayName)
 
                             continue
                         }
-                        createButton(name, i, topic.structName + "/" + name, type)
+                        createButton(name.split(":")[0], i, topic.structName + "/" + name, type)
 
                         continue;
-                    } else {
-                        createFolder(name, i, name, type);
+                    }
+                    if(type.includes("enum")){
+                        createButton(name, i, topic.structName + "/" + name, "enum")
+                    }
+                    else {
+                        createFolder(name, i, true);
                         topic.structName += "/" + name
                         decodeStruct(type);
                         continue;
@@ -536,7 +416,7 @@ function topicToSidebar(topic, schemasPassed = false) {
 
         let $allOf = $(parentDiv).add(image).add(h1)
 
-        if (topictype.includes('string')) {
+        if (topictype.includes('string') || topictype.includes('char') || topictype.includes('enum')) {
             src = "TextIcon.png"
             typeString = 'string'
         }
@@ -679,7 +559,7 @@ function topicToSidebar(topic, schemasPassed = false) {
         return parentDiv
     }
 
-    function createFolder(split, i) {
+    function createFolder(split, i, isSchema=false) {
         //creates a folder in the side bar and a object in the topic object 
         let parentDiv
 
@@ -695,11 +575,14 @@ function topicToSidebar(topic, schemasPassed = false) {
         //Create the folder name and the dropdown icon
         let h2Holder = $("<div>").addClass("h2Holder").appendTo(parentDiv)
         let h2 = $("<h2>").text("▲").appendTo(h2Holder)
+        if (isSchema) {
+            h2.text("⮝")
+        }
 
         let h1 = $("<h1>").text(split).appendTo(parentDiv)
 
         //This will be where the actual sidebar buttons are stored
-        let subDiv = $("<div>").addClass("subPaths").appendTo(parentDiv)
+        $("<div>").addClass("subPaths").appendTo(parentDiv)
 
         let currentTimeout
 
@@ -744,42 +627,6 @@ function doNothing() { }
 
 
 
-$("#connect").on("click", () => {
-    if (!$("#connect").is(":checked")) {
-        $(".connectionText").text("Offline")
-        localStorage.setItem(getHtmlFileName() + "connect", "false")
-        $(".fullScreen").css("background-color", "rgb(32, 32, 32)")
-
-        $("html").css("background-color", "rgb(32, 32, 32)")
-        $(".tab").css("background-color", "rgb(12, 12, 12)")
-        $(".addTab").css("background-color", "rgb(32, 32, 32)")
-        $(".tabManager").css("background-color", "rgb(32, 32, 32)")
-        $(".tabCreator").css("background-color", "rgb(32, 32, 32)")
-
-        $(".tabNav").css("background-color", "rgb(12, 12, 12)")
-        $(".currentTab").css("background-color", "rgb(32, 32, 32)")
-        nt4Client.disconnect()
-
-    } else {
-        $(".connectionText").text("Connecting")
-        localStorage.setItem(getHtmlFileName() + "connect", "true")
-        $(".fullScreen").css("background-color", "")
-
-        $("html").css("background-color", "")
-        $(".tab").css("background-color", "")
-        $(".addTab").css("background-color", "")
-        $(".tabManager").css("background-color", "")
-        $(".tabCreator").css("background-color", "")
-
-
-        $(".tabNav").css("background-color", "")
-        $(".currentTab").css("background-color", "")
-        nt4Client.disconnect()
-
-        nt4Client.connect()
-        $(".tabConnection").removeClass("tabConnection")
-    }
-})
 
 
 // let OdometryFrequencyKeys = []
@@ -799,7 +646,7 @@ $("#connect").on("click", () => {
 
 let sidebaredStructs = []
 
-function handleNewData(topic, timestamp, value, RawValue) {
+function handleNewData(topic, timestamp, value) {
     //Protos are not supported, and structschemas show no useful data to user. 
     if (topic.type.includes("proto") || topic.type.includes("structschema")) return
 
@@ -814,7 +661,6 @@ function handleNewData(topic, timestamp, value, RawValue) {
     }
 
     let topicSplit = topic.name.split("/")
-    let topicName = topicSplit[topicSplit.length - 1]
 
     topicSplit.shift()
 
@@ -851,6 +697,7 @@ function handleNewData(topic, timestamp, value, RawValue) {
 
             if (topic.type.includes("struct")) {
                 foundValue = getStructValue(subscribedTopics[topic.name][i].structPath, value)
+                console.warn(topic.name, value, foundValue)
             }
 
             subscribedTopics[topic.name][i].valueHandeler(foundValue, timestamp) // Send value to topic handler
@@ -858,12 +705,12 @@ function handleNewData(topic, timestamp, value, RawValue) {
     }
 }
 
-// setInterval(() => {
-//     console.log(nt4Client.serverTopics)
+setInterval(() => {
+    // console.log(nt4Client.serverTopics)
+    // console.log(nt4Client.schemas)
 
-//     console.log(subscribedTopics)
 
-// }, 1000);
+}, 1000);
 
 function getStructValue(structTopic, value) {
     //Structtopic must have the full path, with the stuct path following the "|"
@@ -881,18 +728,15 @@ function getStructValue(structTopic, value) {
     return value.value;
 }
 
-setTimeout(() => {
-    console.log(topicObject)
-    console.log(nt4Client.schemas)
-
-    console.log(nt4Client.serverTopics)
-}, 5000);
-
-
 function onConnectCb() {
     //on everything this is NOT on callback
 
     setTimeout(() => {
+        setInterval(() => {
+            console.log(nt4Client.serverTopics)
+            console.log(nt4Client.schemas)
+        }, 1000)
+
         setSelectOpener()
 
         $(".tabConnection").removeClass("tabConnection")
@@ -954,16 +798,16 @@ function onConnectCb() {
         let editTabs = $(".editTabs")
         for (let i = 0; i < $uiElements.length; i++) {
             if ($uiElements.eq(i).hasClass("actionButton")) {
-                $($uiElements.eq(i)).on(" pointerdown", (event) => {
+                $($uiElements.eq(i)).on(" pointerdown", () => {
                     if (editTabs.hasClass("editingTabs")) return
                     nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), true)
                     $uiElements.eq(i).attr("data-value", "true")
-                }).on("pointerup   mouseleave touchcancel", (event) => {
+                }).on("pointerup   mouseleave touchcancel", () => {
                     nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), false)
                     $uiElements.eq(i).attr("data-value", "false");
                 })
             } else if ($uiElements.eq(i).hasClass("toggleButton")) {
-                $uiElements.eq(i).on(" pointerdown", (event) => {
+                $uiElements.eq(i).on(" pointerdown", () => {
                     if (editTabs.hasClass("editingTabs")) return
 
                     nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), !(JSON.parse($uiElements.eq(i).attr("data-value"))))
@@ -982,7 +826,7 @@ function onConnectCb() {
             } else if ($uiElements.eq(i).hasClass("oneShotButton")) {
 
                 nt4Client.subscribe(["/touchboard/" + $uiElements.eq(i).attr("data-topic")])
-                $uiElements.eq(i).on(" pointerdown", (event) => {
+                $uiElements.eq(i).on(" pointerdown", () => {
                     if (editTabs.hasClass("editingTabs")) return
 
                     nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), true)
@@ -1145,43 +989,7 @@ function onDisconnectCb() {
     }
 }
 
-//If no team is currently set, open the team setter ui. 
-if (localStorage.getItem(getHtmlFileName() + "teamNumber") == null) {
-    $(".connectionText").text("No Team")
-    $(".setTeamNumberOrIp").toggleClass("showTeamSet")
-    $("#connect")[0].checked = false
-}
 
-$(".setTeam").on("click", () => {
-    let currentTeamOrIp = $(".teamNumberInput").val().toString().replace(/\s/g, "");
-    if (currentTeamOrIp.length > 0) {
-        //If team number, set ip to 10.XXX.YY.2
-        if (currentTeamOrIp.includes(".")) {
-            localStorage.setItem(getHtmlFileName() + "teamNumber", currentTeamOrIp)
-        } else if (currentTeamOrIp.includes("localhost")) {
-            localStorage.setItem(getHtmlFileName() + "teamNumber", "localhost")
-        } else if (currentTeamOrIp.length <= 5) {
-            let madeIp = "10."
-
-            if (currentTeamOrIp.length == 5) {
-                madeIp = "10." + currentTeamOrIp.slice(0, 3) + "." + currentTeamOrIp.slice(3, 5) + ".2"
-            } else if (currentTeamOrIp.length == 4) {
-                madeIp = "10." + currentTeamOrIp.slice(0, 2) + "." + currentTeamOrIp.slice(2, 4) + ".2"
-            } else if (currentTeamOrIp.length == 3) {
-                madeIp = "10." + currentTeamOrIp.slice(0, 1) + "." + currentTeamOrIp.slice(1, 3) + ".2"
-            } else if (currentTeamOrIp.length == 2) {
-                madeIp = "10.0." + currentTeamOrIp.slice(0, 2) + ".2"
-            } else if (currentTeamOrIp.length == 1) {
-                madeIp = "10.0." + currentTeamOrIp.slice(0, 1) + ".2"
-
-            }
-
-            localStorage.setItem(getHtmlFileName() + "teamNumber", madeIp);
-        }
-
-    }
-    window.location.reload()
-})
 
 function roundToNearestX(number, x) {
 
@@ -1189,77 +997,6 @@ function roundToNearestX(number, x) {
     return Math.round(number / x) * x;
 }
 
-$(".editTabs").on("click", () => {
-    $(".tabCreator").removeClass("tabCreatorOpen")
-
-    $(".tabCreator").css("overflow-x", "hidden")
-    $(".nameInput").val("")
-    $(".addTab").text("+").css("font-size", "").css("line-height", "")
-
-    $("#connect").css("pointer-events", "none")
-
-    $(".tabHidden").toggleClass("hideSideTab")
-
-    $(".editTabs").toggleClass("editingTabs");
-    $("body").toggleClass("bodyEdit")
-    $(".tab").toggleClass("tabsEditActivated")
-    $(".addTab").toggleClass("tabsEditActivated")
-    $(".tabManager").toggleClass("tabsEditActivated")
-    $(".tabCreator").toggleClass("tabsEditActivated")
-
-    $(".onlyOnEdit").toggleClass("onlyEditShowing")
-
-    $(".gridUnderlay").toggleClass("gridUnderlayEditing")
-    $(".gridSquare").toggleClass("gridSquareEditing")
-
-    setTimeout(() => {
-        $("#connect").css("pointer-events", "")
-
-    }, 1000);
-
-    if ($(".editTabs").hasClass("editingTabs")) {
-
-        $("body").on("pointermove ", (event) => {
-            if ($(".gridSquare").length > 600) {
-                $(".gridSquare").css("width", "95%").css("height", "95%")
-                return
-            }
-            let $eq = $(".gridSquare").eq(0)
-
-            let clientDrag = clientDragHandler(event, $eq)
-
-            //jquery ommited for preformance reasons
-            let elements = document.getElementsByClassName("gridSquare")
-            for (let i = 0; i < elements.length; i++) {
-                let $eq = elements[i]
-
-                let offset = $eq.getBoundingClientRect()
-
-                let dist = Math.hypot(offset.left - clientDrag.x, offset.top - clientDrag.y)
-                let distVal = (0.0125 * (dist) + 95)
-
-                if (distVal > 100) {
-                    distVal = 100
-                }
-
-                $eq.style.transform = 'scale(' + distVal + '%)'
-
-
-
-            }
-
-        })
-    } else {
-        $("*").removeClass("removeShake").off("pointerdown.remove").off("pointermove.dragComponent")//.off("pointerdown.editHandler")
-        $(".trashCan").removeClass("trashActive")
-
-        if ($(".connectionText").text() == "Connected") {
-            window.location.reload();
-        }
-
-    }
-
-})
 
 let grid = {
     row: 0,
@@ -1275,38 +1012,6 @@ grid.endColumn = grid.column
 grid.endRow = grid.row
 
 
-$(".ioComponents").children().off().on("pointerdown.addComponent ", (event) => {
-    $("*").removeClass("removeShake").off("pointerdown.remove")
-    $(".trashCan").removeClass("trashActive")
-
-
-
-    let componentType = $(event.currentTarget)[0].classList[0];
-
-    let jQueryReference
-
-    if ($(event.currentTarget).parent().hasClass("outputComponents")) {
-        jQueryReference = createDefaultOf(componentType, ".dashboardHolder", outputComponents.fullpath)
-    } else {
-        jQueryReference = createDefaultOf(componentType, ".dashboardHolder", "esc-UNDEFINED-esc")
-    }
-
-    // console.log(subscribedTopics)
-
-    //When fill is enabled, the element takes 100% of current container width, since it starts with no container, 
-    //Current drag is exempt from this 100%, but that class wont be added to later, so we make a new element with
-    //that class to put into the mouse position handler and add the offset for the center of the element. 
-
-    let dragRef = createDefaultOf(componentType, ".dashboardHolder", "esc-UNDEFINED-esc").addClass("currentDrag")
-
-    let clientDrag = clientDragHandler(event, dragRef)
-
-    dragRef.remove()
-
-    addToCurrentDrag(jQueryReference, clientDrag.x, clientDrag.y, componentType)
-
-
-})
 
 function addToCurrentDrag(jQueryReference, initialX, initialY, componentType) {
     $(".currentDrag").remove()
@@ -1950,7 +1655,7 @@ function createBasicSubscription(displayName, topic, append = false, hex = false
 
 
 
-    let basicSubscriptionHandler = (value, timestamp) => {
+    let basicSubscriptionHandler = (value) => {
         if (typeof value === 'number') {
             topicReference.text(value.toFixed(3).replace(".000", ""))
         } else {
@@ -2062,7 +1767,7 @@ function createBasicLogger(displayName, topic, append = false, hex = "#0c0c0c", 
 
     })
 
-    let showAll = $("<h1>").addClass("showAll").text("⏿").appendTo(basicLogger).on("pointerdown", () => {
+    $("<h1>").addClass("showAll").text("⏿").appendTo(basicLogger).on("pointerdown", () => {
         let storedValues = subscribedTopics[basicLogger.attr("data-topic")][parseInt(basicLogger.attr("data-subscriptionIndex"))].storedValues
 
         console.log(basicLogger.attr("data-topic"))
@@ -2356,7 +2061,7 @@ function createRadialGauge(displayName, topic, append, hex = "#0c0c0c", maxDeg =
     if (maxNumber) {
         whichMax = maxNumber
         gauge.attr("data-maxNumber", maxNumber)
-    } else{
+    } else {
         whichMax = maxDeg
     }
     if (minNumber) {
@@ -2562,7 +2267,7 @@ function createCamera(displayName, topic, append, hideNav = false, videoFormat =
 
     $("<h1>").addClass("editThisName").text(displayName).appendTo(camera)
     let img = $("<img>").addClass("cameraStream").attr("crossOrigin", "anonymous").addClass("cameraPlaceholder").appendTo(camera)
-    let encoder = $("<canvas>").addClass("encoder").appendTo(camera)
+    $("<canvas>").addClass("encoder").appendTo(camera)
     let cameraNav = $("<div>").addClass("cameraNav").appendTo(camera);
     $("<button>").addClass("record").text("🔴").appendTo(cameraNav)
 
@@ -2871,89 +2576,6 @@ function setGridInput(tab) {
     }
 }
 
-$(".trashCan").on(" pointerdown.activateTrashCan", (event) => {
-    $(".trashCan").toggleClass("trashActive")
-
-
-    // $(".currentDrag").remove()
-    // $("*").off("pointermove.dragComponent").off("pointerup.dragComponent").off("pointerdown.dragComponent")
-
-    setCornerBorder(0, 0, 0, 0, 0, true)
-
-    let elements = $($(".currentTab").attr("data-page")).children()
-
-    for (let i = 0; i < elements.length; i++) {
-        let $eq = elements.eq(i)
-
-        if ($(".trashCan").hasClass("trashActive")) {
-            $eq.addClass("removeShake")
-        } else {
-            $eq.off("pointerdown.remove")
-            $eq.removeClass("removeShake")
-
-        }
-
-    }
-
-    $(".removeShake").on("pointerdown.remove ", (event) => {
-        $(event.currentTarget).remove()
-    })
-})
-
-$(".editSidebar").find(" .numberTextInput").on("blur", (event) => {
-    //Use parentQueries to ensure selecting right element (as always)
-
-    let $currentInput = $(event.currentTarget)
-
-    let min = $currentInput.parent().parent().find(".min")
-    let max = $currentInput.parent().parent().find(".max")
-    let val = $currentInput.parent().parent().find(".value")
-    let step = $currentInput.parent().parent().find(".step")
-    if (min.val() != "" && max.val() != "") {
-        val.removeAttr("disabled")
-    } else {
-        val.attr("disabled", "disabled").val("")
-    }
-
-    if (parseFloat(val.val()) > parseFloat(max.val())) {
-        val.val(max.val())
-        max.css("animation-name", 'warn')
-
-        setTimeout(() => {
-            max.css("animation-name", "")
-        }, 2000);
-    } else if (parseFloat(val.val()) < parseFloat(min.val())) {
-        val.val(min.val())
-        min.css("animation-name", 'warn')
-
-        setTimeout(() => {
-            min.css("animation-name", "")
-        }, 2000);
-    }
-
-    if (parseFloat(min.val()) >= parseFloat(max.val())) {
-        if ($currentInput.hasClass("min")) {
-            max.css("animation-name", 'warn')
-
-            setTimeout(() => {
-                max.css("animation-name", "")
-            }, 2000);
-
-            min.val(max.val() - 1)
-        } else {
-            min.css("animation-name", 'warn')
-
-            setTimeout(() => {
-                min.css("animation-name", "")
-            }, 2000);
-
-            max.val(parseFloat(min.val()) + 1)
-        }
-
-    }
-
-})
-
 let dragInfo = {
     initialY: 0,
     currentY: 0,
@@ -2961,7 +2583,6 @@ let dragInfo = {
     margined: false,
 }
 
-handleOptionDrag()
 
 function handleOptionDrag() {
 
@@ -2971,7 +2592,7 @@ function handleOptionDrag() {
         dragInfo.phased.css("top", event.pageY - vh(4.5 / 2) + "px")
     })
 
-    $(".sideBar").on("pointerup.sidebarDrag pointerleave.sidebarDrag", (event) => {
+    $(".sideBar").on("pointerup.sidebarDrag pointerleave.sidebarDrag", () => {
         dragInfo = {
             initialY: 0,
             currentY: 0,
@@ -3052,32 +2673,7 @@ function addOptionDragHandler($element) {
 
 }
 
-$(".optionAdder").on("submit.addDiv", () => {
-    let $sbO = $("<div>").addClass("sidebarOption").insertBefore(".optionAdder").attr("data-name", $(".newOptionName").val()).attr("data-value", $(".newOptionValue").val()).attr("data-hex", $(".hex").val()).css("border-color", $(".hex").val())
-    let $ham = $("<button>").addClass("sideBarEmojiButton").addClass("hamburger").text("☰").appendTo($sbO)
-    $("<p>").text($(".newOptionName").val() + ":" + $(".newOptionValue").val()).appendTo($sbO)
-    let clear = $("<div>").text("❌").addClass("sideBarEmojiButton").addClass("trashOption").appendTo($sbO).on("pointerdown.remove", (event) => {
-        $(event.currentTarget).parent().remove()
 
-    }
-    )
-
-    $(".newOptionName").val("")
-    $(".newOptionValue").val("")
-    addOptionDragHandler($sbO)
-
-    return false
-})
-
-
-$(".conditionPlus").on("click.addDiv", (event) => {
-    createConditionSidebarButton()
-
-})
-
-$(".conditionAdder").on("submit.addDiv", (event) => {
-    return false
-})
 
 function createConditionSidebarButton(name = document.querySelector(".condition").selectedOptions[0].text, val = $(".condition").val().replaceAll(`'`, `"`), feedback = true) {
     let conditions = $(".sidebarCondition")
@@ -3106,7 +2702,7 @@ function createConditionSidebarButton(name = document.querySelector(".condition"
     }
 
 
-    let clear = $("<div>").text("❌").addClass("sideBarEmojiButton").addClass("trashOption").appendTo($sbO).on("pointerdown.remove", (event) => {
+    $("<div>").text("❌").addClass("sideBarEmojiButton").addClass("trashOption").appendTo($sbO).on("pointerdown.remove", (event) => {
 
         let currentConditions = JSON.parse(editComponent.currentTarget.attr("data-recordConditions"))
 
@@ -3187,7 +2783,6 @@ function addEditHandler(element, valueType, specificClass = false, specificHideC
 
 
 // 
-bindEditorResetter($(".editNavBack, .trashCan, .editTabs, .tab, .addTab, .tabCreator"))
 
 function bindEditorResetter(element) {
     element.on("pointerdown.resetEditor", () => {
@@ -3212,7 +2807,6 @@ function bindEditorResetter(element) {
         $("*").off("pointermove.dragComponent").off("pointerup.dragComponent").off("pointerdown.dragComponent")
     })
 }
-bindTabChanger()
 
 function bindTabChanger() {
     $(".tabNav").on("pointerdown ", (event) => {
@@ -3242,7 +2836,7 @@ function bindTabChanger() {
     })
 
     $(".manager").on("click.changeTab", (event) => {
-        if ($(".editTabs").hasClass("editingTabs")) return
+        // if ($(".editTabs").hasClass("editingTabs")) return
 
 
         let $ct = $(event.target)
@@ -3300,7 +2894,7 @@ let nonSupportedTypes = {
 
 }
 
-function bindEditMenu(element, valueType, specificClass = false) {
+function bindEditMenu(element, valueType) {
 
     let inputs = $("." + valueType + "Sidebar").find(".isEdit, .isntEdit").val("")
 
@@ -3526,7 +3120,7 @@ function bindEditMenu(element, valueType, specificClass = false) {
                 }
 
                 if ($ct.val().length == 0) {
-                    if($ct.attr("data-editing") == "minNumber"){
+                    if ($ct.attr("data-editing") == "minNumber") {
                         gauge.attr("data-minNumber", "0")
                         return
                     }
@@ -3614,7 +3208,7 @@ function bindEditMenu(element, valueType, specificClass = false) {
     }
 
 
-    function bindRecordConditions(inputBeingBound) {
+    function bindRecordConditions() {
         if (editComponent.currentTarget.hasClass("cameraComponent")) {
 
             let conditions = JSON.parse(editComponent.currentTarget.attr("data-recordconditions"));
@@ -3675,7 +3269,7 @@ function bindEditMenu(element, valueType, specificClass = false) {
             if (foundComponentOptions[j].name == "" || foundComponentOptions[j].value == "") continue
 
             let $sbO = $("<div>").addClass("sidebarOption").insertBefore(".optionAdder").attr("data-name", foundComponentOptions[j].name).attr("data-value", foundComponentOptions[j].value).attr("data-hex", foundComponentOptions[j].color).css("border-color", foundComponentOptions[j].color)
-            let $ham = $("<button>").addClass("sideBarEmojiButton").addClass("hamburger").text("☰").appendTo($sbO)
+            $("<button>").addClass("sideBarEmojiButton").addClass("hamburger").text("☰").appendTo($sbO)
             $("<p>").text(foundComponentOptions[j].name + ":" + foundComponentOptions[j].value).appendTo($sbO)
             $("<div>").text("❌").addClass("sideBarEmojiButton").addClass("trashOption").appendTo($sbO)
             $(".newOptionName").val("")
@@ -3694,7 +3288,7 @@ function bindEditMenu(element, valueType, specificClass = false) {
 
         })
 
-        let oAC = $(".optionAdder").off("submit.setComponent").on("submit.setComponent", () => {
+        $(".optionAdder").off("submit.setComponent").on("submit.setComponent", () => {
             setTimeout(() => {
                 bindStrings(inputBeingBound)
 
@@ -3778,7 +3372,6 @@ function bindEditMenu(element, valueType, specificClass = false) {
 
     function bindChangeSubscriptionTopic(inputBeingBound) {
         inputBeingBound.val("Change")
-        let eDCT = editComponent.currentTarget
 
         inputBeingBound.off("pointerdown.changeTopic").on("pointerdown.changeTopic", () => {
             outputComponents.changing = true
@@ -3824,14 +3417,6 @@ function findEndOffset(row, column, endRow, endColumn) {
     return gridPoses
 }
 
-$(".reposistionComponent").on("pointerdown.reposComponent", (event) => {
-    $(".sideBar").off("pointerup.setEdit pointermove.setEdit")
-
-    setCornerBorder(0, 0, 0, 0, 0, true)
-    let currentDrag = clientDragHandler(event, editComponent.currentTarget)
-    // console.log(editComponent.currentTarget.attr("data-componentType"))
-    addToCurrentDrag(editComponent.currentTarget, currentDrag.x, currentDrag.y, editComponent.currentTarget.attr("data-componentType"))
-})
 
 function multiSwitchButtonSet(element, optionValue) {
     let children = element.children("input")
@@ -3878,10 +3463,6 @@ function changeSimilarInputs(similarOptions) {
 
 }
 
-$(".fillSpaceCheckbox").on("input", () => {
-    defaultSimilarOptions.fill = $(".fillSpaceCheckbox")[0].checked
-    setSimilarOptions(editComponent.currentTarget, defaultSimilarOptions)
-})
 
 // captureMJPEG($(".cameraComponent"))
 
@@ -3901,7 +3482,7 @@ function captureMJPEG(cameraComponent, topic = "", videoFormat = "mp4") {
     let cameraReflect = true
     let mediaRecorder
     let recordedBlob = []
-    let animationFrame
+    // let animationFrame
 
     mJpegStream.on("load", () => {
         encoder.attr("height", mJpegStream[0].naturalHeight).attr("width", mJpegStream[0].naturalWidth)
@@ -3964,7 +3545,7 @@ function captureMJPEG(cameraComponent, topic = "", videoFormat = "mp4") {
 
             let downloadUrl = URL.createObjectURL(blob)
 
-            let filename = cameraComponent.attr("data-usTimestamp") + "" + cameraComponent.attr("data-streamTopic")
+            // let filename = cameraComponent.attr("data-usTimestamp") + "" + cameraComponent.attr("data-streamTopic")
 
             let $a = $("<a>").css("display", "none").attr("href", downloadUrl)
             $a[0].download = connectionDate + "=" + topic.replaceAll("/", "+") + "." + videoFormat
@@ -3989,7 +3570,7 @@ function captureMJPEG(cameraComponent, topic = "", videoFormat = "mp4") {
 
     function drawToCanvas() {
         ctx.drawImage(mJpegStream[0], 0, 0, encoder[0].width, encoder[0].height)
-        animationFrame = requestAnimationFrame(drawToCanvas);
+        requestAnimationFrame(drawToCanvas);
     }
 
 
@@ -4009,7 +3590,7 @@ function captureMJPEG(cameraComponent, topic = "", videoFormat = "mp4") {
         }
     })
 
-    
+
 
     return (recording) => {
         if (recording) {
@@ -4049,21 +3630,6 @@ function captureMJPEG(cameraComponent, topic = "", videoFormat = "mp4") {
 
 }
 
-$(".openOutput").on("pointerdown", (event) => {
-    $(".ioComponents").css("display", "none")
-    $(".editSidebar").css("display", "none")
-    $(".outputTopics").css("display", "flex")
-    $(".sideBarUnderline").removeClass("sideBarUnderline")
-    $(".openOutput").addClass("sideBarUnderline")
-})
-
-$(".openInput").on("pointerdown", (event) => {
-    $(".ioComponents").css("display", "none")
-    $(".editSidebar").css("display", "none")
-    $(".inputComponents").css("display", "flex")
-    $(".sideBarUnderline").removeClass("sideBarUnderline")
-    $(".openInput").addClass("sideBarUnderline")
-})
 
 
 function setExampleMeter(min = 0, max = 100, low = "", high = "", optimum = "") {
@@ -4292,11 +3858,6 @@ function emulateMeterColors(min = 0, max = 360, low = "", high = "", optimum = "
 
 }
 
-$(".exportBtn").on("click", () => {
-    toastMessage("Layout Copied")
-    navigator.clipboard.writeText(saveLayoutToJSON())
-
-})
 // $(".testbtn2").on("click", () => {
 //     localStorage.setItem("layout", prompt("Input Json"));
 //     clear = true;
@@ -4603,84 +4164,6 @@ function makeComponentFromJson(component) {
     }
 }
 
-$(".addTab").on("pointerdown.addTab", () => {
-    $(".tabCreator").toggleClass("tabCreatorOpen")
-    if (!$(".tabCreator").hasClass("tabCreatorOpen")) {
-        $(".tabCreator").css("overflow-x", "hidden")
-        $(".addTab").text("+").css("font-size", "").css("line-height", "")
-    }
-    setTimeout(() => {
-        if ($(".tabCreator").hasClass("tabCreatorOpen")) {
-            $(".tabCreator").css("overflow-x", "initial")
-            $(".addTab").text("✗").css("font-size", "4cqh").css("line-height", "6cqh")
-
-        }
-    }, 300);
-})
-
-$(".tabCreatorForm").on("submit", () => {
-
-    let name = $(".nameInput").val()
-    let tab = $(".nameInput").val().replace(/[^a-zA-Z]/g, '-') + "B" + Math.random().toString().slice(2)
-
-    console.log(name, tab)
-
-    let $ct = $("<div>").addClass("tab")
-        .addClass("tabsEditActivated")
-        .css("background-color", $(".fullScreen").css("background-color"))
-        .addClass("tabConnection")
-        .addClass("userTab")
-        .addClass("pTAB" + tab)
-        .attr("data-page", "." + tab)
-        .text(name)
-        .insertBefore(".tabCreator")
-
-    createSideTab(name, "." + tab)
-
-    // <div class="uiTestTab page" style="display: grid;">/
-    bindEditorResetter($ct)
-
-    let currentPage$ = $("<div>").addClass("page").addClass(tab).css("display", "grid").attr("data-displaytype", "grid").attr("rows", "4").attr("columns", "9").insertAfter(".autonomus")
-
-
-    $(".page, .pageF").css("display", "none")
-    $(".tab").removeClass("currentTab").css("background-color", "rgb(12, 12, 12)")
-    $ct.addClass("currentTab").css("background-color", "rgb(32, 32, 32)")
-    if ($ct.attr("data-displaytype") == null) {
-        currentPage$.css("display", "grid")
-    } else {
-        currentPage$.css("display", $ct.attr("data-displaytype"))
-    }
-
-    tabGrid(parseFloat(currentPage$.attr("columns")), parseFloat(currentPage$.attr("rows")), currentPage$)
-    setGridInput(currentPage$)
-
-    $(".tabCreator").removeClass("tabCreatorOpen")
-
-    $(".tabCreator").css("overflow-x", "hidden")
-    $(".nameInput").val("")
-    $(".addTab").text("+").css("font-size", "").css("line-height", "")
-
-    return false
-})
-
-$(".nameInput").on("invalid", (event) => {
-    event.preventDefault()
-    $(".tabCreator").removeClass("tabCreatorOpen")
-
-    $(".tabCreator").css("overflow-x", "hidden")
-    $(".nameInput").val("")
-    $(".addTab").text("+").css("font-size", "").css("line-height", "")
-})
-
-$(".nameInput").on("input", () => {
-    if ($(".nameInput").val().length > 0) {
-        $(".addTab").text("✓")
-    } else {
-        $(".addTab").text("✗")
-    }
-})
-
 
 let tabDragInfo = {
     initialY: 0,
@@ -4689,7 +4172,6 @@ let tabDragInfo = {
     margined: false,
 }
 
-handleTabDrag()
 
 function handleTabDrag() {
 
@@ -4703,7 +4185,7 @@ function handleTabDrag() {
         tabDragInfo.phased.css("top", event.pageY - vh(6.5 / 2) + "px")
     })
 
-    $(".manager").on("pointerup.sidebarDrag pointerleave.sidebarDrag", (event) => {
+    $(".manager").on("pointerup.sidebarDrag pointerleave.sidebarDrag", () => {
         tabDragInfo = {
             initialY: 0,
             currentY: 0,
@@ -4798,10 +4280,6 @@ function handleTabDrag() {
 
 
 
-$(".tabManager").on("click", () => {
-    $(".manager").toggleClass("managerOpen")
-})
-
 
 function createSideTab(name, page, state = "") {
     let div = $("<div>").addClass("sideTab").attr("data-page", page).addClass("sTAB" + page.slice(1)).addClass(state)
@@ -4831,77 +4309,580 @@ function createSideTab(name, page, state = "") {
 
 let clear = false
 
-$(document).on('visibilitychange', () => {
-    if (document.visibilityState === "hidden") {
-        if (clear) {
-            return
+
+// function mapDragHandler() {
+//     let map = $(".map");
+
+//     clientDragHandler()
+// }
+
+function bindConnectionToggle() {
+    $("#connect").on("click", () => {
+        if (!$("#connect").is(":checked")) {
+            $(".connectionText").text("Offline")
+            localStorage.setItem(getHtmlFileName() + "connect", "false")
+            $(".fullScreen").css("background-color", "rgb(32, 32, 32)")
+
+            $("html").css("background-color", "rgb(32, 32, 32)")
+            $(".tab").css("background-color", "rgb(12, 12, 12)")
+            $(".addTab").css("background-color", "rgb(32, 32, 32)")
+            $(".tabManager").css("background-color", "rgb(32, 32, 32)")
+            $(".tabCreator").css("background-color", "rgb(32, 32, 32)")
+
+            $(".tabNav").css("background-color", "rgb(12, 12, 12)")
+            $(".currentTab").css("background-color", "rgb(32, 32, 32)")
+            nt4Client.disconnect()
+
+        } else {
+            $(".connectionText").text("Connecting")
+            localStorage.setItem(getHtmlFileName() + "connect", "true")
+            $(".fullScreen").css("background-color", "")
+
+            $("html").css("background-color", "")
+            $(".tab").css("background-color", "")
+            $(".addTab").css("background-color", "")
+            $(".tabManager").css("background-color", "")
+            $(".tabCreator").css("background-color", "")
+
+
+            $(".tabNav").css("background-color", "")
+            $(".currentTab").css("background-color", "")
+            nt4Client.disconnect()
+
+            nt4Client.connect()
+            $(".tabConnection").removeClass("tabConnection")
+        }
+    })
+}
+
+function bindTeamNumberToggle() {
+    $(".setTeam").on("click", () => {
+        let currentTeamOrIp = $(".teamNumberInput").val().toString().replace(/\s/g, "");
+        if (currentTeamOrIp.length > 0) {
+            //If team number, set ip to 10.XXX.YY.2
+            if (currentTeamOrIp.includes(".")) {
+                localStorage.setItem(getHtmlFileName() + "teamNumber", currentTeamOrIp)
+            } else if (currentTeamOrIp.includes("localhost")) {
+                localStorage.setItem(getHtmlFileName() + "teamNumber", "localhost")
+            } else if (currentTeamOrIp.length <= 5) {
+                let madeIp = "10."
+
+                if (currentTeamOrIp.length == 5) {
+                    madeIp = "10." + currentTeamOrIp.slice(0, 3) + "." + currentTeamOrIp.slice(3, 5) + ".2"
+                } else if (currentTeamOrIp.length == 4) {
+                    madeIp = "10." + currentTeamOrIp.slice(0, 2) + "." + currentTeamOrIp.slice(2, 4) + ".2"
+                } else if (currentTeamOrIp.length == 3) {
+                    madeIp = "10." + currentTeamOrIp.slice(0, 1) + "." + currentTeamOrIp.slice(1, 3) + ".2"
+                } else if (currentTeamOrIp.length == 2) {
+                    madeIp = "10.0." + currentTeamOrIp.slice(0, 2) + ".2"
+                } else if (currentTeamOrIp.length == 1) {
+                    madeIp = "10.0." + currentTeamOrIp.slice(0, 1) + ".2"
+
+                }
+
+                localStorage.setItem(getHtmlFileName() + "teamNumber", madeIp);
+            }
+
+        }
+        window.location.reload()
+    })
+}
+
+function bindEditOpener() {
+    $(".editTabs").on("click", () => {
+        $(".tabCreator").removeClass("tabCreatorOpen")
+
+        $(".tabCreator").css("overflow-x", "hidden")
+        $(".nameInput").val("")
+        $(".addTab").text("+").css("font-size", "").css("line-height", "")
+
+        $("#connect").css("pointer-events", "none")
+
+        $(".tabHidden").toggleClass("hideSideTab")
+
+        $(".editTabs").toggleClass("editingTabs");
+        $("body").toggleClass("bodyEdit")
+        $(".tab").toggleClass("tabsEditActivated")
+        $(".addTab").toggleClass("tabsEditActivated")
+        $(".tabManager").toggleClass("tabsEditActivated")
+        $(".tabCreator").toggleClass("tabsEditActivated")
+
+        $(".onlyOnEdit").toggleClass("onlyEditShowing")
+
+        $(".gridUnderlay").toggleClass("gridUnderlayEditing")
+        $(".gridSquare").toggleClass("gridSquareEditing")
+
+        setTimeout(() => {
+            $("#connect").css("pointer-events", "")
+
+        }, 1000);
+
+        if ($(".editTabs").hasClass("editingTabs")) {
+
+            $("body").on("pointermove ", (event) => {
+                if ($(".gridSquare").length > 600) {
+                    $(".gridSquare").css("width", "95%").css("height", "95%")
+                    return
+                }
+                let $eq = $(".gridSquare").eq(0)
+
+                let clientDrag = clientDragHandler(event, $eq)
+
+                //jquery ommited for preformance reasons
+                let elements = document.getElementsByClassName("gridSquare")
+                for (let i = 0; i < elements.length; i++) {
+                    let $eq = elements[i]
+
+                    let offset = $eq.getBoundingClientRect()
+
+                    let dist = Math.hypot(offset.left - clientDrag.x, offset.top - clientDrag.y)
+                    let distVal = (0.0125 * (dist) + 95)
+
+                    if (distVal > 100) {
+                        distVal = 100
+                    }
+
+                    $eq.style.transform = 'scale(' + distVal + '%)'
+
+
+
+                }
+
+            })
+        } else {
+            $("*").removeClass("removeShake").off("pointerdown.remove").off("pointermove.dragComponent")//.off("pointerdown.editHandler")
+            $(".trashCan").removeClass("trashActive")
+
+            if ($(".connectionText").text() == "Connected") {
+                window.location.reload();
+            }
+
         }
 
-        let layout = saveLayoutToJSON()
+    })
 
-        localStorage.setItem("layout", layout)
+}
+
+function bindInputComponentAdders() {
+    $(".ioComponents").children().off().on("pointerdown.addComponent ", (event) => {
+        $("*").removeClass("removeShake").off("pointerdown.remove")
+        $(".trashCan").removeClass("trashActive")
+
+
+
+        let componentType = $(event.currentTarget)[0].classList[0];
+
+        let jQueryReference
+
+        if ($(event.currentTarget).parent().hasClass("outputComponents")) {
+            jQueryReference = createDefaultOf(componentType, ".dashboardHolder", outputComponents.fullpath)
+        } else {
+            jQueryReference = createDefaultOf(componentType, ".dashboardHolder", "esc-UNDEFINED-esc")
+        }
+
+        // console.log(subscribedTopics)
+
+        //When fill is enabled, the element takes 100% of current container width, since it starts with no container, 
+        //Current drag is exempt from this 100%, but that class wont be added to later, so we make a new element with
+        //that class to put into the mouse position handler and add the offset for the center of the element. 
+
+        let dragRef = createDefaultOf(componentType, ".dashboardHolder", "esc-UNDEFINED-esc").addClass("currentDrag")
+
+        let clientDrag = clientDragHandler(event, dragRef)
+
+        dragRef.remove()
+
+        addToCurrentDrag(jQueryReference, clientDrag.x, clientDrag.y, componentType)
+
+
+    })
+}
+
+function bindTrashCan() {
+    $(".trashCan").on(" pointerdown.activateTrashCan", () => {
+        $(".trashCan").toggleClass("trashActive")
+
+
+        // $(".currentDrag").remove()
+        // $("*").off("pointermove.dragComponent").off("pointerup.dragComponent").off("pointerdown.dragComponent")
+
+        setCornerBorder(0, 0, 0, 0, 0, true)
+
+        let elements = $($(".currentTab").attr("data-page")).children()
+
+        for (let i = 0; i < elements.length; i++) {
+            let $eq = elements.eq(i)
+
+            if ($(".trashCan").hasClass("trashActive")) {
+                $eq.addClass("removeShake")
+            } else {
+                $eq.off("pointerdown.remove")
+                $eq.removeClass("removeShake")
+
+            }
+
+        }
+
+        $(".removeShake").on("pointerdown.remove ", (event) => {
+            $(event.currentTarget).remove()
+        })
+    })
+}
+
+function bindMinMaxHandlers() {
+    $(".editSidebar").find(" .numberTextInput").on("blur", (event) => {
+        //Use parentQueries to ensure selecting right element (as always)
+
+        let $currentInput = $(event.currentTarget)
+
+        let min = $currentInput.parent().parent().find(".min")
+        let max = $currentInput.parent().parent().find(".max")
+        let val = $currentInput.parent().parent().find(".value")
+        $currentInput.parent().parent().find(".step")
+        if (min.val() != "" && max.val() != "") {
+            val.removeAttr("disabled")
+        } else {
+            val.attr("disabled", "disabled").val("")
+        }
+
+        if (parseFloat(val.val()) > parseFloat(max.val())) {
+            val.val(max.val())
+            max.css("animation-name", 'warn')
+
+            setTimeout(() => {
+                max.css("animation-name", "")
+            }, 2000);
+        } else if (parseFloat(val.val()) < parseFloat(min.val())) {
+            val.val(min.val())
+            min.css("animation-name", 'warn')
+
+            setTimeout(() => {
+                min.css("animation-name", "")
+            }, 2000);
+        }
+
+        if (parseFloat(min.val()) >= parseFloat(max.val())) {
+            if ($currentInput.hasClass("min")) {
+                max.css("animation-name", 'warn')
+
+                setTimeout(() => {
+                    max.css("animation-name", "")
+                }, 2000);
+
+                min.val(max.val() - 1)
+            } else {
+                min.css("animation-name", 'warn')
+
+                setTimeout(() => {
+                    min.css("animation-name", "")
+                }, 2000);
+
+                max.val(parseFloat(min.val()) + 1)
+            }
+
+        }
+
+    })
+}
+
+function bindOptionAdder() {
+    $(".optionAdder").on("submit.addDiv", () => {
+        let $sbO = $("<div>").addClass("sidebarOption").insertBefore(".optionAdder").attr("data-name", $(".newOptionName").val()).attr("data-value", $(".newOptionValue").val()).attr("data-hex", $(".hex").val()).css("border-color", $(".hex").val())
+        $("<button>").addClass("sideBarEmojiButton").addClass("hamburger").text("☰").appendTo($sbO)
+        $("<p>").text($(".newOptionName").val() + ":" + $(".newOptionValue").val()).appendTo($sbO)
+        $("<div>").text("❌").addClass("sideBarEmojiButton").addClass("trashOption").appendTo($sbO).on("pointerdown.remove", (event) => {
+            $(event.currentTarget).parent().remove()
+
+        }
+        )
+
+        $(".newOptionName").val("")
+        $(".newOptionValue").val("")
+        addOptionDragHandler($sbO)
+
+        return false
+    })
+}
+
+function bindConditionalHandlers() {
+    $(".conditionPlus").on("click.addDiv", () => {
+        createConditionSidebarButton()
+
+    })
+
+    $(".conditionAdder").on("submit.addDiv", () => {
+        return false
+    })
+
+}
+
+function bindComponentRepositioner() {
+    $(".reposistionComponent").on("pointerdown.reposComponent", (event) => {
+        $(".sideBar").off("pointerup.setEdit pointermove.setEdit")
+
+        setCornerBorder(0, 0, 0, 0, 0, true)
+        let currentDrag = clientDragHandler(event, editComponent.currentTarget)
+        // console.log(editComponent.currentTarget.attr("data-componentType"))
+        addToCurrentDrag(editComponent.currentTarget, currentDrag.x, currentDrag.y, editComponent.currentTarget.attr("data-componentType"))
+    })
+}
+
+function bindComponentFillOption() {
+    $(".fillSpaceCheckbox").on("input", () => {
+        defaultSimilarOptions.fill = $(".fillSpaceCheckbox")[0].checked
+        setSimilarOptions(editComponent.currentTarget, defaultSimilarOptions)
+    })
+}
+
+function bindSidebarNav() {
+    $(".openOutput").on("pointerdown", () => {
+        $(".ioComponents").css("display", "none")
+        $(".editSidebar").css("display", "none")
+        $(".outputTopics").css("display", "flex")
+        $(".sideBarUnderline").removeClass("sideBarUnderline")
+        $(".openOutput").addClass("sideBarUnderline")
+    })
+
+    $(".openInput").on("pointerdown", () => {
+        $(".ioComponents").css("display", "none")
+        $(".editSidebar").css("display", "none")
+        $(".inputComponents").css("display", "flex")
+        $(".sideBarUnderline").removeClass("sideBarUnderline")
+        $(".openInput").addClass("sideBarUnderline")
+    })
+}
+
+function bindImportExport() {
+    $(".exportBtn").on("click", () => {
+        toastMessage("Layout Copied")
+        navigator.clipboard.writeText(saveLayoutToJSON())
+
+    })
+
+    $(".importBtn").on("click", () => {
+        $(".importJson").toggleClass("showTeamSet")
+        $(".manager").removeClass("managerOpen")
+
+    })
+
+    $(".doImport").on("click", () => {
+        let json = $(".importBox").val()
+
+        localStorage.setItem("layout", json);
+        clear = true;
+        window.location.reload();
+    })
+
+    $(".cancelImport").on("click", () => {
+        $(".importJson").removeClass("showTeamSet")
+
+    })
+}
+
+function bindTabCreator() {
+    $(".addTab").on("pointerdown.addTab", () => {
+        $(".tabCreator").toggleClass("tabCreatorOpen")
+        if (!$(".tabCreator").hasClass("tabCreatorOpen")) {
+            $(".tabCreator").css("overflow-x", "hidden")
+            $(".addTab").text("+").css("font-size", "").css("line-height", "")
+        }
+        setTimeout(() => {
+            if ($(".tabCreator").hasClass("tabCreatorOpen")) {
+                $(".tabCreator").css("overflow-x", "initial")
+                $(".addTab").text("✗").css("font-size", "4cqh").css("line-height", "6cqh")
+
+            }
+        }, 300);
+    })
+
+    $(".tabCreatorForm").on("submit", () => {
+
+        let name = $(".nameInput").val()
+        let tab = $(".nameInput").val().replace(/[^a-zA-Z]/g, '-') + "B" + Math.random().toString().slice(2)
+
+        console.log(name, tab)
+
+        let $ct = $("<div>").addClass("tab")
+            .addClass("tabsEditActivated")
+            .css("background-color", $(".fullScreen").css("background-color"))
+            .addClass("tabConnection")
+            .addClass("userTab")
+            .addClass("pTAB" + tab)
+            .attr("data-page", "." + tab)
+            .text(name)
+            .insertBefore(".tabCreator")
+
+        createSideTab(name, "." + tab)
+
+        // <div class="uiTestTab page" style="display: grid;">/
+        bindEditorResetter($ct)
+
+        let currentPage$ = $("<div>").addClass("page").addClass(tab).css("display", "grid").attr("data-displaytype", "grid").attr("rows", "4").attr("columns", "9").insertAfter(".autonomus")
+
+
+        $(".page, .pageF").css("display", "none")
+        $(".tab").removeClass("currentTab").css("background-color", "rgb(12, 12, 12)")
+        $ct.addClass("currentTab").css("background-color", "rgb(32, 32, 32)")
+        if ($ct.attr("data-displaytype") == null) {
+            currentPage$.css("display", "grid")
+        } else {
+            currentPage$.css("display", $ct.attr("data-displaytype"))
+        }
+
+        tabGrid(parseFloat(currentPage$.attr("columns")), parseFloat(currentPage$.attr("rows")), currentPage$)
+        setGridInput(currentPage$)
+
+        $(".tabCreator").removeClass("tabCreatorOpen")
+
+        $(".tabCreator").css("overflow-x", "hidden")
+        $(".nameInput").val("")
+        $(".addTab").text("+").css("font-size", "").css("line-height", "")
+
+        return false
+    })
+
+    $(".nameInput").on("invalid", (event) => {
+        event.preventDefault()
+        $(".tabCreator").removeClass("tabCreatorOpen")
+
+        $(".tabCreator").css("overflow-x", "hidden")
+        $(".nameInput").val("")
+        $(".addTab").text("+").css("font-size", "").css("line-height", "")
+    })
+
+    $(".nameInput").on("input", () => {
+        if ($(".nameInput").val().length > 0) {
+            $(".addTab").text("✓")
+        } else {
+            $(".addTab").text("✗")
+        }
+    })
+}
+
+function bindTabManagerOpener() {
+    $(".tabManager").on("click", () => {
+        $(".manager").toggleClass("managerOpen")
+    })
+}
+
+function autoSaveOnExit() {
+    $(document).on('visibilitychange', () => {
+        if (document.visibilityState === "hidden") {
+            if (clear) {
+                return
+            }
+
+            let layout = saveLayoutToJSON()
+
+            localStorage.setItem("layout", layout)
+        }
+
+    })
+}
+
+function setSavedLayout() {
+    if (localStorage.getItem("layout")) {
+        loadLayoutFromJson(localStorage.getItem("layout"))
+    } else {
+        localStorage.setItem("layout", JSON.stringify({}))
+
+        loadLayoutFromJson(localStorage.getItem("layout"))
+    }
+}
+
+function bindTeamNumberMenuOpener() {
+    //If no team is currently set, open the team setter ui. 
+    if (localStorage.getItem(getHtmlFileName() + "teamNumber") == null) {
+        $(".connectionText").text("No Team")
+        $(".setTeamNumberOrIp").toggleClass("showTeamSet")
+        $("#connect")[0].checked = false
     }
 
-})
+    $(".teamNumber").on("click", () => {
+        $(".setTeamNumberOrIp").toggleClass("showTeamSet")
 
-
-if (localStorage.getItem("layout")) {
-    loadLayoutFromJson(localStorage.getItem("layout"))
-} else {
-    localStorage.setItem("layout", JSON.stringify({}))
-
-    loadLayoutFromJson(localStorage.getItem("layout"))
+    })
 }
 
-function mapDragHandler() {
-    let map = $(".map");
+function setCurrentState() {
+    if (localStorage.getItem(getHtmlFileName() + "connect") === "true") {
+        $("#connect")[0].checked = true
+        $(".connectionText").text("Retrying")
+        $(".tabConnection").removeClass("tabConnection")
 
-    clientDragHandler()
+        nt4Client.connect()
+
+    } else {
+        $(".fullScreen").css("background-color", "rgb(32, 32, 32)")
+
+        $("html").css("background-color", "rgb(32, 32, 32)")
+        $(".tab").css("background-color", "rgb(12, 12, 12)")
+        $(".addTab").css("background-color", "rgb(32, 32, 32)")
+        $(".tabManager").css("background-color", "rgb(32, 32, 32)")
+
+        $(".tabCreator").css("background-color", "rgb(32, 32, 32)")
+
+        $(".tabNav").css("background-color", "rgb(12, 12, 12)")
+        $(".currentTab").css("background-color", "rgb(32, 32, 32)")
+        nt4Client.disconnect()
+
+    }
 }
 
-if (localStorage.getItem(getHtmlFileName() + "connect") === "true") {
-    $("#connect")[0].checked = true
-    $(".connectionText").text("Retrying")
-    $(".tabConnection").removeClass("tabConnection")
-
-    nt4Client.connect()
-
-} else {
-    $(".fullScreen").css("background-color", "rgb(32, 32, 32)")
-
-    $("html").css("background-color", "rgb(32, 32, 32)")
-    $(".tab").css("background-color", "rgb(12, 12, 12)")
-    $(".addTab").css("background-color", "rgb(32, 32, 32)")
-    $(".tabManager").css("background-color", "rgb(32, 32, 32)")
-
-    $(".tabCreator").css("background-color", "rgb(32, 32, 32)")
-
-    $(".tabNav").css("background-color", "rgb(12, 12, 12)")
-    $(".currentTab").css("background-color", "rgb(32, 32, 32)")
-    nt4Client.disconnect()
-
+function bindFullScreen() {
+    $(".fullScreen").on("click", () => {
+        document.querySelector("html").requestFullscreen();
+    })
 }
 
-$(".teamNumber").on("click", () => {
-    $(".setTeamNumberOrIp").toggleClass("showTeamSet")
+function bindSelectCloser() {
+    $("html").on("click", (event) => {
+        if (!$(event.target).hasClass("selectTitle") && !$(event.target).hasClass("textInput") && !$(event.target).hasClass("delete") && !$(event.target).hasClass("save") && !$(event.target).hasClass("saveManager")) {
+            $(".select").removeClass("selectOpen").scrollTop(0)
+        }
+    })
+}
 
-})
+init()
 
-$(".importBtn").on("click", () => {
-    $(".importJson").toggleClass("showTeamSet")
-    $(".manager").removeClass("managerOpen")
+function init() {
+    document.body.addEventListener("drop", (event) => { event.preventDefault(); event.stopPropagation() }, false)
+    document.body.addEventListener("dragover", (event) => { event.preventDefault() }, false)
 
-})
+    if (localStorage.getItem(getHtmlFileName() + "currentPath") == null) {
+        localStorage.setItem(getHtmlFileName() + "currentPath", "")
+    }
 
-$(".doImport").on("click", () => {
-    let json = $(".importBox").val()
 
-    localStorage.setItem("layout", json);
-    clear = true;
-    window.location.reload();
-})
+    //GenUi
+    bindFullScreen();
+    setSelectOpener();
+    bindSelectCloser();
+    bindConnectionToggle();
+    bindTeamNumberToggle();
+    bindTabChanger();
+    bindTabManagerOpener();
 
-$(".cancelImport").on("click", () => {
-    $(".importJson").removeClass("showTeamSet")
+    //EditorUI
+    bindEditOpener();
+    bindInputComponentAdders();
+    bindTrashCan()
+    bindMinMaxHandlers()
+    bindConditionalHandlers()
+    bindEditorResetter($(".editNavBack, .trashCan, .editTabs, .tab, .addTab, .tabCreator"))
+    bindComponentRepositioner();
+    bindComponentFillOption();
+    bindSidebarNav();
+    bindImportExport();
+    bindTabCreator();
+    handleTabDrag();
+    handleOptionDrag()
+    bindOptionAdder();
 
-})
+    //Util
+    autoSaveOnExit();
+    setSavedLayout();
+    bindTeamNumberMenuOpener();
+    setCurrentState()
+
+}
