@@ -1,5 +1,11 @@
-exportqwfvcads  default [
+import importX from 'eslint-plugin-import-x';
+
+export default [
   {
+    plugins: {
+      'import-x': importX,
+    },
+
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "module",
@@ -19,6 +25,14 @@ exportqwfvcads  default [
         confirm: "readonly",
         prompt: "readonly",
         MediaRecorder: "readonly",
+        structuredClone: "readonly",
+        FileReader: "readonly",
+        setInterval: "readonly",
+        clearInterval: "readonly",
+        AudioContext: "readonly",
+        TextEncoder: "readonly",
+        TextDecoder: "readonly",
+        WebSocket: "readonly",
         Blob: "readonly",
         URL: "readonly",
         requestAnimationFrame: "readonly",
@@ -27,7 +41,8 @@ exportqwfvcads  default [
     rules: {
       "no-undef": "error",
       "no-unused-vars": "warn",
-      "no-var": "warn"
+      "no-var": "warn",
+      'import-x/named': 'error'
     }
   }
 ];

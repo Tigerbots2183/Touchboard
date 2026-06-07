@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { nt4Client } from "./ui.js"
+import { nt4Client } from "../ui.js"
 
 let tracks = []
 

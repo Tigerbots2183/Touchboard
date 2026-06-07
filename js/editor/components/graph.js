@@ -1,11 +1,11 @@
-import { NT4_Client } from "../lib/nt4.js";
-import { pxToCq, nt4Client, clamp} from "./ui.js";
-import { WebGPULineGraph } from "../lib/gpuDrawer.js"
+import { NT4_Client } from "../../../lib/nt4.js";
+import { pxToCq, nt4Client, clamp} from "../../ui.js";
+import { WebGPULineGraph } from "../../../lib/gpuDrawer.js"
 
 
 // let canvas = document.getElementById("testMain");
 
-// let renderer = new WebGPULineGraph()
+let renderer = new WebGPULineGraph()
 
 // $(canvas).attr("width", $(canvas).width()).attr("height", $(canvas).height())
 // console.log(canvas)
