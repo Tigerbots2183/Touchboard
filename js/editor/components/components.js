@@ -27,6 +27,7 @@ import { toastMessage } from "../../ui.js"
 import { connectionDate, subscribedTopics, nt4Client, getStructValue } from "../../coms.js"
 import { objectIncludes } from "../../../lib/util.js"
 import { addToRender } from "../../renderer.js"
+import { initGraph } from "./graph.js"
 
 export let defaultSimilarOptions = {
     fill: false,
@@ -855,87 +856,6 @@ export function createRadialGauge(displayName, topic, append, hex = "#0c0c0c", m
     return radialGauge
 }
 
-//Subscription Blank
-
-// export function createBlank(displayName, topic, append, hex, ...similarOptions = defaultSimilarOptions) {
-//     if (displayName == null) {
-//         let topicSplit = topic.split("/")
-//         displayName = topicSplit[topicSplit.length - 1]
-
-//         if (displayName == "value" && topicSplit.length > 1) {
-//             displayName = topicSplit[topicSplit.length - 2]
-//         }
-//     }
-
-//     let blank = $("<div>")
-//         .addClass("blankComponent")
-//         .attr("data-topic", topic)
-//         .addClass("editableComponent")
-//         .attr("data-componentType", "blank")
-//         .css("border-color", hex)
-//         .attr("data-color", hex)
-//         .attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
-
-//     if (append) {
-//         blank.appendTo(append)
-//     }
-
-//     setSimilarOptions(blank, similarOptions)
-//     addEditHandler(blank, "subscription", ".blankSpecific")
-
-//     if (topic == "esc-UNSET-esc") return blank
-
-//     let blankHandler = (value) => {
-
-//     }
-
-//     let topicChangeHandler = (newTopic, val) => {
-
-//     }
-
-//     let subscribedReference = {
-//         'jQueryReference': false,
-//         'parentReference': blank,
-//         'valueHandeler': blankHandler,
-//         'topicChangeHandler': topicChangeHandler
-//     }
-
-//     if (topic.includes("|")) {
-//         if (!subscribedTopics.hasOwnProperty(topic.split("|")[0])) {
-//             subscribedTopics[topic.split("|")[0]] = []
-//         }
-//         subscribedReference.structPath = topic
-//         subscribedTopics[topic.split("|")[0]].push(subscribedReference)
-//         blank.attr("data-subscriptionIndex", subscribedTopics[topic.split("|")[0]].length - 1)
-
-//     } else {
-//         if (!subscribedTopics.hasOwnProperty(topic)) {
-//             subscribedTopics[topic] = []
-//         }
-//         subscribedTopics[topic].push(subscribedReference)
-//         blank.attr("data-subscriptionIndex", subscribedTopics[topic].length - 1)
-
-//     }
-
-//     if (nt4Client.serverTopics.get(topic)) {
-//         blankHandler(nt4Client.serverTopics.get(topic).value)
-//     } else if (nt4Client.serverTopics.get(topic.split("|")[0])) {
-//         let topicRef = nt4Client.serverTopics.get(topic.split("|")[0]);
-//         blankHandler(getStructValue(topic, topicRef.value))
-//     }
-
-//     return blank
-
-// }
-// <div class="cameraComponent">
-//  <h1>Camera Stream</h1>
-//  <img src="http://192.168.0.48:1181/stream.mjpg" crossOrigin="anonymous" class="cameraStream">
-//  <canvas class="encoder"></canvas>
-//  <div class="cameraNav">
-//      <button class="record emojiButton">🔴</button>
-//  </div>
-// </div> 
-
 export function createCamera(displayName, topic, append, hideNav = false, videoFormat = "WebM", recordConditions = [], similarOptions = defaultSimilarOptions) {
     if (displayName == null) {
         let topicSplit = topic.split("/")
@@ -1087,6 +1007,175 @@ export function createCamera(displayName, topic, append, hideNav = false, videoF
     return camera
 
 }
+
+export function createGraph(displayName, topics, append){
+    if (displayName == null) {
+        let topicSplit = topics[0].split("/")
+        displayName = topicSplit[topicSplit.length - 1]
+
+        if (displayName == "value" && topicSplit.length > 1) {
+            displayName = topicSplit[topicSplit.length - 2]
+        }
+
+        displayName = displayName.split(":")[0]
+    }
+
+    let graph = $("<div>").addClass("graph").attr("data-linkAxis", "false")
+
+    let leftButtons = $("<div>").addClass("leftButtons").appendTo(graph);
+    $("<div>").addClass("linkButton").text("🔗").appendTo(leftButtons)
+
+    $("<h1>").addClass("editThisName").addClass("graphTitle").text(displayName).appendTo(graph)
+
+    $("<div>").addClass("rightButtons").appendTo(graph);
+    
+    let leftSuperSlider = $("<div>").addClass("leftSuperSlider").addClass("verticalSuperSlider").attr("data-max", "false").attr("data-absMax", "3").attr("data-absMin", "-3").appendTo(graph)
+
+    createSliderParts("mid", leftSuperSlider)
+    createSliderParts("bottom", leftSuperSlider)
+    createSliderParts("top", leftSuperSlider)
+
+    let leftTicks = $("<div>").addClass("leftTicks").attr("data-max", "false").attr("data-min", "false").attr("data-absMax", "3").attr("data-absMin", "-3").appendTo(graph)
+    createTicks(11, "left", leftTicks)
+
+    let rightSuperSlider = $("<div>").addClass("rightSuperSlider").addClass("verticalSuperSlider").attr("data-max", "false").attr("data-absMax", "1").attr("data-absMin", "-1").appendTo(graph)
+
+    createSliderParts("mid", rightSuperSlider)
+    createSliderParts("bottom", rightSuperSlider)
+    createSliderParts("top", rightSuperSlider)
+
+    let rightTicks = $("<div>").addClass("rightTicks").attr("data-max", "false").attr("data-min", "false").attr("data-absMax", "1").attr("data-absMin", "-1").appendTo(graph)
+    createTicks(11, "right", rightTicks)
+
+    let bottomSuperSlider = $("<div>").addClass("bottomSuperSlider").attr("data-absMin", "0").attr("data-absMax", 1000).appendTo(graph)
+
+    createSliderParts("mid", bottomSuperSlider)
+    createSliderParts("bottom", bottomSuperSlider)
+    createSliderParts("top", bottomSuperSlider)
+
+    let bottomTicks = $("<div>").addClass("rightTicks").attr("data-max", "false").attr("data-absMax", "1").attr("data-absMin", "0").appendTo(graph)
+
+    createTicks(11, "bottom", bottomTicks)
+
+    let bottomDrawer = $("<div>").addClass("bottomDrawer").appendTo(graph);
+
+    let audio = $("<audio>").attr("id", "audio").appendTo(graph)
+
+    let graphHolder = $("<div>").addClass("graphHolder").appendTo(graph);
+
+    let secondaryCanvas = $("<canvas>").addClass("graphCanvas").addClass("graphCanvasSecondary").attr("draggable", "false")
+
+    let primaryCanvas = $("<canvas>").addClass("graphCanvas").addClass("graphCanvasPrimary").attr("id", "testMain")
+
+    let graphEffector = $("<div>").addClass("graphEffectorOverlay").attr("draggable", "false")
+
+    setCanvasWidths(secondaryCanvas)
+    setCanvasWidths(primaryCanvas)
+
+    initGraph(graph)
+
+    function setCanvasWidths(canvas){
+        canvas.attr("width", canvas.width()).attr("height", canvas.height())
+    }
+
+    function createTicks(amount, side, append){
+        for(let i = 0; i < amount; i++){
+            $("<div>").addClass("graph" + side + "Tick").text(i).appendTo(append)
+        }
+    }
+
+    function createSliderParts(part, append){
+        let newPart = $("<div>").addClass(part + "Slider").addClass("superSliderPart").appendTo(append)
+
+        $("<div>").addClass("sliderThumb").appendTo(newPart)
+
+        return newPart
+    }
+}
+
+//Subscription Blank
+
+// export function createBlank(displayName, topic, append, hex, ...similarOptions = defaultSimilarOptions) {
+    // if (displayName == null) {
+    //     let topicSplit = topic.split("/")
+    //     displayName = topicSplit[topicSplit.length - 1]
+
+    //     if (displayName == "value" && topicSplit.length > 1) {
+    //         displayName = topicSplit[topicSplit.length - 2]
+    //     }
+
+    //     displayName = displayName.split(":")[0]
+    // }
+
+//     let blank = $("<div>")
+//         .addClass("blankComponent")
+//         .attr("data-topic", topic)
+//         .addClass("editableComponent")
+//         .attr("data-componentType", "blank")
+//         .css("border-color", hex)
+//         .attr("data-color", hex)
+//         .attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
+
+//     if (append) {
+//         blank.appendTo(append)
+//     }
+
+//     setSimilarOptions(blank, similarOptions)
+//     addEditHandler(blank, "subscription", ".blankSpecific")
+
+//     if (topic == "esc-UNSET-esc") return blank
+
+//     let blankHandler = (value) => {
+
+//     }
+
+//     let topicChangeHandler = (newTopic, val) => {
+
+//     }
+
+//     let subscribedReference = {
+//         'jQueryReference': false,
+//         'parentReference': blank,
+//         'valueHandeler': blankHandler,
+//         'topicChangeHandler': topicChangeHandler
+//     }
+
+//     if (topic.includes("|")) {
+//         if (!subscribedTopics.hasOwnProperty(topic.split("|")[0])) {
+//             subscribedTopics[topic.split("|")[0]] = []
+//         }
+//         subscribedReference.structPath = topic
+//         subscribedTopics[topic.split("|")[0]].push(subscribedReference)
+//         blank.attr("data-subscriptionIndex", subscribedTopics[topic.split("|")[0]].length - 1)
+
+//     } else {
+//         if (!subscribedTopics.hasOwnProperty(topic)) {
+//             subscribedTopics[topic] = []
+//         }
+//         subscribedTopics[topic].push(subscribedReference)
+//         blank.attr("data-subscriptionIndex", subscribedTopics[topic].length - 1)
+
+//     }
+
+//     if (nt4Client.serverTopics.get(topic)) {
+//         blankHandler(nt4Client.serverTopics.get(topic).value)
+//     } else if (nt4Client.serverTopics.get(topic.split("|")[0])) {
+//         let topicRef = nt4Client.serverTopics.get(topic.split("|")[0]);
+//         blankHandler(getStructValue(topic, topicRef.value))
+//     }
+
+//     return blank
+
+// }
+// <div class="cameraComponent">
+//  <h1>Camera Stream</h1>
+//  <img src="http://192.168.0.48:1181/stream.mjpg" crossOrigin="anonymous" class="cameraStream">
+//  <canvas class="encoder"></canvas>
+//  <div class="cameraNav">
+//      <button class="record emojiButton">🔴</button>
+//  </div>
+// </div> 
+
 
 function captureMJPEG(cameraComponent, topic = "", videoFormat = "mp4") {
     videoFormat = videoFormat.toLowerCase();

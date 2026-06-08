@@ -1,11 +1,33 @@
-import { NT4_Client } from "../../../lib/nt4.js";
-import { pxToCq, nt4Client, clamp} from "../../ui.js";
+// import { NT4_Client } from "../../../lib/nt4.js";
+import { pxToCq, clamp } from "../../ui.js";
+import { nt4Client } from "../../coms.js";
 import { WebGPULineGraph } from "../../../lib/gpuDrawer.js"
 
 
 // let canvas = document.getElementById("testMain");
 
-let renderer = new WebGPULineGraph()
+export function initGraph(graph) {
+    let canvas = graph.find("graphCanvasPrimary")[0]
+
+    let renderer = new WebGPULineGraph()
+
+    renderer.initialize(canvas)
+    renderer.setCamera(0, 0, $(canvas).width(), $(canvas).height())
+
+    let testScale = findNiceScale(absAsBackup($(".leftTicks"), "min"), absAsBackup($(".leftTicks"), "max"))
+
+    setTickScale(testScale, $(".leftTicks"))
+
+    let testSync
+    if ($(".graph").attr("data-linkAxis") == "true") {
+        testSync = findRelativeScale(absAsBackup($(".rightTicks"), "min"), (absAsBackup($(".rightTicks"), "max")), testScale)
+    } else {
+        testSync = findNiceScale(absAsBackup($(".rightTicks"), "min"), (absAsBackup($(".rightTicks"), "max")))
+    }
+
+
+}
+
 
 // $(canvas).attr("width", $(canvas).width()).attr("height", $(canvas).height())
 // console.log(canvas)
@@ -1267,10 +1289,10 @@ function drawData(graph, renderer, topics) {
             // renderer.camera.x = -currentBounds.maxX + (currentBounds.width/2);
             // renderer.camera.y = currentBounds.minY + (currentBounds.height/2);
 
-            renderer.setCamera( currentBounds.maxX - (currentBounds.width/2), currentBounds.minY + (currentBounds.height/2),  (canvas.width()/canvas.height())/(currentBounds.width/2), 1/(currentBounds.height/2))
+            renderer.setCamera(currentBounds.maxX - (currentBounds.width / 2), currentBounds.minY + (currentBounds.height / 2), (canvas.width() / canvas.height()) / (currentBounds.width / 2), 1 / (currentBounds.height / 2))
 
             console.log(currentBounds.maxX, currentBounds.maxY, currentBounds.width, currentBounds.height)
-            console.log(renderer.camera.x, renderer.camera.y, 1/renderer.camera.zoomX, 1/renderer.camera.zoomY)
+            console.log(renderer.camera.x, renderer.camera.y, 1 / renderer.camera.zoomX, 1 / renderer.camera.zoomY)
             // renderer.camera.viewX = currentBounds.width/2
 
             // renderer.camera.viewY=-currentBounds.height/2
@@ -1525,7 +1547,7 @@ function addMusicDropHandler(graph) {
             currentTimestamp = nt4Client.getServerTime_us() / CONVERSIONRATE
             songData.push(currentTimestamp, convertToAmplitude())
             songDataRev.push(currentTimestamp, convertToAmplitude() * -1)
-            
+
 
             // console.log(songValues, audio.src)
             // drawNewData($(".graph"), "Audio File", songKeys, songValuesLow, currentTimestamp)
@@ -1542,15 +1564,15 @@ function addMusicDropHandler(graph) {
             let tempSongData = structuredClone(songData)
             songData = []
 
-            return { name: "Audio FileR", dataArray:tempSongData, timestamp: currentTimestamp }
+            return { name: "Audio FileR", dataArray: tempSongData, timestamp: currentTimestamp }
         }
 
         function getRevAmplitude() {
- 
+
             let tempSongDataRev = structuredClone(songDataRev)
             songDataRev = []
 
-            return { name: "Audio FileL", dataArray:tempSongDataRev, timestamp: currentTimestamp }
+            return { name: "Audio FileL", dataArray: tempSongDataRev, timestamp: currentTimestamp }
         }
 
         linkedMusic = true
