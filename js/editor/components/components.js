@@ -1008,7 +1008,8 @@ export function createCamera(displayName, topic, append, hideNav = false, videoF
 
 }
 
-export function createGraph(displayName, topics, append){
+export function createGraph(displayName, topics, append, similarOptions = defaultSimilarOptions){
+
     if (displayName == null) {
         let topicSplit = topics[0].split("/")
         displayName = topicSplit[topicSplit.length - 1]
@@ -1020,7 +1021,11 @@ export function createGraph(displayName, topics, append){
         displayName = displayName.split(":")[0]
     }
 
-    let graph = $("<div>").addClass("graph").attr("data-linkAxis", "false")
+    let graph = $("<div>").addClass("graph").attr("data-linkAxis", "false").attr("data-componentType", "graph")
+
+    if(append){
+        graph.appendTo(append)
+    }
 
     let leftButtons = $("<div>").addClass("leftButtons").appendTo(graph);
     $("<div>").addClass("linkButton").text("🔗").appendTo(leftButtons)
@@ -1036,7 +1041,7 @@ export function createGraph(displayName, topics, append){
     createSliderParts("top", leftSuperSlider)
 
     let leftTicks = $("<div>").addClass("leftTicks").attr("data-max", "false").attr("data-min", "false").attr("data-absMax", "3").attr("data-absMin", "-3").appendTo(graph)
-    createTicks(11, "left", leftTicks)
+    createTicks(11, "Left", leftTicks)
 
     let rightSuperSlider = $("<div>").addClass("rightSuperSlider").addClass("verticalSuperSlider").attr("data-max", "false").attr("data-absMax", "1").attr("data-absMin", "-1").appendTo(graph)
 
@@ -1045,7 +1050,7 @@ export function createGraph(displayName, topics, append){
     createSliderParts("top", rightSuperSlider)
 
     let rightTicks = $("<div>").addClass("rightTicks").attr("data-max", "false").attr("data-min", "false").attr("data-absMax", "1").attr("data-absMin", "-1").appendTo(graph)
-    createTicks(11, "right", rightTicks)
+    createTicks(11, "Right", rightTicks)
 
     let bottomSuperSlider = $("<div>").addClass("bottomSuperSlider").attr("data-absMin", "0").attr("data-absMax", 1000).appendTo(graph)
 
@@ -1053,9 +1058,9 @@ export function createGraph(displayName, topics, append){
     createSliderParts("bottom", bottomSuperSlider)
     createSliderParts("top", bottomSuperSlider)
 
-    let bottomTicks = $("<div>").addClass("rightTicks").attr("data-max", "false").attr("data-absMax", "1").attr("data-absMin", "0").appendTo(graph)
+    let bottomTicks = $("<div>").addClass("bottomTicks").attr("data-max", "false").attr("data-absMax", "1").attr("data-absMin", "0").appendTo(graph)
 
-    createTicks(11, "bottom", bottomTicks)
+    createTicks(11, "Bottom", bottomTicks)
 
     let bottomDrawer = $("<div>").addClass("bottomDrawer").appendTo(graph);
 
@@ -1063,16 +1068,19 @@ export function createGraph(displayName, topics, append){
 
     let graphHolder = $("<div>").addClass("graphHolder").appendTo(graph);
 
-    let secondaryCanvas = $("<canvas>").addClass("graphCanvas").addClass("graphCanvasSecondary").attr("draggable", "false")
+    let secondaryCanvas = $("<canvas>").addClass("graphCanvas").addClass("graphCanvasSecondary").attr("draggable", "false").appendTo(graphHolder)
 
-    let primaryCanvas = $("<canvas>").addClass("graphCanvas").addClass("graphCanvasPrimary").attr("id", "testMain")
+    let primaryCanvas = $("<canvas>").addClass("graphCanvas").addClass("graphCanvasPrimary").attr("id", "testMain").appendTo(graphHolder)
 
-    let graphEffector = $("<div>").addClass("graphEffectorOverlay").attr("draggable", "false")
+    let graphEffector = $("<div>").addClass("graphEffectorOverlay").attr("draggable", "false").appendTo(graphHolder)
 
     setCanvasWidths(secondaryCanvas)
     setCanvasWidths(primaryCanvas)
 
-    initGraph(graph)
+    if(topics[0] !== "esc-UNDEFINED-esc" && topics[0] !== "esc-UNSET-esc"  ){
+        console.log(topics[0])
+        initGraph(graph)
+    }
 
     function setCanvasWidths(canvas){
         canvas.attr("width", canvas.width()).attr("height", canvas.height())
@@ -1091,6 +1099,11 @@ export function createGraph(displayName, topics, append){
 
         return newPart
     }
+
+    setSimilarOptions(graph, similarOptions)
+    addEditHandler(graph, "double")
+
+    return graph
 }
 
 //Subscription Blank
@@ -1594,6 +1607,8 @@ function emulateMeterColors(min = 0, max = 360, low = "", high = "", optimum = "
 }
 
 export function createDefaultOf(component, append, topic = "esc-UNSET-esc") {
+    console.log(component, append, topic)
+
     switch (component) {
         case "actionButton":
             return createActionButton("Action Button", topic, append)
@@ -1621,6 +1636,8 @@ export function createDefaultOf(component, append, topic = "esc-UNSET-esc") {
             return createRadialGauge(undefined, topic, append)
         case "camera":
             return createCamera(undefined, topic, append)
+        case "graph":
+            return createGraph(undefined, [topic], append )
     }
 }
 

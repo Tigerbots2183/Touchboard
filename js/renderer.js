@@ -25,6 +25,7 @@
 import { toastMessage } from "./ui.js";
 
 export let renderQueue = new Map();
+export let renderFuncs = new Map()
 
 export let isFrameScheduled = {"scheduled": false};
 // renderQueue example
@@ -62,6 +63,7 @@ export function addToRender(element, instruction){
         renderQueue.set(element, [instruction])
     }
 }
+
 
 
 export function renderFrame(){
@@ -105,6 +107,14 @@ export function renderFrame(){
 
     }
 
-    // toastMessage(queueCount + "")
+    let funcCount = 0;
+
+    for(let [element, func] of renderFuncs){
+        funcCount++
+
+        func(element);
+    }
+
+    // toastMessage(queueCount + ", " funcCount)
 
 }

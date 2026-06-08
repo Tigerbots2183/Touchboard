@@ -22,7 +22,7 @@
 
 // 
 
-import {outputComponents, createSideTab, multiSwitchButtonSet} from "../ui.js"
+import {outputComponents, createSideTab, multiSwitchButtonSet, toastMessage} from "../ui.js"
 import {createDefaultOf, defaultSimilarOptions, setSimilarOptions, addButtonToAnimate,createDropdown, createOptGroup} from "./components/components.js"
 import {tabGrid, setGridInput, setCornerBorder, clientDragHandler, addToCurrentDrag, findEndOffset} from "./grid.js"
 import {topicObject, nt4Client, getStructValue, subscribedTopics} from "../coms.js"
@@ -125,7 +125,7 @@ function bindEditOpener() {
             $("body").off("pointermove.gridReact")
 
             if ($(".connectionText").text() == "Connected") {
-                window.location.reload();
+                // window.location.reload();
             }
 
         }
@@ -134,7 +134,7 @@ function bindEditOpener() {
 
 }
 
-function bindInputComponentAdders() {
+function bindComponentAdders() {
     $(".ioComponents").children().off().on("pointerdown.addComponent ", (event) => {
         $("*").removeClass("removeShake").off("pointerdown.remove")
         $(".trashCan").removeClass("trashActive")
@@ -142,6 +142,8 @@ function bindInputComponentAdders() {
 
 
         let componentType = $(event.currentTarget)[0].classList[0];
+
+        toastMessage(componentType)
 
         let jQueryReference
 
@@ -1187,7 +1189,7 @@ export function addEditHandler(element, valueType, specificClass = false, specif
 
 export function initEditor() {
     bindEditOpener();
-    bindInputComponentAdders();
+    bindComponentAdders();
     bindTrashCan()
     bindMinMaxHandlers()
     bindConditionalHandlers()
