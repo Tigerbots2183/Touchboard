@@ -1021,7 +1021,7 @@ export function createGraph(displayName, topics, append, similarOptions = defaul
         displayName = displayName.split(":")[0]
     }
 
-    let graph = $("<div>").addClass("graph").attr("data-linkAxis", "false").attr("data-componentType", "graph")
+    let graph = $("<div>").addClass("graph").attr("data-linkAxis", "false").attr("data-componentType", "graph").attr("draggable", "false")
 
     if(append){
         graph.appendTo(append)

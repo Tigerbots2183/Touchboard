@@ -1,5 +1,5 @@
 // import { NT4_Client } from "../../../lib/nt4.js";
-import { pxToCq, clamp } from "../../ui.js";
+import { pxToCq, clamp, toastMessage } from "../../ui.js";
 import { nt4Client } from "../../coms.js";
 import { WebGPULineGraph } from "../../../lib/gpuDrawer.js"
 import { compareFloat } from "../../../lib/util.js";
@@ -11,8 +11,6 @@ export const CONVERSIONRATE = 1000000.0
 
 export async function initGraph(graph) {
     let allTopicFuncs = []
-
-    debugger
 
     let canvas = graph.find(".graphCanvasPrimary")[0]
 
@@ -37,9 +35,11 @@ export async function initGraph(graph) {
     let offsetX = 0
     let offsetY = 0
 
+    graph.find(".linkButton").on("click", () => {
+        toastMessage(JSON.stringify(renderer.getMinMaxInView()));
+    })
 
     setAbsMinMax(setTickScale(testSync, graph.find(".rightTicks")))
-
 
     let initiatedScrollAxis = ''
     let currentResetTimeout;
@@ -527,7 +527,7 @@ export async function initGraph(graph) {
     }
 
     function drawGraph(graph) {
-        setCanvasesToTicks(graph)
+        setCanvasesToTicks(graph, renderer)
 
         let allTopics = []
 
@@ -711,7 +711,7 @@ function setNewTickScaleDelta(delta, ticks, secondaryTicks, secondarySlider, gra
 }
 
 
-function setCanvasesToTicks(graph) {
+function setCanvasesToTicks(graph, renderer) {
     let graphHolder = graph.children(".graphHolder");
     let primaryCanvas = graphHolder.children(".graphCanvasPrimary");
     let secondaryCanvas = graphHolder.children(".graphCanvasSecondary");
@@ -719,22 +719,60 @@ function setCanvasesToTicks(graph) {
 
     let xTicks = graph.children(".bottomTicks")
     let primaryTicks = graph.children(".leftTicks")
+
+    let primarySlider = graph.children(".leftSuperSlider")
+
+
     let secondaryTicks = graph.children(".rightTicks")
 
     //For simplicity transformations are made to make the graph up positive. 
 
-    setCanvasToTick(primaryTicks, primaryCanvas)
+
+    setCanvasToTick(primaryTicks, primarySlider, primaryCanvas)
     // setCanvasToTick(secondaryTicks, secondaryCanvas)
 
 
-    function setCanvasToTick(ticks, canvas) {
+    function setCanvasToTick(ticks, slider, canvas) {
         canvas.attr("data-xViewWidth", (absAsBackup(xTicks, "max") - absAsBackup(xTicks, "min")))
         canvas.attr("data-xViewMax", absAsBackup(xTicks, "max"))
         canvas.attr("data-xViewMin", absAsBackup(xTicks, "min"))
 
-        canvas.attr("data-yViewHeight", (absAsBackup(ticks, "max") - absAsBackup(ticks, "min")))
-        canvas.attr("data-yViewMax", absAsBackup(ticks, "max"))
-        canvas.attr("data-yViewMin", absAsBackup(ticks, "min"))
+        let max = absAsBackup(ticks, "max")
+        let min = absAsBackup(ticks, "min")
+
+        let overridden = false;
+
+        if (ticks.attr("data-max") == "false") {
+            max = renderer.getMinMaxInView().max
+            overridden = true
+        }
+
+        if (ticks.attr("data-min") == ticks.attr("data-absmin") || ticks.attr("data-min") == "false") {
+            min = renderer.getMinMaxInView().min
+            overridden = true
+        }
+
+        if (overridden) {
+            let newscale = findNiceScale(min, max)
+            setAbsMinMax(setTickScale(newscale, ticks))
+
+            slider.attr("data-absmax", max).attr('data-absmin', min)
+
+            if (parseFloat(slider.attr("data-max")) > parseFloat(slider.attr('data-absMax'))) {
+                slider.attr("data-max", 'false')
+            }
+
+            if (parseFloat(slider.attr("data-min")) < parseFloat(slider.attr('data-absMin'))) {
+                slider.attr("data-min", min)
+            }
+
+        }
+
+        canvas.attr("data-yViewHeight", (max - min))
+        canvas.attr("data-yViewMax", max)
+        canvas.attr("data-yViewMin", min)
+
+
     }
 }
 
@@ -746,29 +784,10 @@ function drawData(graph, renderer, topics) {
     let primaryCanvas = graphHolder.children(".graphCanvasPrimary")
     let secondaryCanvas = graphHolder.children(".graphCanvasSecondary")
 
-    drawDataToCanvas(primaryCanvas)
+    syncCamAndDraw(primaryCanvas)
 
-    function drawDataToCanvas(canvas) {
-        if (canvas.attr("data-drawInfo") !== undefined) {
-            syncCamAndDraw(canvas, JSON.parse(canvas.attr("data-drawInfo")))
-            return
-        }
 
-        let drawInfo = {}
-
-        drawInfo.minX = parseFloat(canvas.attr("data-xViewMin"))
-        drawInfo.width = parseFloat(canvas.attr("data-xViewWidth"))
-        drawInfo.maxX = parseFloat(canvas.attr("data-xViewMax"))
-
-        drawInfo.minY = parseFloat(canvas.attr("data-yViewMin"))
-        drawInfo.height = parseFloat(canvas.attr("data-yViewHeight"))
-        drawInfo.maxY = parseFloat(canvas.attr("data-yViewMax"))
-
-        canvas.attr("data-drawInfo", JSON.stringify(drawInfo))
-        // scanAndDraw(canvas, drawInfo)
-    }
-
-    function syncCamAndDraw(canvas, drawInfo) {
+    function syncCamAndDraw(canvas) {
         let currentBounds = {}
 
         currentBounds.minX = parseFloat(canvas.attr("data-xViewMin"))
@@ -780,129 +799,12 @@ function drawData(graph, renderer, topics) {
         currentBounds.maxY = parseFloat(canvas.attr("data-yViewMax"))
 
 
-        compareAndTransform(drawInfo, currentBounds)
 
         for (let i in topics) {
-            //We need to scan in reverse since the current timestamp is the
-            //only one we know is logged
-
-
-            // let keys = new Float64Array(topics[i].keyArray)
-            // let values = new Float64Array(topics[i].valArray)
-
-            // console.log(keys)
-            // console.log(keys[keys.length-1], values[values.length-1])
-
-            // console.log(topics[i])
-
-            // let startIndex = keys.indexOf(topics[i].timestamp)
-            // console.log(topics[i].dataArray)
             renderer.addData(topics[i].name, topics[i].dataArray);
-
-            // console.log(topics[i].keyArray, topics[i].valArray)
-
-            // console.log(topics[i].keyArray[0], topics[].valArray[0], topics[i].name)
-
-            // renderer.camera.x = -currentBounds.maxX + (currentBounds.width/2);
-            // renderer.camera.y = currentBounds.minY + (currentBounds.height/2);
-
-            renderer.setCamera(currentBounds.maxX - (currentBounds.width / 2), currentBounds.minY + (currentBounds.height / 2), (canvas.width() / canvas.height()) / (currentBounds.width / 2), 1 / (currentBounds.height / 2))
-
-            console.log(currentBounds.maxX, currentBounds.maxY, currentBounds.width, currentBounds.height)
-            console.log(renderer.camera.x, renderer.camera.y, 1 / renderer.camera.zoomX, 1 / renderer.camera.zoomY)
-            // renderer.camera.viewX = currentBounds.width/2
-
-            // renderer.camera.viewY=-currentBounds.height/2
-            // let gx = graphics.position.x 
-            // let gy = graphics.position.y 
-
-            // graphics.moveTo(xValueToPixels(keys[startIndex] / CONVERSIONRATE) - gx, yValueToPixels(values[startIndex]) - gy).stroke(strokestyle);
-            // graphics.lineTo(xValueToPixels(keys[startIndex-1] / CONVERSIONRATE) - gx, yValueToPixels(values[startIndex-1]) - gy)
-            // let J = 0
-
-            // for (let j = startIndex - 2; keys[j + 2] > xValueToPixels(drawInfo.minX); j--) {
-            //     J = j
-            //     // console.log(keys[j+2] / CONVERSIONRATE > drawInfo.minX,keys[j+2] / CONVERSIONRATE, drawInfo.minX)
-            //     keys[j] = xValueToPixels(keys[j] / CONVERSIONRATE)
-            //     values[j] = yValueToPixels(values[j])
-            //     // graphics.lineTo(xValueToPixels(keys[j] / CONVERSIONRATE) - gx, yValueToPixels(values[j]) - gy)
-            //     if (j <= 0) {
-            //         break
-            //     }
-            // }
-
-            // console.log(keys[J] / CONVERSIONRATE > drawInfo.minX,keys[J] / CONVERSIONRATE, drawInfo.minX, startIndex - J)
-
-
-
-
-            // keys[startIndex] = xValueToPixels(keys[startIndex])
-            // values[startIndex] = yValueToPixels(values[startIndex])
-            // keys[startIndex - 1] = xValueToPixels(keys[startIndex - 1])
-            // values[startIndex - 1] = yValueToPixels(values[startIndex - 1])
-
-            // console.log(keys)
-
-            //  keys[startIndex-] = xValueToPixels(keys[startIndex-2] / CONVERSIONRATE)
-            // values[startIndex-1] = yValueToPixels(values[startIndex-2])
-            // // for (let j = startIndex - 1; j >= 0; j--) {
-            //     keys[j] = xValueToPixels(keys[j] / CONVERSIONRATE)
-            //     values[j] = yValueToPixels(values[j])
-            // }
-
-
-
-            // console.log(keys)
-            // console.log(keys)
-            // console.log(topics[i].name, (360/topics.length ) * i)
-
-            // renderer.draw(keys.slice(J, startIndex), values.slice(J, startIndex), 1.5, hsvToRgb((360 / topics.length) * i, 50, 50, 1))
-            // graphics.lineTo(xValueToPixel(keys[startIndex-1] / CONVERSIONRATE) - gx, yValueToPixels(values[startIndex-1]) - gy).stroke(strokestyle)
-            // graphics.lineTo(0,0).stroke(strokestyle)
-            // for (let j = startIndex; keys[j] / CONVERSIONRATE > currentBounds.minX; j--) {
-            //     // if(keys[j])
-            // }
-            // keys = null
-            // values = null
         }
 
-        canvas.attr("data-drawInfo", JSON.stringify(currentBounds))
-        // console.log(renderer.camera)
-
-        function compareAndTransform(oldBounds, newBounds) {
-            if (compareFloat(oldBounds.width, newBounds.width)) {
-                //Scale X code
-            }
-
-            if (compareFloat(oldBounds.height, newBounds.height)) {
-                //Scale Y code
-            }
-
-            if (!compareFloat(oldBounds.minX, newBounds.minX)) {
-                //Traslate X code
-
-                let diffPixels = xValueToPixels(newBounds.minX) - xValueToPixels(oldBounds.minX)
-
-
-
-            }
-
-            if (compareFloat(oldBounds.minY, newBounds.minY)) {
-                //Translate Y Code
-            }
-        }
-
-        function xValueToPixels(value) {
-            value = parseFloat(value)
-            let percent = (value - parseFloat(canvas.attr("data-xViewMin"))) / parseFloat(canvas.attr("data-xViewWidth"))
-            // console.log(percent)
-            return percent * canvas.width()
-        }
-        function yValueToPixels(value) {
-            value = parseFloat(value)
-            let percent = (value - parseFloat(canvas.attr("data-yViewMin"))) / parseFloat(canvas.attr("data-yViewHeight"))
-            return (percent * canvas.height() * -1) + canvas.height()
-        }
+        renderer.setCamera(currentBounds.maxX - (currentBounds.width / 2), currentBounds.minY + (currentBounds.height / 2), (canvas.width() / canvas.height()) / (currentBounds.width / 2), 1 / (currentBounds.height / 2))
     }
 
 }

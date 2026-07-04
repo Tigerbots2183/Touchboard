@@ -152,8 +152,8 @@ function onConnectCb() {
 
     setTimeout(() => {
         setInterval(() => {
-            console.log(nt4Client.serverTopics)
-            console.log(nt4Client.schemas)
+            // console.log(nt4Client.serverTopics)
+            // console.log(nt4Client.schemas)
         }, 1000)
 
         setSelectOpener()
