@@ -25,7 +25,7 @@
 import { NT4_Client } from "../lib/nt4.js";
 import { topicToSidebar } from "./editor/editorUi.js";
 import { setSelectOpener } from "./ui.js";
-import { MathUtils } from "../../../lib/util.js";
+import { MathUtils } from "../lib/util.js";
 import { renderFrame, isFrameScheduled} from "./renderer.js";
 
 let sidebaredStructs = []
