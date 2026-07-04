@@ -143,7 +143,7 @@ function bindComponentAdders() {
 
         let componentType = $(event.currentTarget)[0].classList[0];
 
-        toastMessage(componentType)
+        // toastMessage(componentType)
 
         let jQueryReference
 
