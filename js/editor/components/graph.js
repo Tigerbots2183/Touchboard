@@ -2,7 +2,6 @@
 import { pxToCq, clamp, toastMessage } from "../../ui.js";
 import { nt4Client } from "../../coms.js";
 import { WebGPULineGraph } from "../../../lib/gpuDrawer.js"
-import { compareFloat } from "../../../lib/util.js";
 import { renderFuncs } from "../../renderer.js";
 
 // let canvas = document.getElementById("testMain");

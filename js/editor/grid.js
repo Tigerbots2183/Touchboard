@@ -24,7 +24,7 @@
 
 import { pxToCq } from "../ui.js"
 import { createDefaultOf } from "./components/components.js"
-import { roundToNearestX } from "../../../lib/util.js"
+import { roundToNearestX } from "../../lib/util.js"
 
 let grid = {
     row: 0,
