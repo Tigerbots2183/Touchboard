@@ -20,8 +20,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-// 
-
 import { pxToCq } from "../ui.js"
 import { createDefaultOf } from "./components/components.js"
 import { roundToNearestX } from "../../lib/util.js"
@@ -59,7 +57,6 @@ export function tabGrid(columns, rows, tab) {
     $tab.offset()
 
     setGridUnderlay(columns, rows)
-    // setGridUnderlay(size, tab)
 }
 
 function setGridSize($tab, columns, rows) {
