@@ -1052,13 +1052,13 @@ export function createGraph(displayName, topics, append, similarOptions = defaul
     let rightTicks = $("<div>").addClass("rightTicks").attr("data-max", "false").attr("data-min", "false").attr("data-absMax", "1").attr("data-absMin", "-1").appendTo(graph)
     createTicks(11, "Right", rightTicks)
 
-    let bottomSuperSlider = $("<div>").addClass("bottomSuperSlider").attr("data-absMin", "0").attr("data-absMax", 1000).appendTo(graph)
+    let bottomSuperSlider = $("<div>").addClass("bottomSuperSlider").attr("data-absMin", (nt4Client.getServerTime_us() / 1000000.0)-10).attr("data-absMax", (nt4Client.getServerTime_us() / 1000000.0)).appendTo(graph)
 
     createSliderParts("mid", bottomSuperSlider)
     createSliderParts("bottom", bottomSuperSlider)
     createSliderParts("top", bottomSuperSlider)
 
-    let bottomTicks = $("<div>").addClass("bottomTicks").attr("data-max", "false").attr("data-absMax", "1").attr("data-absMin", "0").appendTo(graph)
+    let bottomTicks = $("<div>").addClass("bottomTicks").attr("data-max", "false").attr("data-absMax", (nt4Client.getServerTime_us() / 1000000.0) -10).attr("data-absMin", (nt4Client.getServerTime_us() / 1000000.0) ).appendTo(graph)
 
     createTicks(11, "Bottom", bottomTicks)
 

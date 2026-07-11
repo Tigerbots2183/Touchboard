@@ -28,7 +28,7 @@ export async function initGraph(graph) {
         testSync = findNiceScale(absAsBackup(graph.find(".rightTicks"), "min"), (absAsBackup(graph.find(".rightTicks"), "max")))
     }
 
-    let viewableZoomedUnitsX = 14;
+    let viewableZoomedUnitsX = 10;
     let viewableZoomedUnitsY = false;
 
     let offsetX = 0
@@ -256,17 +256,19 @@ export async function initGraph(graph) {
 
             if (viewableZoomedUnitsY == false) {
                 viewableZoomedUnitsY = range;
-            } else if (viewableZoomedUnitsY + event.originalEvent.deltaY < 0.005) {
-                viewableZoomedUnitsY = 0.005
             } else if (isTrackpad) {
                 viewableZoomedUnitsY += event.originalEvent.deltaY
             } else {
                 viewableZoomedUnitsY += event.originalEvent.deltaY / 64
             }
 
+            if (viewableZoomedUnitsY < 0.005) {
+                viewableZoomedUnitsY = 0.005
+            }
+
             let min = center - (viewableZoomedUnitsY * pointer.yP)
             let max = center + (viewableZoomedUnitsY * (1 - pointer.yP))
-            // console.log(viewableZoomedUnitsY)
+            console.log(viewableZoomedUnitsY, event.originalEvent.deltaY)
 
             if (absLeftMax < max && absLeftMin > min) {
                 min = absLeftMin
@@ -304,21 +306,25 @@ export async function initGraph(graph) {
             if (event.isPsuedoEvent) {
                 offsetX = (clamp(event.deltaXfromLastMove / holder.width(), -1) * viewableZoomedUnitsX)
             } else {
-                offsetX = - event.originalEvent.deltaX
+                offsetX = - event.originalEvent.deltaX / 100
             }
+
 
             let oldMax = absAsBackup(bottomTicks, "max")
 
             let absMin = parseFloat(bottomTicks.attr("data-absMin"))
 
             if (oldMax - offsetX - viewableZoomedUnitsX < absMin) {
-                offsetX = oldMax + absMin - viewableZoomedUnitsX
+    
+                return
             }
 
             if (oldMax > parseFloat(bottomTicks.attr("data-absmax"))) {
                 lockToX(absMin)
                 return
             }
+
+
 
             setTickAttributes(bottomTicks, bottomSlider, oldMax - offsetX - viewableZoomedUnitsX, oldMax - offsetX)
 
@@ -536,14 +542,14 @@ export async function initGraph(graph) {
 
         drawData(graph, renderer, allTopics)
         renderer.render()
-        let absMax = (nt4Client.getServerTime_us() / 1000000.0)
+        let absMax = (nt4Client.getServerTime_us() / CONVERSIONRATE)
         $(".bottomTicks").attr("data-absmax", absMax)
         $(".bottomSuperSlider").attr("data-absmax", absMax)
         $(".superSliderBottom").attr("max", absMax)
         $(".superSliderTop").attr("max", absMax)
 
         if ($(".bottomTicks").attr("data-max") == "false" && $(".bottomTicks").attr("data-min") != "false") {
-            let min = (nt4Client.getServerTime_us() / 1000000.0) - viewableZoomedUnitsX
+            let min = (nt4Client.getServerTime_us() / CONVERSIONRATE) - viewableZoomedUnitsX
             let absMin = 0
 
             $(".bottomTicks").attr("data-min", min)
@@ -739,29 +745,31 @@ function setCanvasesToTicks(graph, renderer) {
         let max = absAsBackup(ticks, "max")
         let min = absAsBackup(ticks, "min")
 
-        let overridden = false;
+        let overriddenMin = false;
+        let overriddenMax = false;
+
 
         if (ticks.attr("data-max") == "false") {
             max = renderer.getMinMaxInView().max
-            overridden = true
+            overriddenMax = true
         }
 
         if (ticks.attr("data-min") == ticks.attr("data-absmin") || ticks.attr("data-min") == "false") {
             min = renderer.getMinMaxInView().min
-            overridden = true
+            overriddenMin = true
         }
 
-        if (overridden) {
+        if (overriddenMin || overriddenMax) {
             let newscale = findNiceScale(min, max)
             setAbsMinMax(setTickScale(newscale, ticks))
 
             slider.attr("data-absmax", max).attr('data-absmin', min)
 
-            if (parseFloat(slider.attr("data-max")) > parseFloat(slider.attr('data-absMax'))) {
+            if (overriddenMax) {
                 slider.attr("data-max", 'false')
             }
 
-            if (parseFloat(slider.attr("data-min")) < parseFloat(slider.attr('data-absMin'))) {
+            if (overriddenMin) {
                 slider.attr("data-min", min)
             }
 
@@ -998,14 +1006,7 @@ function findNiceScale(minimum, maximum, percision = 8) {
             Math.ceil(maxPoint / tickSpacing) * tickSpacing;
     }
 
-    let currentScale = niceScale(minimum, maximum)
-
-
-    // console.log(startString, currentScale)
-
     return niceScale(minimum, maximum)
-
-
 }
 
 function findRelativeScale(min, max, niceScale, displacement = 1) {
@@ -1280,7 +1281,7 @@ function runSinTest() {
 
     let sinTestData = []
 
-    sinTestData.push(currentTimestamp, Math.sin(nt4Client.getServerTime_us() / 1000000.0))
+    sinTestData.push(currentTimestamp, Math.sin(nt4Client.getServerTime_us() / CONVERSIONRATE))
     // sinTestValues.push()
 
     return { name: "SinTest", dataArray: sinTestData, timestamp: currentTimestamp }
