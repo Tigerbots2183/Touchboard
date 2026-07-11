@@ -1,6 +1,6 @@
 {
   "name": "touchboard",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "A touchscreen button board and dashboard that communicates over networktables.",
   "main": "main.js",
   "scripts": {

@@ -158,7 +158,6 @@ function bindComponentAdders() {
         //When fill is enabled, the element takes 100% of current container width, since it starts with no container, 
         //Current drag is exempt from this 100%, but that class wont be added to later, so we make a new element with
         //that class to put into the mouse position handler and add the offset for the center of the element. 
-
         let dragRef = createDefaultOf(componentType, ".dashboardHolder", "esc-UNDEFINED-esc").addClass("currentDrag")
 
         let clientDrag = clientDragHandler(event, dragRef)

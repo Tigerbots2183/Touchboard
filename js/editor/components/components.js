@@ -27,7 +27,7 @@ import { toastMessage } from "../../ui.js"
 import { connectionDate, subscribedTopics, nt4Client, getStructValue } from "../../coms.js"
 import { objectIncludes } from "../../../lib/util.js"
 import { addToRender } from "../../renderer.js"
-import { initGraph } from "./graph.js"
+import { initGraph, CONVERSIONRATE } from "./graph.js"
 
 export let defaultSimilarOptions = {
     fill: false,
@@ -661,24 +661,24 @@ export function createNumberLine(displayName, topic, append = false, hex = "#0c0
 
                 if (numberLine.attr("data-deriveAttributes") == "true") {
                     if (Math.round(value) > parseFloat(meter.attr("max"))) {
-                        addToRender(meter[0], {"updating": "attribute", "attrName": "max", "newValue": Math.round(value)})
-                        
+                        addToRender(meter[0], { "updating": "attribute", "attrName": "max", "newValue": Math.round(value) })
+
                         let meterTopTextChAvgLength = (("0" + Math.round(value / 4) + "" + Math.round(value / 2) + "" + Math.round(value * 0.75) + "" + Math.round(parseFloat(value))).length) / 5
 
-                        addToRender(meter[0], {"updating": "attribute", "attrName": "data-avgch", "newValue":  meterTopTextChAvgLength})
+                        addToRender(meter[0], { "updating": "attribute", "attrName": "data-avgch", "newValue": meterTopTextChAvgLength })
                     }
                 }
                 if (numberLine.attr("data-deriveAttributesMin") == "true") {
                     if (Math.round(value) < parseFloat(meter.attr("min"))) {
-                        addToRender(meter[0], {"updating": "attribute", "attrName": "min", "newValue": Math.round(value)})
+                        addToRender(meter[0], { "updating": "attribute", "attrName": "min", "newValue": Math.round(value) })
 
                         let meterTopTextChAvgLength = (("0" + Math.round(value / 4) + "" + Math.round(value / 2) + "" + Math.round(value * 0.75) + "" + Math.round(parseFloat(value))).length) / 5
 
-                        addToRender(meter[0], {"updating": "attribute", "attrName": "data-avgch", "newValue":  meterTopTextChAvgLength})
+                        addToRender(meter[0], { "updating": "attribute", "attrName": "data-avgch", "newValue": meterTopTextChAvgLength })
                     }
                 }
 
-                addToRender(meter[0], {"updating": "attribute", "attrName": "value", "newValue":  value})
+                addToRender(meter[0], { "updating": "attribute", "attrName": "value", "newValue": value })
 
             }
         }
@@ -800,25 +800,25 @@ export function createRadialGauge(displayName, topic, append, hex = "#0c0c0c", m
     if (topic == "esc-UNSET-esc") return radialGauge
 
     let gaugeHandler = (value) => {
-        
 
-   
+
+
         // gauge[0].style.setProperty("--gaugeColor", )
-        addToRender(gauge[0],  {"updating": "rawProperty", "propName": "--gaugeColor", "newValue": emulateMeterColors(gauge.attr("data-minNumber"), gauge.attr("data-maxNumber"), gauge.attr("data-low"), gauge.attr("data-high"), gauge.attr("data-optimum"), value)})
+        addToRender(gauge[0], { "updating": "rawProperty", "propName": "--gaugeColor", "newValue": emulateMeterColors(gauge.attr("data-minNumber"), gauge.attr("data-maxNumber"), gauge.attr("data-low"), gauge.attr("data-high"), gauge.attr("data-optimum"), value) })
 
         if (gauge.attr("data-maxNumber")) {
-            addToRender(gauge[0], {"updating": "removeAttribute", "attrName": "data-valDeg"})
+            addToRender(gauge[0], { "updating": "removeAttribute", "attrName": "data-valDeg" })
 
             let min = parseFloat(gauge.attr("data-minNumber"))
             let range = parseFloat(gauge.attr("data-maxNumber")) - min
 
             value = ((value - min) % range) + min
 
-            addToRender(gauge[0], {"updating": "attribute", "attrName": "data-valNumber", "newValue":  value})        
+            addToRender(gauge[0], { "updating": "attribute", "attrName": "data-valNumber", "newValue": value })
 
             return
         }
-        addToRender(gauge[0], {"updating": "attribute", "attrName": "data-valDeg", "newValue":  value})        
+        addToRender(gauge[0], { "updating": "attribute", "attrName": "data-valDeg", "newValue": value })
     }
 
     let subscribedReference = {
@@ -1008,7 +1008,9 @@ export function createCamera(displayName, topic, append, hideNav = false, videoF
 
 }
 
-export function createGraph(displayName, topics, append, similarOptions = defaultSimilarOptions){
+export function createGraph(displayName, topics, append, similarOptions = defaultSimilarOptions) {
+    let topicData = [];
+    let currentTimestamp = nt4Client.getServerTime_us() / CONVERSIONRATE
 
     if (displayName == null) {
         let topicSplit = topics[0].split("/")
@@ -1023,7 +1025,7 @@ export function createGraph(displayName, topics, append, similarOptions = defaul
 
     let graph = $("<div>").addClass("graph").attr("data-linkAxis", "false").attr("data-componentType", "graph").attr("draggable", "false")
 
-    if(append){
+    if (append) {
         graph.appendTo(append)
     }
 
@@ -1033,7 +1035,7 @@ export function createGraph(displayName, topics, append, similarOptions = defaul
     $("<h1>").addClass("editThisName").addClass("graphTitle").text(displayName).appendTo(graph)
 
     $("<div>").addClass("rightButtons").appendTo(graph);
-    
+
     let leftSuperSlider = $("<div>").addClass("leftSuperSlider").addClass("verticalSuperSlider").attr("data-max", "false").attr("data-absMax", "3").attr("data-absMin", "-3").appendTo(graph)
 
     createSliderParts("mid", leftSuperSlider)
@@ -1043,22 +1045,22 @@ export function createGraph(displayName, topics, append, similarOptions = defaul
     let leftTicks = $("<div>").addClass("leftTicks").attr("data-max", "false").attr("data-min", "false").attr("data-absMax", "3").attr("data-absMin", "-3").appendTo(graph)
     createTicks(11, "Left", leftTicks)
 
-    let rightSuperSlider = $("<div>").addClass("rightSuperSlider").addClass("verticalSuperSlider").attr("data-max", "false").attr("data-absMax", "1").attr("data-absMin", "-1").appendTo(graph)
+    let rightSuperSlider = $("<div>").addClass("rightSuperSlider").addClass("verticalSuperSlider").attr("data-max", "false").attr("data-absMax", "1").attr("data-absMin", "-1").css("display", "none").appendTo(graph)
 
     createSliderParts("mid", rightSuperSlider)
     createSliderParts("bottom", rightSuperSlider)
     createSliderParts("top", rightSuperSlider)
 
-    let rightTicks = $("<div>").addClass("rightTicks").attr("data-max", "false").attr("data-min", "false").attr("data-absMax", "1").attr("data-absMin", "-1").appendTo(graph)
+    let rightTicks = $("<div>").addClass("rightTicks").attr("data-max", "false").attr("data-min", "false").attr("data-absMax", "1").attr("data-absMin", "-1").css("display", "none").appendTo(graph)
     createTicks(11, "Right", rightTicks)
 
-    let bottomSuperSlider = $("<div>").addClass("bottomSuperSlider").attr("data-absMin", (nt4Client.getServerTime_us() / 1000000.0)-10).attr("data-absMax", (nt4Client.getServerTime_us() / 1000000.0)).appendTo(graph)
+    let bottomSuperSlider = $("<div>").addClass("bottomSuperSlider").attr("data-absMin", (nt4Client.getServerTime_us() / 1000000.0) - 10).attr("data-absMax", (nt4Client.getServerTime_us() / 1000000.0)).appendTo(graph)
 
     createSliderParts("mid", bottomSuperSlider)
     createSliderParts("bottom", bottomSuperSlider)
     createSliderParts("top", bottomSuperSlider)
 
-    let bottomTicks = $("<div>").addClass("bottomTicks").attr("data-max", "false").attr("data-absMax", (nt4Client.getServerTime_us() / 1000000.0) -10).attr("data-absMin", (nt4Client.getServerTime_us() / 1000000.0) ).appendTo(graph)
+    let bottomTicks = $("<div>").addClass("bottomTicks").attr("data-max", "false").attr("data-absMax", (nt4Client.getServerTime_us() / 1000000.0) - 10).attr("data-absMin", (nt4Client.getServerTime_us() / 1000000.0)).appendTo(graph)
 
     createTicks(11, "Bottom", bottomTicks)
 
@@ -1077,22 +1079,43 @@ export function createGraph(displayName, topics, append, similarOptions = defaul
     setCanvasWidths(secondaryCanvas)
     setCanvasWidths(primaryCanvas)
 
-    if(topics[0] !== "esc-UNDEFINED-esc" && topics[0] !== "esc-UNSET-esc"  ){
-        console.log(topics[0])
-        initGraph(graph)
+    if (topics[0] !== "esc-UNDEFINED-esc" && topics[0] !== "esc-UNSET-esc") {
+        initialize();    
+        // initGraph(graph);
+
+        async function initialize() {
+            console.log(topics[0])
+            let graphManager = await initGraph(graph)
+            console.log(graphManager)
+
+            await graphManager["renderer"].createLine(topics[0], "#8400ff", 4)
+
+            function sendTopicData() {
+                let data = structuredClone(topicData)
+
+                topicData = [];
+
+                return { name: topics[0], dataArray: data, timestamp: nt4Client.getServerTime_us() / CONVERSIONRATE }
+                
+            }
+
+            graphManager.allTopicFuncs.push(
+                sendTopicData
+            )
+        }
     }
 
-    function setCanvasWidths(canvas){
+    function setCanvasWidths(canvas) {
         canvas.attr("width", canvas.width()).attr("height", canvas.height())
     }
 
-    function createTicks(amount, side, append){
-        for(let i = 0; i < amount; i++){
+    function createTicks(amount, side, append) {
+        for (let i = 0; i < amount; i++) {
             $("<div>").addClass("graph" + side + "Tick").text(i).appendTo(append)
         }
     }
 
-    function createSliderParts(part, append){
+    function createSliderParts(part, append) {
         let newPart = $("<div>").addClass(part + "Slider").addClass("superSliderPart").appendTo(append)
 
         $("<div>").addClass("sliderThumb").appendTo(newPart)
@@ -1103,22 +1126,49 @@ export function createGraph(displayName, topics, append, similarOptions = defaul
     setSimilarOptions(graph, similarOptions)
     addEditHandler(graph, "double")
 
+    function graphDataHandler(value, timestamp) {
+        topicData.push(timestamp/CONVERSIONRATE, value)
+    }
+
+    let subscribedReference = {
+        'jQueryReference': false,
+        'parentReference': graph,
+        'valueHandeler': graphDataHandler,
+    }
+
+
+    if (topics[0].includes("|")) {
+        if (!subscribedTopics.hasOwnProperty(topics[0].split("|")[0])) {
+            subscribedTopics[topics[0].split("|")[0]] = []
+        }
+        subscribedReference.structPath = topics[0]
+        subscribedTopics[topics[0].split("|")[0]].push(subscribedReference)
+        graph.attr("data-subscriptionIndex", subscribedTopics[topics[0].split("|")[0]].length - 1)
+
+    } else {
+        if (!subscribedTopics.hasOwnProperty(topics[0])) {
+            subscribedTopics[topics[0]] = []
+        }
+        subscribedTopics[topics[0]].push(subscribedReference)
+        graph.attr("data-subscriptionIndex", subscribedTopics[topics[0]].length - 1)
+    }
+
     return graph
 }
 
 //Subscription Blank
 
 // export function createBlank(displayName, topic, append, hex, ...similarOptions = defaultSimilarOptions) {
-    // if (displayName == null) {
-    //     let topicSplit = topic.split("/")
-    //     displayName = topicSplit[topicSplit.length - 1]
+// if (displayName == null) {
+//     let topicSplit = topic.split("/")
+//     displayName = topicSplit[topicSplit.length - 1]
 
-    //     if (displayName == "value" && topicSplit.length > 1) {
-    //         displayName = topicSplit[topicSplit.length - 2]
-    //     }
+//     if (displayName == "value" && topicSplit.length > 1) {
+//         displayName = topicSplit[topicSplit.length - 2]
+//     }
 
-    //     displayName = displayName.split(":")[0]
-    // }
+//     displayName = displayName.split(":")[0]
+// }
 
 //     let blank = $("<div>")
 //         .addClass("blankComponent")
@@ -1637,7 +1687,7 @@ export function createDefaultOf(component, append, topic = "esc-UNSET-esc") {
         case "camera":
             return createCamera(undefined, topic, append)
         case "graph":
-            return createGraph(undefined, [topic], append )
+            return createGraph(undefined, [topic], append)
     }
 }
 

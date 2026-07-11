@@ -570,7 +570,6 @@ export async function initGraph(graph) {
         setTickScale(yscale, $(".bottomTicks"))
     }
 
-
     function addMusicDropHandler(graph) {
         let audio = graph.children("#audio")[0];
         let linkedMusic = false;
@@ -679,8 +678,9 @@ export async function initGraph(graph) {
 
             linkedMusic = true
         }
-    }
+    }   
 
+    return {renderer:renderer, allTopicFuncs:allTopicFuncs};
 }
 
 
@@ -809,7 +809,10 @@ function drawData(graph, renderer, topics) {
 
         for (let i in topics) {
             renderer.addData(topics[i].name, topics[i].dataArray);
+            topics[i].dataArray = [];
+
         }
+
 
         renderer.setCamera(currentBounds.maxX - (currentBounds.width / 2), currentBounds.minY + (currentBounds.height / 2), (canvas.width() / canvas.height()) / (currentBounds.width / 2), 1 / (currentBounds.height / 2))
     }
