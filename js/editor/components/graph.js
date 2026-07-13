@@ -8,14 +8,16 @@ import { renderFuncs } from "../../renderer.js";
 
 export const CONVERSIONRATE = 1000000.0
 
+
 export async function initGraph(graph) {
     let allTopicFuncs = []
 
     let canvas = graph.find(".graphCanvasPrimary")[0]
 
+    let startTimestamp = graph.find(".bottomTicks").attr("data-absmin")
+
     let renderer = new WebGPULineGraph()
 
-    console.log(absAsBackup(graph.find(".leftTicks"), "min"))
 
     let testScale = findNiceScale(absAsBackup(graph.find(".leftTicks"), "min"), absAsBackup(graph.find(".leftTicks"), "max"))
 
@@ -43,27 +45,26 @@ export async function initGraph(graph) {
     let initiatedScrollAxis = ''
     let currentResetTimeout;
 
-    $(".graphHolder").on("wheel", (event) => {
+    graph.find(".graphHolder").on("wheel", (event) => {
         zoomAndPanHandler(event, graph)
     })
 
-    dragPsuedoEvent($(".graphHolder"), (event) => {
+    dragPseudoEvent(graph.find(".graphHolder"), (event) => {
         zoomAndPanHandler(event, graph)
     })
 
 
-    console.log(canvas)
     await renderer.initialize(canvas)
 
     renderer.setCamera(0, 0, $(canvas).width(), $(canvas).height())
 
-    renderer.createLine("SinTest", "#ffa600", 3)
-    renderer.createLine("OdomFrequency", "#8400ff", 3)
+    // renderer.createLine("SinTest", "#ffa600", 3)
+    // renderer.createLine("OdomFrequency", "#8400ff", 3)
     renderer.createLine("Audio FileR", "#ffffff", 8)
     renderer.createLine("Audio FileL", "#ffffff", 8)
+1
 
-
-    bindSuperSlider(graph.find(".bottomSuperSlider"), graph.find(".bottomTicks"))
+    bindSuperSlider(graph.find(".bottomSuperSlider"), graph.find(".bottomTicks"), undefined, undefined, undefined, graph)
     bindSuperSlider(graph.find(".leftSuperSlider"), graph.find(".leftTicks"), "y", graph.find(".rightTicks"), graph.find(".rightSuperSlider"), graph)
     bindSuperSlider(graph.find(".rightSuperSlider"), graph.find(".rightTicks"), "y", graph.find(".leftTicks"), graph.find(".leftSuperSlider"), graph)
 
@@ -76,7 +77,7 @@ export async function initGraph(graph) {
     addMusicDropHandler(graph)
 
     function resizeHandler() {
-        console.log("observed")
+        console.log("Resize Observed")
 
         $(canvas).attr("width", $(canvas).width()).attr("height", $(canvas).height())
 
@@ -129,38 +130,53 @@ export async function initGraph(graph) {
         pointer.xP = clamp(pointer.x / holder.width())
         pointer.yP = clamp((holder.height() - pointer.y) / holder.height())
 
-        if (event.ctrlKey && !event.isPsuedoEvent) {
+        if (event.ctrlKey && !event.isPseudoEvent) {
             graphZoomY()
-        } else if ((event.originalEvent.deltaY > tolerance || event.originalEvent.deltaY < -tolerance) && (!initiatedScrollAxis || initiatedScrollAxis === "ZOOMX") && !event.isPsuedoEvent && bottomTicks.attr("data-max") == "false") {
+        } else if ((event.originalEvent.deltaY > tolerance || event.originalEvent.deltaY < -tolerance) && (!initiatedScrollAxis || initiatedScrollAxis === "ZOOMX") && !event.isPseudoEvent && bottomTicks.attr("data-max") == "false") {
             initiatedScrollAxis = "ZOOMX"
             graphZoomXFromRight()
-        } else if ((event.originalEvent.deltaY > tolerance || event.originalEvent.deltaY < -tolerance) && (!initiatedScrollAxis || initiatedScrollAxis === "ZOOMX") && !event.isPsuedoEvent) {
+        } else if ((event.originalEvent.deltaY > tolerance || event.originalEvent.deltaY < -tolerance) && (!initiatedScrollAxis || initiatedScrollAxis === "ZOOMX") && !event.isPseudoEvent) {
             initiatedScrollAxis = "ZOOMX"
             graphZoomXFromMouse()
         }
-        else if ((event.originalEvent.deltaX > tolerance || event.originalEvent.deltaX < -tolerance) && (!initiatedScrollAxis || initiatedScrollAxis === "OFFSETX") && !event.isPsuedoEvent) {
+        else if ((event.originalEvent.deltaX > tolerance || event.originalEvent.deltaX < -tolerance) && (!initiatedScrollAxis || initiatedScrollAxis === "OFFSETX") && !event.isPseudoEvent) {
             initiatedScrollAxis = "OFFSETX"
             graphOffsetX()
         }
-        //These are triggered by the dragPseudoEvent which also executes this function. None of the other cases can be called though for multiple reasons. Pseudoevent dosent have origional event but the !event.isPsudeoEvent is there as a failsafe.
-        else if (((event.deltaX > tolerance * 8) || event.deltaX < -(tolerance * 8)) && (event.deltaY > tolerance * 8 || event.deltaY < -(tolerance * 8)) && ((!initiatedScrollAxis || initiatedScrollAxis === "OFFSETXY") || initiatedScrollAxis == "OFFSETX" || initiatedScrollAxis == "OFFSETY")) {
-            initiatedScrollAxis = "OFFSETXY"
-            graphOffsetX()
-            graphOffsetY()
+        // Panning drag tolerance logic
+        let dragTolerance = tolerance * 8;
+        let isXDrag = Math.abs(event.deltaX) > dragTolerance;
+        let isYDrag = Math.abs(event.deltaY) > dragTolerance;
+
+        if (isXDrag && isYDrag) {
+            initiatedScrollAxis = "OFFSETXY";
+            graphOffsetX();
+            graphOffsetY();
+        } else if (isXDrag && (!initiatedScrollAxis || initiatedScrollAxis === "OFFSETX" || initiatedScrollAxis === "OFFSETXY")) {
+            initiatedScrollAxis = initiatedScrollAxis || "OFFSETX";
+            graphOffsetX();
+            if (initiatedScrollAxis === "OFFSETXY") graphOffsetY();
+        } else if (isYDrag && (!initiatedScrollAxis || initiatedScrollAxis === "OFFSETY" || initiatedScrollAxis === "OFFSETXY")) {
+            initiatedScrollAxis = initiatedScrollAxis || "OFFSETY";
+            graphOffsetY();
+            if (initiatedScrollAxis === "OFFSETXY") graphOffsetX();
         }
-        else if ((event.deltaX > tolerance * 8) || event.deltaX < -(tolerance * 8) && (!initiatedScrollAxis || initiatedScrollAxis === "OFFSETX")) {
-            initiatedScrollAxis = "OFFSETX"
-            graphOffsetX()
+
+        // If currently locked to X but Y breaks tolerance, unlock both
+        if (initiatedScrollAxis === "OFFSETX" && isYDrag) {
+            initiatedScrollAxis = "OFFSETXY";
+            graphOffsetY();
         }
-        else if ((event.deltaY > tolerance * 8) || event.deltaY < -(tolerance * 8) && (!initiatedScrollAxis || initiatedScrollAxis === "OFFSETY")) {
-            initiatedScrollAxis = "OFFSETY"
-            graphOffsetY()
+        // If currently locked to Y but X breaks tolerance, unlock both
+        if (initiatedScrollAxis === "OFFSETY" && isXDrag) {
+            initiatedScrollAxis = "OFFSETXY";
+            graphOffsetX();
         }
 
         clearTimeout(currentResetTimeout);
 
         currentResetTimeout = setTimeout(() => {
-            initiatedScrollAxis = ''
+            initiatedScrollAxis = '';
         }, 50);
 
         function graphZoomXFromRight() {
@@ -179,11 +195,20 @@ export async function initGraph(graph) {
             let absMax = parseFloat(bottomTicks.attr("data-absMax"))
             let absMin = parseFloat(bottomTicks.attr("data-absMin"))
 
+            let oldRange = parseFloat(bottomTicks.attr("data-max")) - parseFloat(bottomTicks.attr("data-min"));
+            let absoluteRange = absMax - absMin;
+
+            if (oldRange >= absoluteRange - 0.05 && viewableZoomedUnitsX > oldRange && bottomTicks.attr("data-min") !== "false") {
+                setTickAttributes(bottomTicks, bottomSlider, "false", "false");
+                triggerGraphEffector(graph.find(".primaryGraphEffectorOverlay"), "flushAnimaiton");
+                return;
+            }
+
             let offset = absMax - viewableZoomedUnitsX
 
-            if (offset < absMin) {
+            if (offset <= absMin) {
                 offset = absMin
-                viewableZoomedUnitsX = absMax - absMin
+                viewableZoomedUnitsX = absoluteRange
             }
 
             setTickAttributes(bottomTicks, bottomSlider, offset)
@@ -213,22 +238,29 @@ export async function initGraph(graph) {
                 let absMax = parseFloat(bottomTicks.attr("data-absMax"))
                 let absMin = parseFloat(bottomTicks.attr("data-absMin"))
 
-                let range = oldValMax - oldValMin;
+                let oldRange = oldValMax - oldValMin;
+                let absoluteRange = absMax - absMin;
 
-                let center = (pointer.xP * range) + oldValMin;
+                if (oldRange >= absoluteRange - 0.05 && viewableZoomedUnitsX > oldRange) {
+                    setTickAttributes(bottomTicks, bottomSlider, "false", "false");
+                    triggerGraphEffector(graph.find(".primaryGraphEffectorOverlay"), "flushAnimaiton");
+                    return;
+                }
+
+                let center = (pointer.xP * oldRange) + oldValMin;
 
                 let min = center - (viewableZoomedUnitsX * pointer.xP)
                 let max = center + (viewableZoomedUnitsX * (1 - pointer.xP))
 
-                if (absMax < max && absMin > min) {
+                if (absMax <= max && absMin >= min) {
                     min = absMin
                     max = absMax
-                    viewableZoomedUnitsX = range;
+                    viewableZoomedUnitsX = absoluteRange;
                 } else if (absMax < max) {
-                    max = absMax - 1
+                    max = absMax
                     min = absMax - viewableZoomedUnitsX
                 } else if (absMin > min) {
-                    min = absMin + 1
+                    min = absMin
                     max = absMin + viewableZoomedUnitsX
                 }
 
@@ -250,16 +282,29 @@ export async function initGraph(graph) {
             let absLeftMax = parseFloat(leftTicks.attr("data-absMax"))
             let absLeftMin = parseFloat(leftTicks.attr("data-absMin"))
 
-            let range = oldLeftValMax - oldLeftValMin;
+            let oldRange = oldLeftValMax - oldLeftValMin;
+            let absoluteRange = absLeftMax - absLeftMin;
 
-            let center = (pointer.yP * range) + oldLeftValMin;
+            let center = (pointer.yP * oldRange) + oldLeftValMin;
 
             if (viewableZoomedUnitsY == false) {
-                viewableZoomedUnitsY = range;
+                viewableZoomedUnitsY = oldRange;
             } else if (isTrackpad) {
-                viewableZoomedUnitsY += event.originalEvent.deltaY
+                viewableZoomedUnitsY += viewableZoomedUnitsY += (event.originalEvent.deltaY * viewableZoomedUnitsY) *.005 * 64
+
             } else {
-                viewableZoomedUnitsY += event.originalEvent.deltaY / 64
+                viewableZoomedUnitsY += (event.originalEvent.deltaY * viewableZoomedUnitsY) *.005
+            }
+
+            if (oldRange >= absoluteRange - 0.05 && viewableZoomedUnitsY > oldRange) {
+                setTickAttributes(leftTicks, leftSlider, "false", "false");
+
+                triggerGraphEffector(graph.find(".primaryGraphEffectorOverlay"), "upFlushAnimaiton");
+                triggerGraphEffector(graph.find(".secondaryGraphEffectorOverlay"), "downFlushAnimaiton");
+
+                viewableZoomedUnitsY = (absLeftMax - absLeftMin);
+
+                return;
             }
 
             if (viewableZoomedUnitsY < 0.005) {
@@ -268,14 +313,13 @@ export async function initGraph(graph) {
 
             let min = center - (viewableZoomedUnitsY * pointer.yP)
             let max = center + (viewableZoomedUnitsY * (1 - pointer.yP))
-            console.log(viewableZoomedUnitsY, event.originalEvent.deltaY)
 
-            if (absLeftMax < max && absLeftMin > min) {
+            if (absLeftMax <= max && absLeftMin >= min) {
                 min = absLeftMin
                 max = absLeftMax
-                viewableZoomedUnitsY = range;
+                viewableZoomedUnitsY = absoluteRange;
             } else if (absLeftMax < max) {
-                max = absLeftMax - 1
+                max = absLeftMax
                 min = absLeftMax - viewableZoomedUnitsY
             } else if (absLeftMin > min) {
                 min = absLeftMin
@@ -303,7 +347,7 @@ export async function initGraph(graph) {
         function graphOffsetX() {
             event.preventDefault()
 
-            if (event.isPsuedoEvent) {
+            if (event.isPseudoEvent) {
                 offsetX = (clamp(event.deltaXfromLastMove / holder.width(), -1) * viewableZoomedUnitsX)
             } else {
                 offsetX = - event.originalEvent.deltaX / 100
@@ -315,7 +359,7 @@ export async function initGraph(graph) {
             let absMin = parseFloat(bottomTicks.attr("data-absMin"))
 
             if (oldMax - offsetX - viewableZoomedUnitsX < absMin) {
-    
+
                 return
             }
 
@@ -344,7 +388,7 @@ export async function initGraph(graph) {
 
             viewableZoomedUnitsY = absAsBackup(currentTicks, "max") - absAsBackup(currentTicks, "min")
 
-            if (event.isPsuedoEvent) {
+            if (event.isPseudoEvent) {
                 offsetY = - (clamp(event.deltaYfromLastMove / holder.height(), -1) * viewableZoomedUnitsY)
             } else {
                 offsetY = - event.originalEvent.deltaY
@@ -398,7 +442,7 @@ export async function initGraph(graph) {
             }
 
 
-            triggerGraphEffector(graph.find(".graphEffectorOverlay"), "flushAnimaiton")
+            triggerGraphEffector(graph.find(".primaryGraphEffectorOverlay"), "flushAnimaiton")
 
             setTickAttributes(bottomTicks, bottomSlider, false, "false")
 
@@ -421,118 +465,138 @@ export async function initGraph(graph) {
         let topSlider = superSlider.children(".topSlider");
         let midSlider = superSlider.children(".midSlider");
 
-        dragPsuedoEvent(bottomSlider.children(".sliderThumb"), (event) => {
+        const updateSliderState = (sliderElement, newMin, newMax) => {
+            if (newMin !== null) {
+                ticks.attr("data-min", newMin);
+                sliderElement.attr("data-min", newMin);
+            }
+            if (newMax !== null) {
+                ticks.attr("data-max", newMax);
+                sliderElement.attr("data-max", newMax);
+            }
+            setNewTickScaleDelta(delta, ticks, secondaryTicks, secondarySlider, graph);
 
-            $(canvas).attr("width", $(canvas).width()).attr("height", $(canvas).height())
+            if (delta === "x") {
+                viewableZoomedUnitsX = absAsBackup(sliderElement, "max") - absAsBackup(sliderElement, "min");
+            } else {
+                viewableZoomedUnitsY = absAsBackup(sliderElement, "max") - absAsBackup(sliderElement, "min");
+            }
+        };
+
+        dragPseudoEvent(bottomSlider.children(".sliderThumb"), (event) => {
+            $(canvas).attr("width", $(canvas).width()).attr("height", $(canvas).height());
+            let subSlider = event.boundElement.parent();
+            let slider = subSlider.parent();
 
             let deltaPercentage;
-
-            if (delta === "x") deltaPercentage = event.deltaXfromLastMove / event.boundElement.parent().width()
-            else deltaPercentage = -event.deltaYfromLastMove / event.boundElement.parent().height()
-
-            let slider = event.boundElement.parent().parent()
-
-            let newValue = deltaPercentage * (parseFloat(slider.attr("data-absMax")) - parseFloat(slider.attr("data-absMin")))
-
-            let oldValue = absAsBackup(slider, "min")
-
-            let finalValue = clamp(oldValue + newValue, parseFloat(slider.attr("data-absMin")), absAsBackup(slider, "max") - 0.05)
-
-
-            if (oldValue + newValue < parseFloat(slider.attr("data-absMin"))) {
-                ticks.attr("data-min", "false")
-                slider.attr("data-min", slider.attr("data-absMin"))
-
-                setNewTickScaleDelta(delta, ticks, secondaryTicks, secondarySlider, graph)
-
-                if (delta === "x") triggerGraphEffector($(".graph").find(".graphEffectorOverlay"), "revFlushAnimaiton");
-                else triggerGraphEffector($(".graph").find(".graphEffectorOverlay"), "downFlushAnimaiton")
-
-                return
+            if (delta === "x") {
+                deltaPercentage = event.deltaXfromLastMove / subSlider.width();
+            } else {
+                deltaPercentage = -event.deltaYfromLastMove / subSlider.height();
             }
 
-            setTickAttributes(ticks, slider, finalValue)
-            setNewTickScaleDelta(delta, ticks, secondaryTicks, secondarySlider, graph)
+            let absMin = parseFloat(slider.attr("data-absMin"));
+            let absMax = parseFloat(slider.attr("data-absMax"));
 
+            let newValue = deltaPercentage * (absMax - absMin);
+            let oldValue = absAsBackup(slider, "min");
+            let finalValue = clamp(oldValue + newValue, absMin, absAsBackup(slider, "max") - 0.05);
 
-            if (delta === "x") viewableZoomedUnitsX = absAsBackup(slider, "max") - absAsBackup(slider, "min");
-            else viewableZoomedUnitsY = absAsBackup(slider, "max") - absAsBackup(slider, "min");
+            if (oldValue + newValue <= absMin) {
+                // Auto-scale mode uses WebGL bounds
+                let bounds = renderer.getMinMaxInView();
+                updateSliderState(slider, "false", null); // triggers setCanvasesToTicks auto-scaling
 
-        }, false)
-
-        dragPsuedoEvent(topSlider.children(".sliderThumb"), (event) => {
-
-            let deltaPercentage;
-
-            if (delta === "x") deltaPercentage = event.deltaXfromLastMove / event.boundElement.parent().width()
-            else deltaPercentage = -event.deltaYfromLastMove / event.boundElement.parent().height()
-
-            let slider = event.boundElement.parent().parent()
-
-            let newValue = deltaPercentage * (parseFloat(slider.attr("data-absMax")) - parseFloat(slider.attr("data-absMin")))
-
-            let oldValue = absAsBackup(slider, "max")
-
-            let finalValue = clamp(newValue + oldValue, absAsBackup(slider, "min") + 0.05, parseFloat(slider.attr("data-absMax")))
-
-            if (oldValue + newValue > parseFloat(slider.attr("data-absMax"))) {
-                setTickAttributes(ticks, slider, false, "false")
-
-                setNewTickScaleDelta(delta, ticks, secondaryTicks, secondarySlider, graph)
-
-                if (delta === "x") triggerGraphEffector($(".graph").find(".graphEffectorOverlay"), "flushAnimaiton");
-                else triggerGraphEffector($(".graph").find(".graphEffectorOverlay"), "upFlushAnimaiton")
-
-                return
-            }
-
-            setTickAttributes(ticks, slider, false, finalValue)
-            setNewTickScaleDelta(delta, ticks, secondaryTicks, secondarySlider, graph)
-
-            if (delta === "x") viewableZoomedUnitsX = absAsBackup(slider, "max") - absAsBackup(slider, "min");
-            else viewableZoomedUnitsY = absAsBackup(slider, "max") - absAsBackup(slider, "min");
-        }, false)
-
-        dragPsuedoEvent(midSlider.children(".sliderThumb"), (event) => {
-
-            let deltaPercentage;
-
-            if (delta === "x") deltaPercentage = event.deltaXfromLastMove / event.boundElement.parent().width()
-            else deltaPercentage = -event.deltaYfromLastMove / event.boundElement.parent().height()
-
-            let slider = event.boundElement.parent().parent()
-
-            let newValue = deltaPercentage * (parseFloat(slider.attr("data-absMax")) - parseFloat(slider.attr("data-absMin")))
-            let oldMin = absAsBackup(slider, "min")
-            let oldMax = absAsBackup(slider, "max")
-
-            let absMin = parseFloat(ticks.attr("data-absMin"))
-
-            if (oldMin + newValue < parseFloat(slider.attr("data-absMin"))) {
-                return
-            }
-            if (oldMax + newValue > parseFloat(slider.attr("data-absMax"))) {
-                if (delta === "x") triggerGraphEffector($(".graph").find(".graphEffectorOverlay"), "flushAnimaiton");
-                else return
-
-                if (absMin > parseFloat(ticks.attr("data-absMax")) - viewableZoomedUnitsX) {
-                    viewableZoomedUnitsX = parseFloat(ticks.attr("data-absMax")) - absMin
+                if (delta === "x") {
+                    triggerGraphEffector(graph.find(".primaryGraphEffectorOverlay"), "revFlushAnimaiton");
+                } else {
+                    triggerGraphEffector(graph.find(".primaryGraphEffectorOverlay"), "downFlushAnimaiton");
                 }
+            } else {
+                updateSliderState(slider, finalValue, null);
+            }
+        }, false);
 
-                setTickAttributes(ticks, slider, false, "false")
-                setNewTickScaleDelta(delta, ticks, secondaryTicks, secondarySlider, graph)
+        dragPseudoEvent(topSlider.children(".sliderThumb"), (event) => {
+            let subSlider = event.boundElement.parent();
+            let slider = subSlider.parent();
 
-                offsetX = 0
-                return
+            let deltaPercentage;
+            if (delta === "x") {
+                deltaPercentage = event.deltaXfromLastMove / subSlider.width();
+            } else {
+                deltaPercentage = -event.deltaYfromLastMove / subSlider.height();
             }
 
-            setTickAttributes(ticks, slider, oldMin + newValue, oldMax + newValue)
-            setNewTickScaleDelta(delta, ticks, secondaryTicks, secondarySlider, graph)
-        }, false)
+            let absMin = parseFloat(slider.attr("data-absMin"));
+            let absMax = parseFloat(slider.attr("data-absMax"));
+
+            let newValue = deltaPercentage * (absMax - absMin);
+            let oldValue = absAsBackup(slider, "max");
+            let finalValue = clamp(newValue + oldValue, absAsBackup(slider, "min") + 0.05, absMax);
+
+            if (oldValue + newValue >= absMax) {
+                // Auto-scale mode uses WebGL bounds
+                let bounds = renderer.getMinMaxInView();
+                updateSliderState(slider, null, "false");
+
+                if (delta === "x") {
+                    triggerGraphEffector(graph.find(".primaryGraphEffectorOverlay"), "flushAnimaiton");
+                } else {
+                    triggerGraphEffector(graph.find(".primaryGraphEffectorOverlay"), "upFlushAnimaiton");
+                }
+            } else {
+                updateSliderState(slider, null, finalValue);
+            }
+        }, false);
+
+        dragPseudoEvent(midSlider.children(".sliderThumb"), (event) => {
+            let subSlider = event.boundElement.parent();
+            let slider = subSlider.parent();
+
+            let deltaPercentage;
+            if (delta === "x") {
+                deltaPercentage = event.deltaXfromLastMove / subSlider.width();
+            } else {
+                deltaPercentage = -event.deltaYfromLastMove / subSlider.height();
+            }
+
+            let absMin = parseFloat(slider.attr("data-absMin"));
+            let absMax = parseFloat(slider.attr("data-absMax"));
+
+            let newValue = deltaPercentage * (absMax - absMin);
+            let oldMin = absAsBackup(slider, "min");
+            let oldMax = absAsBackup(slider, "max");
+
+            if (oldMin + newValue <= absMin || oldMax + newValue >= absMax) {
+                if (oldMax + newValue >= absMax) {
+                    if (delta === "x") {
+                        triggerGraphEffector(graph.find(".primaryGraphEffectorOverlay"), "flushAnimaiton");
+                    }
+
+                    if (absMin > parseFloat(ticks.attr("data-absMax")) - viewableZoomedUnitsX) {
+                        viewableZoomedUnitsX = parseFloat(ticks.attr("data-absMax")) - absMin;
+                    }
+
+                    updateSliderState(slider, null, "false");
+                    offsetX = 0;
+                }
+                return;
+            }
+            updateSliderState(slider, oldMin + newValue, oldMax + newValue);
+        }, false);
     }
 
     function drawGraph(graph) {
         setCanvasesToTicks(graph, renderer)
+
+        if(startTimestamp == 0){
+            if(nt4Client.getServerTime_us() / CONVERSIONRATE > 0){
+                graph.find(".bottomTicks").attr("data-absmin", nt4Client.getServerTime_us() / CONVERSIONRATE)
+                graph.find(".bottomSuperSlider").attr("data-absmin", nt4Client.getServerTime_us() / CONVERSIONRATE)
+                startTimestamp = nt4Client.getServerTime_us() / CONVERSIONRATE
+            }
+        }
 
         let allTopics = []
 
@@ -543,31 +607,31 @@ export async function initGraph(graph) {
         drawData(graph, renderer, allTopics)
         renderer.render()
         let absMax = (nt4Client.getServerTime_us() / CONVERSIONRATE)
-        $(".bottomTicks").attr("data-absmax", absMax)
-        $(".bottomSuperSlider").attr("data-absmax", absMax)
-        $(".superSliderBottom").attr("max", absMax)
-        $(".superSliderTop").attr("max", absMax)
+        graph.find(".bottomTicks").attr("data-absmax", absMax)
+        graph.find(".bottomSuperSlider").attr("data-absmax", absMax)
+        graph.find(".superSliderBottom").attr("max", absMax)
+        graph.find(".superSliderTop").attr("max", absMax)
 
-        if ($(".bottomTicks").attr("data-max") == "false" && $(".bottomTicks").attr("data-min") != "false") {
+        if (graph.find(".bottomTicks").attr("data-max") == "false" && graph.find(".bottomTicks").attr("data-min") != "false") {
             let min = (nt4Client.getServerTime_us() / CONVERSIONRATE) - viewableZoomedUnitsX
             let absMin = 0
 
-            $(".bottomTicks").attr("data-min", min)
-            $(".bottomTicks").attr("data-absmax", absMax)
+            graph.find(".bottomTicks").attr("data-min", min)
+            graph.find(".bottomTicks").attr("data-absmax", absMax)
 
-            $(".bottomSuperSlider").attr("data-min", min)
-            $(".bottomSuperSlider").attr("data-absmax", absMax)
+            graph.find(".bottomSuperSlider").attr("data-min", min)
+            graph.find(".bottomSuperSlider").attr("data-absmax", absMax)
 
 
-            $(".superSliderBottom").attr("max", absMax).attr("min", absMin).val(min)
-            $(".superSliderTop").attr("max", absMax).attr("min", absMin)
+            graph.find(".superSliderBottom").attr("max", absMax).attr("min", absMin).val(min)
+            graph.find(".superSliderTop").attr("max", absMax).attr("min", absMin)
 
         }
 
 
-        let yscale = findNiceScale(absAsBackup($(".bottomTicks"), "min"), absAsBackup($(".bottomTicks"), "max"))
+        let yscale = findNiceScale(absAsBackup(graph.find(".bottomTicks"), "min"), absAsBackup(graph.find(".bottomTicks"), "max"))
 
-        setTickScale(yscale, $(".bottomTicks"))
+        setTickScale(yscale, graph.find(".bottomTicks"))
     }
 
     function addMusicDropHandler(graph) {
@@ -651,9 +715,9 @@ export async function initGraph(graph) {
 
 
                 // console.log(songValues, audio.src)
-                // drawNewData($(".graph"), "Audio File", songKeys, songValuesLow, currentTimestamp)
+                // drawNewData(graph, "Audio File", songKeys, songValuesLow, currentTimestamp)
 
-                // drawNewData($(".graph"), "Audio File", songKeys, songValues, currentTimestamp)
+                // drawNewData(graph, "Audio File", songKeys, songValues, currentTimestamp)
 
                 // {name:"SinTest", keyArray:sinTestKeys, valArray:sinTestValues, timestamp:timestamp}
 
@@ -678,9 +742,9 @@ export async function initGraph(graph) {
 
             linkedMusic = true
         }
-    }   
+    }
 
-    return {renderer:renderer, allTopicFuncs:allTopicFuncs};
+    return { renderer: renderer, allTopicFuncs: allTopicFuncs };
 }
 
 
@@ -754,7 +818,7 @@ function setCanvasesToTicks(graph, renderer) {
             overriddenMax = true
         }
 
-        if (ticks.attr("data-min") == ticks.attr("data-absmin") || ticks.attr("data-min") == "false") {
+        if (ticks.attr("data-min") == "false") {
             min = renderer.getMinMaxInView().min
             overriddenMin = true
         }
@@ -763,16 +827,15 @@ function setCanvasesToTicks(graph, renderer) {
             let newscale = findNiceScale(min, max)
             setAbsMinMax(setTickScale(newscale, ticks))
 
-            slider.attr("data-absmax", max).attr('data-absmin', min)
-
             if (overriddenMax) {
-                slider.attr("data-max", 'false')
+                slider.attr("data-absmax", max);
+                slider.attr("data-max", 'false');
             }
 
             if (overriddenMin) {
-                slider.attr("data-min", min)
+                slider.attr("data-absmin", min);
+                slider.attr("data-min", 'false');
             }
-
         }
 
         canvas.attr("data-yViewHeight", (max - min))
@@ -949,7 +1012,7 @@ function setTickAttributes(ticks, slider, min = false, max = false, absMin = fal
 }
 
 
-function findNiceScale(minimum, maximum, percision = 8) {
+function findNiceScale(minimum, maximum, precision = 8) {
     var minPoint;
     var maxPoint;
     var maxTicks = 9;
@@ -975,13 +1038,13 @@ function findNiceScale(minimum, maximum, percision = 8) {
         calculate();
 
 
-        niceMax = parseFloat(niceMax.toFixed(percision));
-        niceMin = parseFloat(niceMin.toFixed(percision));
-        tickSpacing = parseFloat(tickSpacing.toFixed(percision));
+        niceMax = parseFloat(niceMax.toFixed(precision));
+        niceMin = parseFloat(niceMin.toFixed(precision));
+        tickSpacing = parseFloat(tickSpacing.toFixed(precision));
 
         let amountOfTicks = (niceMax - niceMin) / tickSpacing
 
-        amountOfTicks = parseFloat(amountOfTicks.toFixed(percision));
+        amountOfTicks = parseFloat(amountOfTicks.toFixed(precision));
 
         return {
             amountOfTicksNeeded: amountOfTicks,
@@ -990,7 +1053,7 @@ function findNiceScale(minimum, maximum, percision = 8) {
             niceMaximum: niceMax,
             minimum: minimum,
             maximum: maximum,
-            percision: percision,
+            precision: precision,
         };
     }
 
@@ -1013,94 +1076,54 @@ function findNiceScale(minimum, maximum, percision = 8) {
 }
 
 function findRelativeScale(min, max, niceScale, displacement = 1) {
+    let numTicks = niceScale.amountOfTicksNeeded;
+    let precision = niceScale.precision;
 
-    //this code is so cursed sometimes it goes way above tick count and i have to manually fix it this is why i dont use ai bc it makes stuff like this i had to do the last half manually
-    //if someone can make this better please do bro I beg you
+    let idealMin = parseFloat(min);
+    let idealMax = parseFloat(max);
 
-    let numTicks = niceScale.amountOfTicksNeeded
-    let percision = niceScale.percision
+    let scaledMin = idealMin * displacement;
+    let scaledMax = idealMax * displacement;
 
-    let idealMin = min
-    let idealMax = max
+    let range = scaledMax - scaledMin;
+    let tickSpacing = range / (numTicks > 1 ? numTicks - 1 : 1);
 
-    min = parseFloat(min) * displacement
-    max = parseFloat(max) * displacement
-
-    const range = max - min;
-    const initialTickSpacing = range / (numTicks > 1 ? numTicks : 5);
-
-    const exponent = Math.floor(Math.log10(initialTickSpacing));
+    const exponent = Math.floor(Math.log10(tickSpacing));
     const powerOf10 = Math.pow(10, exponent);
-
-    const fractionalSpacing = initialTickSpacing / powerOf10;
+    const fractionalSpacing = tickSpacing / powerOf10;
 
     let niceFractional;
-    if (fractionalSpacing < 1.75) {
-        niceFractional = 1.5;
-    } else if (fractionalSpacing < 2.75) {
-        niceFractional = 2.5;
-    } else if (fractionalSpacing < 3.5) {
-        niceFractional = 3;
-    } else if (fractionalSpacing < 4.5) {
-        niceFractional = 4;
-    } else if (fractionalSpacing < 7.5) {
-        niceFractional = 5; // Fallback to 5 if the range dictates
-    } else {
-        niceFractional = 10; // Increase power of 10
-    }
-
+    if (fractionalSpacing < 1.75) niceFractional = 1.5;
+    else if (fractionalSpacing < 2.75) niceFractional = 2.5;
+    else if (fractionalSpacing < 3.5) niceFractional = 3;
+    else if (fractionalSpacing < 4.5) niceFractional = 4;
+    else if (fractionalSpacing < 7.5) niceFractional = 5;
+    else niceFractional = 10;
 
     let niceSpacing = (niceFractional * powerOf10) / displacement;
 
-    let tickCalc = 0
+    let niceMin = (Math.floor(scaledMin / niceSpacing) * niceSpacing) / displacement;
+    let actualNiceMax = niceMin + ((numTicks - 1) * niceSpacing);
 
-    // The new min is the largest multiple of niceSpacing less than or equal to the original min
-    let niceMin = (Math.floor(min / niceSpacing) * niceSpacing) / displacement;
-
-
-    // The new max is the smallest multiple of niceSpacing greater than or equal to the original max
-    let niceMax = Math.ceil(max / niceSpacing) * niceSpacing;
-
-    for (let i = 0; i < 11; i++) {
-
-        if ((niceMin + (i * niceSpacing)) <= niceMax) {
-            tickCalc = i + 1
-        } else {
-            break
-        }
-    }
-
-    if (tickCalc > numTicks) {
-        niceMin += niceSpacing
-    } else if (numTicks > tickCalc) {
-        niceMin -= niceSpacing
-    }
-
-    let actualNiceMax = (niceMin + ((numTicks) * niceSpacing))
-
-    let fullRange = (niceScale.maximum - niceScale.minimum)
+    let fullRange = (niceScale.maximum - niceScale.minimum);
     let ratioPadding = (niceScale.niceMinimum - niceScale.minimum) / fullRange;
     let ratioVisible = (niceScale.niceMaximum - niceScale.niceMinimum) / fullRange;
 
-    let newRange = (actualNiceMax - niceMin) / ratioVisible
-
-    let newMinimum = niceMin - (newRange * ratioPadding)
-    let newMaximum = newMinimum + newRange
-
+    let newRange = ratioVisible > 0 ? (actualNiceMax - niceMin) / ratioVisible : 0;
+    let newMinimum = niceMin - (newRange * ratioPadding);
+    let newMaximum = newMinimum + newRange;
 
     return {
         amountOfTicksNeeded: numTicks,
         tickSpacing: niceSpacing,
         niceMinimum: niceMin,
-        niceMaximum: (niceMin + ((numTicks - 1) * niceSpacing)),
-        percision: percision,
+        niceMaximum: actualNiceMax,
+        precision: precision,
         minimum: newMinimum,
         maximum: newMaximum,
         idealMin: idealMin,
         idealMax: idealMax
     };
-
-
 }
 
 function setTickScale(foundNiceScale, element) {
@@ -1130,7 +1153,7 @@ function setTickScale(foundNiceScale, element) {
         if (children.length - 1 - i > foundNiceScale.amountOfTicksNeeded - 1) {
             eq.text("")
             //Display all text for debuh
-            // eq.text(parseFloat((foundNiceScale.niceMinimum + ((children.length - 1 - i) * foundNiceScale.tickSpacing)).toFixed(foundNiceScale.percision)));
+            // eq.text(parseFloat((foundNiceScale.niceMinimum + ((children.length - 1 - i) * foundNiceScale.tickSpacing)).toFixed(foundNiceScale.precision)));
 
             eq[0].style.setProperty("--lineColor", "transparent")
             continue
@@ -1139,7 +1162,11 @@ function setTickScale(foundNiceScale, element) {
 
         eq[0].style.setProperty("--lineColor", "inherit")
 
-        eq.text(parseFloat((foundNiceScale.niceMinimum + ((children.length - 1 - i) * foundNiceScale.tickSpacing)).toFixed(foundNiceScale.percision)));
+        if (isNaN(parseFloat(foundNiceScale.niceMinimum + ((children.length - 1 - i) * foundNiceScale.tickSpacing)))) {
+            eq.text("")
+        } else {
+            eq.text(parseFloat((foundNiceScale.niceMinimum + ((children.length - 1 - i) * foundNiceScale.tickSpacing)).toFixed(foundNiceScale.precision)));
+        }
     }
 
     foundNiceScale.element = element
@@ -1148,12 +1175,12 @@ function setTickScale(foundNiceScale, element) {
 
 }
 
-function dragPsuedoEvent($elementBound, fn, fireEndOnLeave = true, executeFnOnLeave = false, storeNativeEvents = false) {
+function dragPseudoEvent($elementBound, fn, fireEndOnLeave = true, executeFnOnLeave = false, storeNativeEvents = false) {
     //storeNativeEvents prevents logging of event argument
 
-    let psuedoEvent = {
-        isPsuedoEvent: true,
-        psudeoEventType: "drag",
+    let pseudoEvent = {
+        isPseudoEvent: true,
+        pseudoEventType: "drag",
         originalEvent: {},
         preventDefault: () => { },
     }
@@ -1163,102 +1190,102 @@ function dragPsuedoEvent($elementBound, fn, fireEndOnLeave = true, executeFnOnLe
     $elementBound.on("pointerdown", (event) => {
         startDrag = true
 
-        psuedoEvent.boundElement = $elementBound;
+        pseudoEvent.boundElement = $elementBound;
 
-        psuedoEvent.pageX = event.pageX
-        psuedoEvent.pageY = event.pageY
+        pseudoEvent.pageX = event.pageX
+        pseudoEvent.pageY = event.pageY
 
-        psuedoEvent.startPageX = event.pageX
-        psuedoEvent.startPageY = event.pageY
+        pseudoEvent.startPageX = event.pageX
+        pseudoEvent.startPageY = event.pageY
 
-        psuedoEvent.dirSwitchPageX = event.pageX
-        psuedoEvent.dirSwitchPageY = event.pageY
+        pseudoEvent.dirSwitchPageX = event.pageX
+        pseudoEvent.dirSwitchPageY = event.pageY
 
-        psuedoEvent.deltaAbs = 0
-        psuedoEvent.deltaX = 0
-        psuedoEvent.deltaY = 0
+        pseudoEvent.deltaAbs = 0
+        pseudoEvent.deltaX = 0
+        pseudoEvent.deltaY = 0
 
         if (storeNativeEvents) {
-            psuedoEvent.startEvent = event
+            pseudoEvent.startEvent = event
         }
 
-        psuedoEvent.startCtrlKey = event.ctrlKey
-        psuedoEvent.startShiftKey = event.shiftKey
+        pseudoEvent.startCtrlKey = event.ctrlKey
+        pseudoEvent.startShiftKey = event.shiftKey
 
-        psuedoEvent.ctrlKey = event.ctrlKey
-        psuedoEvent.shiftKey = event.shiftKey
+        pseudoEvent.ctrlKey = event.ctrlKey
+        pseudoEvent.shiftKey = event.shiftKey
     })
 
     let moveFunc = (event) => {
-        if (Math.sign(parseFloat((event.pageX - psuedoEvent.pageX))) == Math.sign(parseFloat(psuedoEvent.deltaXfromLastMove))) {
+        if (Math.sign(parseFloat((event.pageX - pseudoEvent.pageX))) == Math.sign(parseFloat(pseudoEvent.deltaXfromLastMove))) {
 
         } else {
-            psuedoEvent.dirSwitchPageX = parseFloat(event.pageX)
+            pseudoEvent.dirSwitchPageX = parseFloat(event.pageX)
 
         }
 
-        if (Math.sign(parseFloat((event.pageY - psuedoEvent.pageY))) == Math.sign(parseFloat(psuedoEvent.deltaYfromLastMove))) {
+        if (Math.sign(parseFloat((event.pageY - pseudoEvent.pageY))) == Math.sign(parseFloat(pseudoEvent.deltaYfromLastMove))) {
 
         } else {
-            psuedoEvent.dirSwitchPageY = parseFloat(event.pageY)
+            pseudoEvent.dirSwitchPageY = parseFloat(event.pageY)
 
         }
 
-        psuedoEvent.deltaXfromLastMove = parseFloat((event.pageX - psuedoEvent.pageX))
-        psuedoEvent.deltaYfromLastMove = parseFloat((event.pageY - psuedoEvent.pageY))
+        pseudoEvent.deltaXfromLastMove = parseFloat((event.pageX - pseudoEvent.pageX))
+        pseudoEvent.deltaYfromLastMove = parseFloat((event.pageY - pseudoEvent.pageY))
 
-        psuedoEvent.deltaX = event.pageX - psuedoEvent.dirSwitchPageX
-        psuedoEvent.deltaY = event.pageY - psuedoEvent.dirSwitchPageY
+        pseudoEvent.deltaX = event.pageX - pseudoEvent.dirSwitchPageX
+        pseudoEvent.deltaY = event.pageY - pseudoEvent.dirSwitchPageY
 
-        psuedoEvent.deltaAbs = Math.sqrt(psuedoEvent.deltaX ** 2 + psuedoEvent.deltaY ** 2)
+        pseudoEvent.deltaAbs = Math.sqrt(pseudoEvent.deltaX ** 2 + pseudoEvent.deltaY ** 2)
 
-        psuedoEvent.ctrlKey = event.ctrlKey
-        psuedoEvent.shiftKey = event.shiftKey
+        pseudoEvent.ctrlKey = event.ctrlKey
+        pseudoEvent.shiftKey = event.shiftKey
 
-        psuedoEvent.pageX = event.pageX
-        psuedoEvent.pageY = event.pageY
+        pseudoEvent.pageX = event.pageX
+        pseudoEvent.pageY = event.pageY
 
         if (startDrag) {
             if (storeNativeEvents) {
-                psuedoEvent.moveEvent = event
+                pseudoEvent.moveEvent = event
             }
 
-            fn(psuedoEvent)
+            fn(pseudoEvent)
             return
         }
         if (storeNativeEvents) {
-            psuedoEvent.dragglessMoveEvent = event
+            pseudoEvent.dragglessMoveEvent = event
         }
     }
 
     let endFunc = () => {
         startDrag = false
 
-        psuedoEvent.pageX = 0
-        psuedoEvent.pageY = 0
+        pseudoEvent.pageX = 0
+        pseudoEvent.pageY = 0
 
-        psuedoEvent.startPageX = 0
-        psuedoEvent.startPageY = 0
+        pseudoEvent.startPageX = 0
+        pseudoEvent.startPageY = 0
 
-        psuedoEvent.dirSwitchPageX = 0
-        psuedoEvent.dirSwitchPageY = 0
+        pseudoEvent.dirSwitchPageX = 0
+        pseudoEvent.dirSwitchPageY = 0
 
-        psuedoEvent.deltaAbs = 0
-        psuedoEvent.deltaX = 0
-        psuedoEvent.deltaY = 0
+        pseudoEvent.deltaAbs = 0
+        pseudoEvent.deltaX = 0
+        pseudoEvent.deltaY = 0
 
-        psuedoEvent.startEvent = false
-        psuedoEvent.moveEvent = false
-        psuedoEvent.dragglessMoveEvent = false
+        pseudoEvent.startEvent = false
+        pseudoEvent.moveEvent = false
+        pseudoEvent.dragglessMoveEvent = false
 
-        psuedoEvent.startCtrlKey = false
-        psuedoEvent.startShiftKey = false
+        pseudoEvent.startCtrlKey = false
+        pseudoEvent.startShiftKey = false
 
-        psuedoEvent.ctrlKey = false
-        psuedoEvent.shiftKey = false
+        pseudoEvent.ctrlKey = false
+        pseudoEvent.shiftKey = false
 
         if (executeFnOnLeave) {
-            fn(psuedoEvent)
+            fn(pseudoEvent)
         }
     }
 

@@ -20,11 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { pxToCq } from "../ui.js"
+import { pxToCq, toastMessage } from "../ui.js"
 import { createDefaultOf } from "./components/components.js"
 import { roundToNearestX } from "../../lib/util.js"
 
-let grid = {
+export let grid = {
     row: 0,
     column: 0,
     endRow: false,
@@ -33,6 +33,7 @@ let grid = {
     columnReverse: false,
     rowOffset: 1,
     columnOffset: 1,
+    skipNextDown: false,
 }
 grid.endColumn = grid.column
 grid.endRow = grid.row
@@ -45,10 +46,12 @@ export function tabGrid(columns, rows, tab) {
     //set the css grid to max square size and center it
     let cqval = setGridSize($tab, columns, rows)
     $(".gridUnderlay").css("grid-template-rows", "repeat(" + rows + " ," + cqval + "cqmin)").css("grid-template-columns", "repeat(" + columns + " ," + cqval + "cqmin)")
+    $(".gridUnderlayVisual").css("grid-template-rows", "repeat(" + rows + " ," + cqval + "cqmin)").css("grid-template-columns", "repeat(" + columns + " ," + cqval + "cqmin)")
 
     $(window).off("resize").on("resize", () => {
         let cqval = setGridSize($tab, columns, rows)
         $(".gridUnderlay").css("grid-template-rows", "repeat(" + rows + " ," + cqval + "cqmin)").css("grid-template-columns", "repeat(" + columns + " ," + cqval + "cqmin)")
+        $(".gridUnderlayVisual").css("grid-template-rows", "repeat(" + rows + " ," + cqval + "cqmin)").css("grid-template-columns", "repeat(" + columns + " ," + cqval + "cqmin)")
 
     })
 
@@ -104,6 +107,8 @@ function setGridUnderlay(columns, rows) {
     for (let i = 0; i < columns * rows; i++) {
         //added 1 to be consitent with css namings.
         $("<div>").addClass("gridSquare").appendTo(".gridUnderlay").attr("data-column", (i % columns) + 1).attr("data-row", (Math.floor(i / columns)) + 1)
+        $("<div>").addClass("gridSquareVisual").appendTo(".gridUnderlayVisual").attr("data-column", (i % columns) + 1).attr("data-row", (Math.floor(i / columns)) + 1)
+
     }
 
 }
@@ -333,6 +338,7 @@ export function addToCurrentDrag(jQueryReference, initialX, initialY, componentT
         }
 
     }).off("pointerup.dragComponent").on("pointerup.dragComponent", (event) => {
+        $("html").css("user-select", "text")
 
         let clientDrag = clientDragHandler(event)
 
@@ -343,6 +349,11 @@ export function addToCurrentDrag(jQueryReference, initialX, initialY, componentT
             if ($eq.hasClass("gridSquare")) {
                 grid.endColumn = parseInt($eq.attr("data-column")) //+ grid.columnOffset
                 grid.endRow = parseInt($eq.attr("data-row")) //+ grid.rowOffset
+            } else {
+
+                if (grid.sizingStarted == true) {
+                    grid.skipNextDown = true;
+                }
             }
         }
 
@@ -390,13 +401,28 @@ export function addToCurrentDrag(jQueryReference, initialX, initialY, componentT
                 grid.columnReverse = false
                 grid.columnOffset = 1
                 grid.rowOffset = 1
-
+                grid.sizingStarted = false;
+                grid.skipNextDown = false;
                 break
             }
+        }
+    }).off("pointerdown.resetDragState").on("pointerdown.resetDragState", () => {
+        if (grid.skipNextDown) {
+            grid.skipNextDown = false;
+            
         }
     })
 
     $(".page").off("pointerdown.dragComponent").on("pointerdown.dragComponent", (event) => {
+
+       if (grid.skipNextDown) {
+            grid.skipNextDown = false;
+
+            return;
+        }
+
+        $("html").css("user-select", "none")
+
         let clientDrag = clientDragHandler(event)
 
         let elementsFromPoint = $(document.elementsFromPoint(clientDrag.rawX, clientDrag.rawY))
@@ -406,7 +432,7 @@ export function addToCurrentDrag(jQueryReference, initialX, initialY, componentT
             let $eq = $(elementsFromPoint[i])
 
             if ($eq.hasClass("gridSquare")) {
-
+                grid.sizingStarted = true;
                 createDefaultOf(componentType, $(".currentTab").attr("data-page"))
                     .addClass("feauxComponent")
                     .css("grid-column", $eq.attr("data-column"))

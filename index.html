@@ -77,6 +77,11 @@ SOFTWARE. -->
 
         </div>
 
+        
+        <div class="gridUnderlayVisual">
+
+        </div>
+
         <div class="setTeamNumberOrIp">
             <h1 class="setTeamTitle">Team Number or IP</h1>
             <input type="text" class="textInput teamNumberInput" placeholder="">
@@ -292,7 +297,6 @@ SOFTWARE. -->
         </div>
 
 
-
         <div class="jukeBox pageF">
             <div class="songSelector">
 
@@ -338,7 +342,7 @@ SOFTWARE. -->
         </div>
 
 
-        <div class="inputComponents ioComponents">
+        <div class="inputComponents ioComponents" style="user-select: none;">
             <!-- action button sends true as long as it is held -->
             <button class="actionButton" data-type="boolean" data-topic="TestActionButton" data-value="false">Action
                 Button</button>
@@ -390,7 +394,7 @@ SOFTWARE. -->
 
         </div>
 
-        <div class="outputTopics ioComponents">
+        <div class="outputTopics ioComponents" style="user-select: none;">
             <!-- general stucture -->
             <!-- <div class="topicPathDiv">
                 <div class="h2Holder">
@@ -404,7 +408,7 @@ SOFTWARE. -->
 
         </div>
 
-        <div class="stringOutputComponents outputComponents ioComponents">
+        <div class="stringOutputComponents outputComponents ioComponents" style="user-select: none;">
             <div class="basicSubscription" data-topic=""><!-- must be the full path -->
                 <h1 class="bSTopic">Name:</h1>
                 <h1 class="bSValue">Value</h1>
@@ -427,7 +431,7 @@ SOFTWARE. -->
 
         </div>
 
-        <div class="doubleOutputComponents outputComponents ioComponents">
+        <div class="doubleOutputComponents outputComponents ioComponents" style="user-select: none;">
             <div class="basicSubscription" data-topic=""> <!-- must be the full path -->
                 <h1 class="bSTopic">Name:</h1>
                 <h1 class="bSValue">Value</h1>
@@ -474,12 +478,13 @@ SOFTWARE. -->
                 </div>
             </div>
 
-            <div class="graph" style="color:white">
-                this da graph
+            <div class="graph graphSideBar">
+                <h1 class="graphTitle">Name</h1>
+                <div class="line-graph-icon"></div>
             </div>
         </div>
 
-        <div class="intOutputComponents outputComponents ioComponents">
+        <div class="intOutputComponents outputComponents ioComponents" style="user-select: none;">
             <div class="basicSubscription" data-topic=""> <!-- must be the full path -->
                 <h1 class="bSTopic">Name:</h1>
                 <h1 class="bSValue">Value</h1>
@@ -526,7 +531,7 @@ SOFTWARE. -->
             </div>
         </div>
 
-        <div class="floatOutputComponents outputComponents ioComponents">
+        <div class="floatOutputComponents outputComponents ioComponents" style="user-select: none;">
             <div class="basicSubscription" data-topic=""> <!-- must be the full path -->
                 <h1 class="bSTopic">Name:</h1>
                 <h1 class="bSValue">Value</h1>
@@ -574,7 +579,7 @@ SOFTWARE. -->
             </div>
         </div>
 
-        <div class="boolOutputComponents outputComponents ioComponents">
+        <div class="boolOutputComponents outputComponents ioComponents" style="user-select: none;">
             <div class="basicSubscription" data-topic=""> <!-- must be the full path -->
                 <h1 class="bSTopic">Name:</h1>
                 <h1 class="bSValue">Value</h1>
@@ -594,9 +599,11 @@ SOFTWARE. -->
                 </div>
 
             </div>
+
+            <div class="colorCoderBoolean" style="color: white;">This da colorCoder</div>
         </div>
 
-        <div class="streamOutputComponents outputComponents ioComponents">
+        <div class="streamOutputComponents outputComponents ioComponents" style="user-select: none;">
             <div class="camera cameraComponent ioDisplay">
                 <h1>Camera Stream</h1>
                 <div class="ioDisplay cameraStream"></div>
@@ -648,7 +655,7 @@ SOFTWARE. -->
                 <input type="text" data-editing="text" class="textInput isEdit nameInput" placeholder="Unset">
             </div>
 
-            <div class="sideInputDiv specificHideComponent hidestream">
+            <div class="sideInputDiv specificHideComponent hidestream hideGraph">
                 <p>Topic:</p>
                 <p data-editing="data-topic" class="isntEdit topicShower"></p>
                 <input type="button" class="sideBarButton changeSubscriptionTopic isEdit" data-editing="changeTopic"
@@ -658,6 +665,11 @@ SOFTWARE. -->
             <div class="sideInputDiv specificHideComponent hidestream">
                 <p>Color:</p>
                 <input type="color" data-editing="color" class="colorInput isEdit" placeholder="Unset">
+            </div>
+
+            <div class="sideInputDiv graphSpecific specificComponent">
+                <p>Width:</p>
+                <input type="number" class="numberTextInput width isEdit" data-editing="width" placeholder="6">
             </div>
 
             <div class="sideInputDiv specificComponent cameraSpecific">

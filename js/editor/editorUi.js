@@ -22,11 +22,11 @@
 
 // 
 
-import {outputComponents, createSideTab, multiSwitchButtonSet, toastMessage} from "../ui.js"
-import {createDefaultOf, defaultSimilarOptions, setSimilarOptions, addButtonToAnimate,createDropdown, createOptGroup} from "./components/components.js"
-import {tabGrid, setGridInput, setCornerBorder, clientDragHandler, addToCurrentDrag, findEndOffset} from "./grid.js"
-import {topicObject, nt4Client, getStructValue, subscribedTopics} from "../coms.js"
-import {vh} from "../../lib/util.js"
+import { outputComponents, createSideTab, multiSwitchButtonSet, toastMessage } from "../ui.js"
+import { createDefaultOf, defaultSimilarOptions, setSimilarOptions, addButtonToAnimate, createDropdown, createOptGroup, globalGraphRef } from "./components/components.js"
+import { tabGrid, setGridInput, setCornerBorder, clientDragHandler, addToCurrentDrag, findEndOffset, grid } from "./grid.js"
+import { topicObject, nt4Client, getStructValue, subscribedTopics } from "../coms.js"
+import { vh } from "../../lib/util.js"
 
 let nonSupportedTypes = {
     "basicSubscription": false,
@@ -79,6 +79,8 @@ function bindEditOpener() {
         $(".onlyOnEdit").toggleClass("onlyEditShowing")
 
         $(".gridUnderlay").toggleClass("gridUnderlayEditing")
+        $(".gridUnderlayVisual").toggleClass("gridUnderlayVisualEditing")
+
         $(".gridSquare").toggleClass("gridSquareEditing")
 
         setTimeout(() => {
@@ -89,16 +91,16 @@ function bindEditOpener() {
         if ($(".editTabs").hasClass("editingTabs")) {
 
             $("body").on("pointermove.gridReact ", (event) => {
-                if ($(".gridSquare").length > 600) {
+                if ($(".gridSquareVisual").length > 600) {
                     $(".gridSquare").css("width", "95%").css("height", "95%")
                     return
                 }
-                let $eq = $(".gridSquare").eq(0)
+                let $eq = $(".gridSquareVisual").eq(0)
 
                 let clientDrag = clientDragHandler(event, $eq)
 
                 //jquery ommited for preformance reasons
-                let elements = document.getElementsByClassName("gridSquare")
+                let elements = document.getElementsByClassName("gridSquareVisual")
                 for (let i = 0; i < elements.length; i++) {
                     let $eq = elements[i]
 
@@ -196,6 +198,9 @@ function bindTrashCan() {
         }
 
         $(".removeShake").on("pointerdown.remove ", (event) => {
+            if ($(event.currentTarget).hasClass("graph")) {
+                globalGraphRef[$(event.currentTarget).attr("data-graphKey")].renderer.destroy()
+            }
             $(event.currentTarget).remove()
         })
     })
@@ -327,7 +332,7 @@ function bindTabCreator() {
         let name = $(".nameInput").val()
         let tab = $(".nameInput").val().replace(/[^a-zA-Z]/g, '-') + "B" + Math.random().toString().slice(2)
 
-        console.log(name, tab)
+        // console.log(name, tab)
 
         let $ct = $("<div>").addClass("tab")
             .addClass("tabsEditActivated")
@@ -405,7 +410,7 @@ function bindSidebarNav() {
 }
 
 //Needs refactoring
-function bindEditMenu(element, valueType) {
+function bindEditMenu(element, valueType, customEdit = false) {
 
     let inputs = $("." + valueType + "Sidebar").find(".isEdit, .isntEdit").val("")
 
@@ -523,6 +528,10 @@ function bindEditMenu(element, valueType) {
         let boundEditing
         if (editComponent.currentTarget.hasClass("numberComponent")) {
             boundEditing = editComponent.currentTarget.attr("data-" + inputBeingBound.attr("data-editing"))
+        } else if (editComponent.currentTarget.hasClass("graph")) {
+            if (inputBeingBound.attr("data-editing") == "width") {
+                boundEditing = editComponent.currentTarget.attr("data-width")
+            }
         } else if (editComponent.currentTarget.hasClass("axis") || editComponent.currentTarget.hasClass("verticalAxis")) {
             boundEditing = editComponent.currentTarget.children(".axisKnob, .verticalAxisKnob").attr(inputBeingBound.attr('data-editing'))
         } else if (editComponent.currentTarget.hasClass("numberLine")) {
@@ -571,6 +580,11 @@ function bindEditMenu(element, valueType) {
 
             if (editComponent.currentTarget.hasClass("numberComponent")) {
                 $comp.attr("data-" + $ct.attr('data-editing'), $ct.val())
+            } else if ($comp.hasClass("graph")) {
+                $comp.attr("data-" + $ct.attr('data-editing'), $ct.val())
+                if ($ct.attr('data-editing') == "width") {
+                    customEdit.graphManager.renderer.editLineWidth(customEdit.topics[0], $ct.val())
+                }
             } else if (editComponent.currentTarget.hasClass("axis") || editComponent.currentTarget.hasClass("verticalAxis")) {
 
                 $comp.children(".axisKnob, .verticalAxisKnob").attr($ct.attr('data-editing'), $ct.val())
@@ -647,12 +661,15 @@ function bindEditMenu(element, valueType) {
         inputBeingBound.off("input.coloring").on("input.coloring", (event) => {
             let $ct = $(event.currentTarget)
 
-
-
-            if (editComponent.currentTarget.hasClass("basicLogger") || editComponent.currentTarget.hasClass("numberLine") || editComponent.currentTarget.hasClass("radialGauge")) {
+            if (editComponent.currentTarget.hasClass("basicLogger") || editComponent.currentTarget.hasClass("colorCoder") || editComponent.currentTarget.hasClass("numberLine") || editComponent.currentTarget.hasClass("radialGauge")) {
                 editComponent.currentTarget.css("border-color", $ct.val()).attr("data-color", $ct.val())
                 editComponent.currentTarget[0].style.setProperty("--accent", $ct.val());
 
+            } else if (editComponent.currentTarget.hasClass("graph")) {
+                if (customEdit.hasOwnProperty("graphManager") && customEdit.hasOwnProperty("topics")) {
+                    customEdit.graphManager.renderer.editLineColor(customEdit.topics[0], $ct.val())
+                    editComponent.currentTarget.attr("data-color", $ct.val())
+                }
             } else if (valueType == 'boolean' || valueType == "subscription") {
                 editComponent.currentTarget.css("background-color", $ct.val() + "3f").css("border-color", $ct.val()).attr("data-color", $ct.val())
 
@@ -726,7 +743,7 @@ function bindEditMenu(element, valueType) {
             $(".sidebarCondition").remove();
 
             for (let i = 0; i < conditions.length; i++) {
-                console.log(conditions, conditions[i], JSON.stringify(conditions[i]), recordMap, recordMap.get(JSON.stringify(conditions[i])))
+                // console.log(conditions, conditions[i], JSON.stringify(conditions[i]), recordMap, recordMap.get(JSON.stringify(conditions[i])))
                 createConditionSidebarButton(recordMap.get(JSON.stringify(conditions[i])), JSON.stringify(conditions[i]), false)
             }
         }
@@ -832,7 +849,7 @@ function bindEditMenu(element, valueType) {
         })
     }
 
-    
+
 
     function bindStrings(inputBeingBound) {
         let eDCT = editComponent.currentTarget
@@ -892,7 +909,7 @@ function bindEditMenu(element, valueType) {
             $(".typeHiddenTopic").removeClass("typeHiddenTopic");
 
             let currentlyNonAllowedTypes = nonSupportedTypes[element.attr("data-componentType")]
-            console.log(currentlyNonAllowedTypes)
+            // console.log(currentlyNonAllowedTypes)
             if (currentlyNonAllowedTypes) {
                 for (let i = 0; i < currentlyNonAllowedTypes.length; i++) {
                     $("." + currentlyNonAllowedTypes[i] + "Topic").addClass("typeHiddenTopic")
@@ -930,6 +947,18 @@ export function bindEditorResetter(element) {
         $(".currentDrag").remove()
         $(".feauxComponent").remove()
         $("*").off("pointermove.dragComponent").off("pointerup.dragComponent").off("pointerdown.dragComponent")
+
+
+        grid.row = 0
+        grid.column = 0
+        grid.endRow = 0;
+        grid.endColumn = 0;
+        grid.rowReverse = false
+        grid.columnReverse = false
+        grid.columnOffset = 1
+        grid.rowOffset = 1
+        grid.sizingStarted = false;
+        grid.skipNextDown = false;
     })
 }
 
@@ -1131,7 +1160,7 @@ function addOptionDragHandler($element) {
 
 }
 
-export function addEditHandler(element, valueType, specificClass = false, specificHideClass = false) {
+export function addEditHandler(element, valueType, specificClass = false, specificHideClass = false, customEdit = false) {
     element.on("pointerdown.editHandler", (event) => {
         if (!$(".editTabs").hasClass("editingTabs")) { return }
         // allow for blur event to execute
@@ -1172,7 +1201,7 @@ export function addEditHandler(element, valueType, specificClass = false, specif
             $(".editNavButtons").css("display", "")
             $(".editNavName").text(startString)
 
-            bindEditMenu($ct, valueType, specificClass)
+            bindEditMenu($ct, valueType, customEdit)
 
             let gridPoses = findEndOffset(element.attr('data-row'), element.attr('data-column'), element.attr('data-endRow'), element.attr('data-endColumn'))
 
@@ -1200,7 +1229,7 @@ export function initEditor() {
     bindOptionAdder();
     bindTabCreator();
     bindEditorResetter($(".editNavBack, .trashCan, .editTabs, .tab, .addTab, .tabCreator")) //Multi use
- 
+
 }
 
 export function changeSimilarInputs(similarOptions) {
@@ -1231,8 +1260,8 @@ export function topicToSidebar(topic, schemasPassed = false) {
             continue
         } else if (i >= split.length - 1 && topic.type.includes('struct')) {
             //If last in topic (at the final path of string)- and topics type is a struct, make a folder for said struct
- 
-            createFolder(split[i], i,true)
+
+            createFolder(split[i], i, true)
 
             let finalTypes = Object.keys(nt4Client.typeLengths)
             let type = topic.type.slice(7)
@@ -1274,7 +1303,7 @@ export function topicToSidebar(topic, schemasPassed = false) {
 
                         continue;
                     }
-                    if(type.includes("enum")){
+                    if (type.includes("enum")) {
                         createButton(name.split(":")[0], i, topic.structName + "/" + name, "enum")
                     }
                     else {
@@ -1362,7 +1391,7 @@ export function topicToSidebar(topic, schemasPassed = false) {
             if (outputComponents.changing) {
                 outputComponents.changingSidebar.css("display", "flex")
 
-                console.log(subscribedTopics[0])
+                // console.log(subscribedTopics[0])
 
                 //If the current topic does not have a subscription handler array, make one
                 if (!subscribedTopics.hasOwnProperty(fullpath.split("|")[0])) {
@@ -1460,7 +1489,7 @@ export function topicToSidebar(topic, schemasPassed = false) {
         return parentDiv
     }
 
-    function createFolder(split, i, isSchema=false) {
+    function createFolder(split, i, isSchema = false) {
         //creates a folder in the side bar and a object in the topic object 
         let parentDiv
 
@@ -1604,7 +1633,7 @@ function setExampleMeter(min = 0, max = 100, low = "", high = "", optimum = "") 
         optimum = max / 2
     }
 
-    console.log(min, max, range)
+    // console.log(min, max, range)
 
     let division1 = $("<div>").addClass("exampleMeterDivision").appendTo(meter);
     let division2 = $("<div>").addClass("exampleMeterDivision").appendTo(meter);

@@ -1320,6 +1320,67 @@ input[type=number] {
     margin-inline: 1cqh;
 }
 
+.graphSideBar{
+    overflow: hidden;
+    width: 18cqh;
+    height: 12cqh;
+    background-color: rgb(24, 24, 24);
+    border-color: rgb(12, 12, 12);
+    border: solid 0.125cqh;
+    border-radius: 0.5cqh;
+    padding: 0.5cqh;
+    align-items: center;
+    justify-items: center;
+}
+
+.graphSideBar .graphTitle{
+    color: white;
+    height: 3cqh;
+    font-size: 2cqh;
+    width: 100%;
+    text-align: center;
+}
+
+.line-graph-icon {
+  /* Set to your exact container dimensions */
+  height: 8cqh;
+  width: 16cqh;
+  
+  /* Background color of the icon container */
+  background: rgb(32,32,32); 
+  position: relative;
+  border: 0.2cqh white solid;
+}
+
+.line-graph-icon::before {
+  content: "";
+  position: absolute;
+  /* Leaves a 15% inner padding margin so the line doesn't hit the edges */
+  top: 0%;
+  left: 0%;
+  right: 0%;
+  bottom: 0%;
+  
+  /* The color of your graph line */
+  background: #ffffff; 
+  
+  /* Trims the background into a crisp, continuous 2px thick line path */
+  clip-path: polygon(
+    0% 70%,    /* Start point */
+    35% 40%,   /* First peak */
+    65% 80%,   /* Trough */
+    100% 20%,  /* Highest peak */
+    
+    /* The next points trace backwards to give the line thickness */
+    100% calc(20% + 2px), 
+    65% calc(80% + 2px), 
+    35% calc(40% + 2px), 
+    0% calc(70% + 2px)
+  );
+}
+
+
+
 @container dashboardHolder (width > 0px) {
     .tabNav {
         position: absolute;
@@ -1404,6 +1465,7 @@ input[type=number] {
 
         height: 7cqh;
         overflow: hidden;
+        white-space: nowrap;
         text-overflow: ellipsis;
         transition: border-bottom-right-radius 300ms ease, border-bottom-left-radius 300ms ease, opacity 300ms ease;
     }
@@ -2043,11 +2105,21 @@ input[type=number] {
         position: relative;
         width: 100%;
         height: 100%;
+        background-color: rgba(32, 32, 32, 0);
+        opacity: 0;
+        transition: background-color 300ms ease;
+    }
+
+ 
+    .gridSquareVisual {
+        position: relative;
+        width: 100%;
+        height: 100%;
         background-color: rgb(32, 32, 32);
         transition: background-color 300ms ease;
     }
 
-    .gridSquareEditing {
+    .gridSquareVisualEditing {
         background-color: rgb(32, 32, 32);
 
     }
@@ -2067,11 +2139,30 @@ input[type=number] {
         justify-content: center;
         justify-items: center;
         align-items: center;
+        background-color: rgba(32, 32, 32, 0);
+
+    }
+
+    .gridUnderlayVisual {
+        margin-top: 7cqh;
+
+        position: absolute;
+        left: 0px;
+        transition: background-color 300ms ease;
+        z-index: -2;
+        width: 100cqw;
+        height: 100cqh;
+        max-height: 93cqh;
+        display: grid;
+        align-content: center;
+        justify-content: center;
+        justify-items: center;
+        align-items: center;
         background-color: rgb(32, 32, 32);
 
     }
 
-    .gridUnderlayEditing {
+    .gridUnderlayVisualEditing {
 
         background-color: rgb(12, 12, 12);
     }
@@ -3127,7 +3218,7 @@ input[type=number] {
         position: relative;
         z-index: 7;
         transform: rotate(calc((((sibling-index() - 1) * var(--tickOffset)) + var(--rawOffsetDeg)) * -1deg));
-       
+
 
         background: if(style(--rawMaxDeg:360): radial-gradient(circle, rgb(24, 24, 24) 10%, rgba(0, 0, 0, 0) 10%); else: none);
 
@@ -3390,6 +3481,8 @@ input[type=number] {
         --datamax: attr(data-max raw-string, "false");
         --dataabsmin: attr(data-absmin raw-string, "0");
         --datamin: attr(data-min raw-string, --dataabsmin);
+        --dataActualmin: attr(data-min raw-string, "false");
+
 
         grid-area: Z;
         height: 5cqh;
@@ -3442,7 +3535,7 @@ input[type=number] {
 
         /* --thumbBG: radial-gradient(circle, rgba(46, 46, 46, 1) 30%, rgba(128, 128, 128, 1) 30%, rgba(128, 128, 128, 1) 45%, rgba(46, 46, 46, 1) 45%); */
 
-        --thumbBG: if(style(--datamin:var(--dataabsmin)): radial-gradient(circle, rgba(46, 46, 46, 1) 25%, rgba(255, 255, 255, 1) 30%, rgba(255, 255, 255, 1) 45%, rgba(46, 46, 46, 1) 50%);
+        --thumbBG: if(style(--dataActualmin:"false"): radial-gradient(circle, rgba(46, 46, 46, 1) 25%, rgba(255, 255, 255, 1) 30%, rgba(255, 255, 255, 1) 45%, rgba(46, 46, 46, 1) 50%);
                 else: radial-gradient(circle, rgba(46, 46, 46, 1) 25%, rgba(128, 128, 128, 1) 30%, rgba(128, 128, 128, 1) 45%, rgba(46, 46, 46, 1) 50%);
             );
 
@@ -3500,6 +3593,7 @@ input[type=number] {
         --min: attr(data-min type(<number>), var(--absMin));
         --max: attr(data-max type(<number>), var(--absMax));
 
+
         --datamax: attr(data-max raw-string, "false");
         --dataabsmin: attr(data-absmin raw-string, "0");
         --datamin: attr(data-min raw-string, --dataabsmin);
@@ -3514,15 +3608,13 @@ input[type=number] {
         margin-bottom: 0px;
         padding: 0px;
         height: 100%;
+
         position: absolute;
         pointer-events: none;
         box-sizing: border-box;
         appearance: none;
         border-radius: 99cqh;
         rotate: 180deg;
-
-
-
 
     }
 
@@ -3573,10 +3665,10 @@ input[type=number] {
 
         --borderRadiusAmount: 99cqh;
 
-        --thumbBG: if(style(--datamin:var(--dataabsmin)): radial-gradient(circle, rgba(46, 46, 46, 1) 25%, rgba(255, 255, 255, 1) 30%, rgba(255, 255, 255, 1) 45%, rgba(46, 46, 46, 1) 50%);
+
+        --thumbBG: if(style(--datamin:"false"): radial-gradient(circle, rgba(46, 46, 46, 1) 25%, rgba(255, 255, 255, 1) 30%, rgba(255, 255, 255, 1) 45%, rgba(46, 46, 46, 1) 50%);
                 else: radial-gradient(circle, rgba(46, 46, 46, 1) 25%, rgba(128, 128, 128, 1) 30%, rgba(128, 128, 128, 1) 45%, rgba(46, 46, 46, 1) 50%);
             );
-
 
         --thumbHeight: 2.5cqh;
 
@@ -3621,6 +3713,9 @@ input[type=number] {
         pointer-events: all;
         border-radius: var(--borderRadiusAmount);
         position: relative;
+
+        display: if(style(--absMin: 0): if(style(--absMax: 0): none); else: block);
+
 
         top: var(--thumbOffset);
 
@@ -3781,6 +3876,48 @@ input[type=number] {
             "M E"
             "M E";
     }
+
+
+    .colorCoderComponent{
+        width: 30cqmin;
+        height: 20cqmin;
+        
+        background-color: rgb(24, 24, 24);
+        border:  rgb(12, 12, 12) solid 0.25cqh;
+
+        --data-value: attr(data-value raw-string, "");
+
+        
+
+        border-radius: 3cqh;
+        color: white;
+        align-items: center;
+        justify-items: center;
+        font-size: 4cqmin;
+    }
+
+    .colorCoderComponent .editThisName{
+        font-size: 4cqmin;
+        line-height: 6cqmin;
+        width: 100%;
+        text-align: center;
+        border: none;
+    }
+
+    .colorCoderValue{
+        width: 90%;
+        border-radius: 2cqmin;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-shadow: 0 0 1cqh black;
+        height: calc(92.5% - 6cqmin);
+    }
+
+    .colorCoderValue::before{
+        content:var(--data-value)
+    }
 }
 
 
@@ -3834,6 +3971,34 @@ meter:not([value]) {
     pointer-events: none;
     /* width: 100%;
     height: 100%; */
+}
+
+.feauxComponent .colorCoderValue{
+    display: none;
+}
+
+.feauxComponent .graphHolder{
+    display: none;
+}
+
+.feauxComponent .verticalSuperSlider{
+    display: none;
+}
+
+.feauxComponent .bottomSuperSlider{
+    display: none;
+}
+
+.feauxComponent .leftTicks{
+    display: none;
+}
+
+.feauxComponent .rightTicks{
+    display: none;
+}
+
+.feauxComponent .bottomTicks{
+    display: none;
 }
 
 .feauxComponent .optGroupButton {
@@ -4450,6 +4615,10 @@ meter:not([value]) {
     width: var(--w);
 }
 
+
+.fill:not(.currentDrag) .cameraStream {
+    object-fit: cover;
+}
 
 
 .topicPathDiv h1 {

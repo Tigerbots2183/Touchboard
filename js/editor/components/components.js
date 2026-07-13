@@ -33,6 +33,8 @@ export let defaultSimilarOptions = {
     fill: false,
 }
 
+export let globalGraphRef = {}
+
 export function createActionButton(displayName, topic, append = false, hex = "#2b00ff", similarOptions = defaultSimilarOptions) {
     let actionButton = $("<button>")
         .addClass("actionButton")
@@ -245,7 +247,7 @@ export function createOptGroup(topic, append, hex = 0, initialOptionIndex = 0, o
         optDiv.attr("data-persist", "true")
     }
 
-    console.log(options)
+    // console.log(options)
 
     let optGroup = {
         div: optDiv,
@@ -455,7 +457,7 @@ export function createBasicLogger(displayName, topic, append = false, hex = "#0c
     $("<h1>").addClass("showAll").text("⏿").appendTo(basicLogger).on("pointerdown", () => {
         let storedValues = subscribedTopics[basicLogger.attr("data-topic")][parseInt(basicLogger.attr("data-subscriptionIndex"))].storedValues
 
-        console.log(basicLogger.attr("data-topic"))
+        // console.log(basicLogger.attr("data-topic"))
 
         $(loggerValues).empty()
 
@@ -789,7 +791,7 @@ export function createRadialGauge(displayName, topic, append, hex = "#0c0c0c", m
 
     for (let i = 0; i < subTickCount; i++) {
         let text = parseFloat(((step * i) + parseFloat(min)).toFixed(3));
-        console.log(minNumber)
+        // console.log(minNumber)   
 
         $("<div>").addClass("subTick").appendTo(subTicks).attr("data-text", text)
     }
@@ -904,11 +906,9 @@ export function createCamera(displayName, topic, append, hideNav = false, videoF
         setSrc()
 
         function setSrc() {
-            console.log(value[i])
 
             if (i > value.length - 1) {
                 let str = value[i - 1].replace("mjpg:", "")
-                console.log(str)
                 console.log(str.substring(str.lastIndexOf(":") + 1))
                 img.attr("src", "localhost:" + str.substring(str.lastIndexOf(":") + 1))
                 return
@@ -919,9 +919,10 @@ export function createCamera(displayName, topic, append, hideNav = false, videoF
             img.attr("src", value[i].replace("mjpg:", "")).off("error").on("error", () => {
                 i++
                 if (i > value.length) {
+                    toastMessage("Camera Connection Failed", "#FF0000")
                     return
                 }
-                toastMessage("Camera Connection Failed, Retrying Attempt: " + i, "#FF0000")
+                // toastMessage("Camera Connection Failed, Retrying Attempt: " + i, "#FF0000")
                 setSrc()
             })
         }
@@ -933,7 +934,6 @@ export function createCamera(displayName, topic, append, hideNav = false, videoF
     let recordConditionHandler = (value) => {
         let robotState = decodeFMSControlData(value)
         let conditions = JSON.parse(camera.attr("data-recordConditions"))
-        console.log(conditions)
 
         for (let i in conditions) {
             if (objectIncludes(robotState, conditions[i])) {
@@ -1008,9 +1008,9 @@ export function createCamera(displayName, topic, append, hideNav = false, videoF
 
 }
 
-export function createGraph(displayName, topics, append, similarOptions = defaultSimilarOptions) {
+export function createGraph(displayName, topics, append, hex = "#8400ff", width = 6, similarOptions = defaultSimilarOptions) {
     let topicData = [];
-    let currentTimestamp = nt4Client.getServerTime_us() / CONVERSIONRATE
+    let graphKey = "g" + topics[0] + (Math.random() * 1000000)
 
     if (displayName == null) {
         let topicSplit = topics[0].split("/")
@@ -1023,14 +1023,14 @@ export function createGraph(displayName, topics, append, similarOptions = defaul
         displayName = displayName.split(":")[0]
     }
 
-    let graph = $("<div>").addClass("graph").attr("data-linkAxis", "false").attr("data-componentType", "graph").attr("draggable", "false")
+    let graph = $("<div>").addClass("graph").attr("data-linkAxis", "false").attr("data-graphKey", graphKey).attr("data-componentType", "graph").attr("draggable", "false").attr("data-defaultSimilarOptions", JSON.stringify(similarOptions)).attr("data-topics", JSON.stringify(topics)).attr("data-color", hex).attr("data-width", width).addClass("editableComponent")
 
     if (append) {
         graph.appendTo(append)
     }
 
     let leftButtons = $("<div>").addClass("leftButtons").appendTo(graph);
-    $("<div>").addClass("linkButton").text("🔗").appendTo(leftButtons)
+    $("<div>").addClass("linkButton").text("🔗").css("display", "none").appendTo(leftButtons)
 
     $("<h1>").addClass("editThisName").addClass("graphTitle").text(displayName).appendTo(graph)
 
@@ -1054,17 +1054,17 @@ export function createGraph(displayName, topics, append, similarOptions = defaul
     let rightTicks = $("<div>").addClass("rightTicks").attr("data-max", "false").attr("data-min", "false").attr("data-absMax", "1").attr("data-absMin", "-1").css("display", "none").appendTo(graph)
     createTicks(11, "Right", rightTicks)
 
-    let bottomSuperSlider = $("<div>").addClass("bottomSuperSlider").attr("data-absMin", (nt4Client.getServerTime_us() / 1000000.0) - 10).attr("data-absMax", (nt4Client.getServerTime_us() / 1000000.0)).appendTo(graph)
+    let bottomSuperSlider = $("<div>").addClass("bottomSuperSlider").attr("data-absMin", (nt4Client.getServerTime_us() / 1000000.0)).attr("data-absMax", (nt4Client.getServerTime_us() / 1000000.0)).appendTo(graph)
 
     createSliderParts("mid", bottomSuperSlider)
     createSliderParts("bottom", bottomSuperSlider)
     createSliderParts("top", bottomSuperSlider)
 
-    let bottomTicks = $("<div>").addClass("bottomTicks").attr("data-max", "false").attr("data-absMax", (nt4Client.getServerTime_us() / 1000000.0) - 10).attr("data-absMin", (nt4Client.getServerTime_us() / 1000000.0)).appendTo(graph)
+    let bottomTicks = $("<div>").addClass("bottomTicks").attr("data-max", "false").attr("data-min", "false").attr("data-absMax", (nt4Client.getServerTime_us() / 1000000.0)).attr("data-absMin", (nt4Client.getServerTime_us() / 1000000.0)).appendTo(graph)
 
     createTicks(11, "Bottom", bottomTicks)
 
-    let bottomDrawer = $("<div>").addClass("bottomDrawer").appendTo(graph);
+    let bottomDrawer = $("<div>").addClass("bottomDrawer").css("display", "none").appendTo(graph);
 
     let audio = $("<audio>").attr("id", "audio").appendTo(graph)
 
@@ -1074,21 +1074,25 @@ export function createGraph(displayName, topics, append, similarOptions = defaul
 
     let primaryCanvas = $("<canvas>").addClass("graphCanvas").addClass("graphCanvasPrimary").attr("id", "testMain").appendTo(graphHolder)
 
-    let graphEffector = $("<div>").addClass("graphEffectorOverlay").attr("draggable", "false").appendTo(graphHolder)
+    $("<div>").addClass("primaryGraphEffectorOverlay").addClass("graphEffectorOverlay").attr("draggable", "false").appendTo(graphHolder)
+    $("<div>").addClass("secondaryGraphEffectorOverlay").addClass("graphEffectorOverlay").attr("draggable", "false").appendTo(graphHolder)
+
 
     setCanvasWidths(secondaryCanvas)
     setCanvasWidths(primaryCanvas)
 
     if (topics[0] !== "esc-UNDEFINED-esc" && topics[0] !== "esc-UNSET-esc") {
-        initialize();    
+        initialize();
         // initGraph(graph);
 
         async function initialize() {
-            console.log(topics[0])
             let graphManager = await initGraph(graph)
-            console.log(graphManager)
 
-            await graphManager["renderer"].createLine(topics[0], "#8400ff", 4)
+            globalGraphRef[graphKey] = graphManager;
+
+            await graphManager["renderer"].createLine(topics[0], hex, width)
+
+            addEditHandler(graph, "subscription", ".graphSpecific", ".hideGraph", { graphManager: graphManager, topics: topics })
 
             function sendTopicData() {
                 let data = structuredClone(topicData)
@@ -1096,7 +1100,7 @@ export function createGraph(displayName, topics, append, similarOptions = defaul
                 topicData = [];
 
                 return { name: topics[0], dataArray: data, timestamp: nt4Client.getServerTime_us() / CONVERSIONRATE }
-                
+
             }
 
             graphManager.allTopicFuncs.push(
@@ -1124,10 +1128,9 @@ export function createGraph(displayName, topics, append, similarOptions = defaul
     }
 
     setSimilarOptions(graph, similarOptions)
-    addEditHandler(graph, "double")
 
     function graphDataHandler(value, timestamp) {
-        topicData.push(timestamp/CONVERSIONRATE, value)
+        topicData.push(timestamp / CONVERSIONRATE, value)
     }
 
     let subscribedReference = {
@@ -1154,6 +1157,85 @@ export function createGraph(displayName, topics, append, similarOptions = defaul
     }
 
     return graph
+}
+
+export function createColorCoderBoolean(displayName, topic, append, hex = "#0c0c0c", keys = { "true": "rgb(0,255,128)", "false": "rgb(255, 0,0)", "else": "rgb(0,0,0)" }, similarOptions = defaultSimilarOptions) {
+    if (displayName == null) {
+        let topicSplit = topic.split("/")
+        displayName = topicSplit[topicSplit.length - 1]
+
+        if (displayName == "value" && topicSplit.length > 1) {
+            displayName = topicSplit[topicSplit.length - 2]
+        }
+
+        displayName = displayName.split(":")[0]
+    }
+
+    let colorCoder = $("<div>")
+        .addClass("colorCoder")
+        .attr("data-topic", topic)
+        // .addClass("editableComponent")
+        .css("border-color", hex)
+        .attr("data-color", hex)
+        .attr("data-componentType", "colorCoderBoolean")
+        .attr("data-value", "null")
+        .attr("data-keys", JSON.stringify(keys))
+        .attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
+
+    let name = $("<h1>").addClass("editThisName").text(displayName).appendTo(colorCoder)
+
+    let value = $("<div>").addClass("colorCoderValue").css("background-color", generateCssIfStatement("--data-value", keys)).appendTo(colorCoder)
+
+    if (append) {
+        colorCoder.appendTo(append)
+    }
+
+    setSimilarOptions(colorCoder, similarOptions)
+    addEditHandler(colorCoder, "subscription", ".colorCoderBooleanSpecific")
+
+    if (topic == "esc-UNSET-esc") return colorCoder;
+
+    let colorCoderHandler = (value) => {
+        colorCoder.attr("data-value", JSON.stringify(value))
+    }
+
+    let topicChangeHandler = (newTopic, val) => {
+
+    }
+
+    let subscribedReference = {
+        'jQueryReference': false,
+        'parentReference': colorCoder,
+        'valueHandeler': colorCoderHandler,
+        'topicChangeHandler': topicChangeHandler
+    }
+
+    if (topic.includes("|")) {
+        if (!subscribedTopics.hasOwnProperty(topic.split("|")[0])) {
+            subscribedTopics[topic.split("|")[0]] = []
+        }
+        subscribedReference.structPath = topic
+        subscribedTopics[topic.split("|")[0]].push(subscribedReference)
+        colorCoder.attr("data-subscriptionIndex", subscribedTopics[topic.split("|")[0]].length - 1)
+
+    } else {
+        if (!subscribedTopics.hasOwnProperty(topic)) {
+            subscribedTopics[topic] = []
+        }
+        subscribedTopics[topic].push(subscribedReference)
+        colorCoder.attr("data-subscriptionIndex", subscribedTopics[topic].length - 1)
+
+    }
+
+    if (nt4Client.serverTopics.get(topic)) {
+        colorCoderHandler(nt4Client.serverTopics.get(topic).value)
+    } else if (nt4Client.serverTopics.get(topic.split("|")[0])) {
+        let topicRef = nt4Client.serverTopics.get(topic.split("|")[0]);
+        colorCoderHandler(getStructValue(topic, topicRef.value))
+    }
+
+    return colorCoder
+
 }
 
 //Subscription Blank
@@ -1238,7 +1320,27 @@ export function createGraph(displayName, topics, append, similarOptions = defaul
 //      <button class="record emojiButton">🔴</button>
 //  </div>
 // </div> 
+function generateCssIfStatement(variableName, conditions) {
+    const entries = Object.entries(conditions);
+    let branches = [];
 
+    entries.forEach(([key, value]) => {
+        const cleanKey = key.trim();
+
+        if (cleanKey.toLowerCase() === 'else') {
+            // The catch-all final fallback
+            branches.push(`else: ${value}`);
+        } else {
+            // Formats style checks sequentially: style(--data-value: Val1): rgb(...)
+            branches.push(`style(${variableName}: "${cleanKey}"): ${value}`);
+
+
+        }
+    });
+
+    // Flat semicolon-separated syntax inside a single if() block
+    return `if(${branches.join('; ')})`;
+}
 
 function captureMJPEG(cameraComponent, topic = "", videoFormat = "mp4") {
     videoFormat = videoFormat.toLowerCase();
@@ -1688,6 +1790,8 @@ export function createDefaultOf(component, append, topic = "esc-UNSET-esc") {
             return createCamera(undefined, topic, append)
         case "graph":
             return createGraph(undefined, [topic], append)
+        case "colorCoderBoolean":
+            return createColorCoderBoolean(undefined, topic, append)
     }
 }
 

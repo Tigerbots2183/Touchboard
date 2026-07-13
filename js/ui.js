@@ -80,6 +80,10 @@ export function toastMessage(message, color = "#7300ff") {
     }
 }
 
+document.addEventListener('dragstart', (event) => {
+    event.preventDefault();
+});
+
 export function clamp(num, min = 0, max = 1) { return Math.min(Math.max(num, min), max) };
 
 function cq(container, percent) {

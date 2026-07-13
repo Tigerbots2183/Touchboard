@@ -26,7 +26,7 @@ import { NT4_Client } from "../lib/nt4.js";
 import { topicToSidebar } from "./editor/editorUi.js";
 import { setSelectOpener } from "./ui.js";
 import { MathUtils } from "../lib/util.js";
-import { renderFrame, isFrameScheduled} from "./renderer.js";
+import { renderFrame, isFrameScheduled } from "./renderer.js";
 
 let sidebaredStructs = []
 
@@ -117,7 +117,6 @@ function handleNewData(topic, timestamp, value) {
 
             if (topic.type.includes("struct")) {
                 foundValue = getStructValue(subscribedTopics[topic.name][i].structPath, value)
-                console.warn(topic.name, value, foundValue)
             }
 
             subscribedTopics[topic.name][i].valueHandeler(foundValue, timestamp) // Send value to topic handler
@@ -206,7 +205,7 @@ function onConnectCb() {
                         // console.log($uiElements.eq(i).attr("data-value"))
                     } else if ($uiElements.eq(i).attr("data-type") === "double") {
                         nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), parseFloat($uiElements.eq(i).attr("data-value")))
-                        console.log($uiElements.eq(i).attr("data-value"))
+                        // console.log($uiElements.eq(i).attr("data-value"))
                     } else {
                         nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), JSON.parse($uiElements.eq(i).attr("data-value")))
 
@@ -216,6 +215,8 @@ function onConnectCb() {
         }
         let editTabs = $(".editTabs")
         for (let i = 0; i < $uiElements.length; i++) {
+            if($uiElements.eq(i).attr("data-topic") == "esc-UNDEFINED-esc" || $uiElements.eq(i).attr("data-topic") == "esc-UNSET-esc") {continue}
+
             if ($uiElements.eq(i).hasClass("actionButton")) {
                 $($uiElements.eq(i)).on(" pointerdown", () => {
                     if (editTabs.hasClass("editingTabs")) return

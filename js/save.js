@@ -77,6 +77,11 @@ export function saveLayoutToJSON() {
                 similarOptions: JSON.parse(comp$.attr("data-defaultsimilaroptions"))
             }
 
+            if(component.type == "graph"){
+                component.topics = comp$.attr("data-topics");
+                component.topic = null
+            }
+
             components.push({ ...component, ...(getComponentSpecificAsObject(comp$)) })
         }
 
@@ -100,116 +105,6 @@ export function saveLayoutToJSON() {
     return JSON.stringify(json)
 }
 
-function makeComponentFromJson(component) {
-    // type: componentType,
-    // row: comp$.attr("data-row"),
-    // col: comp$.attr("data-column"),
-    // endrow: comp$.attr("data-endrow"),
-    // endcol: comp$.attr("data-endcolumn"),
-    // area: comp$.css("grid-area"),
-    // topic: comp$.attr('data-topic'),
-    // similarOptions: comp$.attr("data-defaultsimilaroptions")
-    switch (component.type) {
-        case "actionButton":
-            return components.createActionButton(component.displayName, component.topic, false, component.color, component.similarOptions)
-        case "oneShotButton":
-            return components.createOneShotButton(component.displayName, component.topic, false, component.color, component.similarOptions)
-        case "toggleButton":
-            return components.createToggleButton(component.displayName, component.topic, false, component.color, component.value, component.similarOptions, component.persist)
-        case "axis":
-            return components.createAxis(component.displayName, component.topic, false, false, component.color, component.value, component.min, component.max, component.step, component.snapBack, component.similarOptions).div
-        case "verticalAxis":
-            return components.createAxis(component.displayName, component.topic, false, true, component.color, component.value, component.min, component.max, component.step, component.snapBack, component.similarOptions).div
-        case "select":
-            return components.createDropdown(component.topic, false, 0, component.index, JSON.parse(component.componentOptions), component.similarOptions, component.persist).div
-        case "buttonOptGroup":
-            return components.createOptGroup(component.topic, false, 0, component.index, JSON.parse(component.componentOptions), component.similarOptions, component.persist).div
-        case "numberComponent":
-            return components.createNumberComponent(component.displayName, component.topic, false, 0, component.value, component.min, component.max, component.step, component.persist, component.similarOptions).div
-        case "basicSubscription":
-            return components.createBasicSubscription(component.displayName, component.topic, false, component.color, component.similarOptions)
-        case "basicLogger":
-            return components.createBasicLogger(component.displayName, component.topic, false, component.color, component.similarOptions)
-        case "numberLine":
-            return components.createNumberLine(component.displayName, component.topic, false, component.color, component.max, component.min, component.low, component.high, component.optimum, component.similarOptions)
-        case "radialGauge":
-            return components.createRadialGauge(component.displayName, component.topic, false, component.color, component.maxDeg, 5, component.max, component.min, component.low, component.high, component.optimum, component.offsetDeg, component.similarOptions)
-        case "camera":
-            return components.createCamera(component.displayName, component.topic, false, JSON.parse(component.hideNav), component.videoFormat, JSON.parse(component.recordConditionHandler), component.similarOptions)
-    }
-}
-
-//Load
-export function loadLayoutFromJson(json) {
-    if (typeof json == "string") {
-        json = JSON.parse(json)
-    }
-
-    for (let tab in json) {
-        let components = json[tab].components;
-
-        let $loadedTab = $("<div>").addClass("tab")
-            .css("background-color", $(".fullScreen").css("background-color"))
-            .addClass("tabConnection")
-            .addClass("userTab")
-            .addClass("pTAB" + tab.slice(1))
-            .attr("data-page", tab)
-            .text(json[tab].tabTitle)
-            .insertBefore(".tabCreator")
-            .addClass(json[tab].state)
-
-
-        createSideTab(json[tab].tabTitle, tab, json[tab].state)
-
-        // <div class="uiTestTab page" style="display: grid;">/
-        bindEditorResetter($loadedTab)
-
-        if (tab == ".autonomus") {
-            $loadedTab.addClass("autoTab")
-            $loadedTab.removeClass("userTab")
-            $loadedTab.removeClass("tabConnection")
-
-            continue
-        }
-
-        if ($(tab).length <= 0) {
-            let page$ = $("<div>").addClass("page").addClass(tab.slice(1)).css("display", "grid").attr("rows", json[tab].tabRows).attr("columns", json[tab].tabColumns).insertAfter(".autonomus")
-
-            for (let i = 0; i < components.length; i++) {
-                makeComponentFromJson(components[i])
-                    .attr("data-row", components[i].row)
-                    .attr("data-column", components[i].col)
-                    .attr("data-endrow", components[i].endrow)
-                    .attr("data-endcolumn", components[i].endcol)
-                    .css("grid-area", components[i].area)
-                    .appendTo(page$)
-            }
-        } else {
-            $(tab).css("display", "grid").attr("rows", json[tab].tabRows).attr("columns", json[tab].tabColumns).insertAfter(".autonomus")
-        }
-
-
-    }
-    let $ct = $(".tabNav").children(".tab").eq(0)
-    let currentPage$ = $($ct.attr("data-page"))
-    $(".page, .pageF").css("display", "none")
-    $(".tab").removeClass("currentTab").css("background-color", "rgb(12, 12, 12)")
-    $ct.addClass("currentTab").css("background-color", "rgb(32, 32, 32)")
-    if ($ct.attr("data-displaytype") == null) {
-        $(currentPage$).css("display", "grid")
-        tabGrid(parseFloat(currentPage$.attr("columns")), parseFloat(currentPage$.attr("rows")), currentPage$)
-
-    } else {
-        $(currentPage$).css("display", $ct.attr("data-displaytype"))
-    }
-
-    setGridInput(currentPage$)
-    if (Object.keys(json).length == 0) {
-        $(".setGridRow").addClass("hiddenClickless")
-        $(".setGridColumn").addClass("hiddenClickless")
-    }
-
-}
 
 function getComponentSpecificAsObject(comp$) {
     let componentType = comp$.attr("data-componenttype")
@@ -327,6 +222,126 @@ function getComponentSpecificAsObject(comp$) {
                 videoFormat: comp$.attr("data-videoFormat"),
                 recordConditionHandler: comp$.attr("data-recordConditions")
             }
+        case "graph":
+            return {
+                displayName: comp$.find(".editThisName").text(),
+                color: comp$.attr("data-color"),
+                width: comp$.attr("data-width")
+            }
     }
+}
+
+
+//Load
+export function loadLayoutFromJson(json) {
+    if (typeof json == "string") {
+        json = JSON.parse(json)
+    }
+
+    for (let tab in json) {
+        let components = json[tab].components;
+
+        let $loadedTab = $("<div>").addClass("tab")
+            .css("background-color", $(".fullScreen").css("background-color"))
+            .addClass("tabConnection")
+            .addClass("userTab")
+            .addClass("pTAB" + tab.slice(1))
+            .attr("data-page", tab)
+            .text(json[tab].tabTitle)
+            .insertBefore(".tabCreator")
+            .addClass(json[tab].state)
+
+
+        createSideTab(json[tab].tabTitle, tab, json[tab].state)
+
+        // <div class="uiTestTab page" style="display: grid;">/
+        bindEditorResetter($loadedTab)
+
+        if (tab == ".autonomus") {
+            $loadedTab.addClass("autoTab")
+            $loadedTab.removeClass("userTab")
+            $loadedTab.removeClass("tabConnection")
+
+            continue
+        }
+
+        if ($(tab).length <= 0) {
+            let page$ = $("<div>").addClass("page").addClass(tab.slice(1)).css("display", "grid").attr("rows", json[tab].tabRows).attr("columns", json[tab].tabColumns).insertAfter(".autonomus")
+
+            for (let i = 0; i < components.length; i++) {
+                makeComponentFromJson(components[i])
+                    .attr("data-row", components[i].row)
+                    .attr("data-column", components[i].col)
+                    .attr("data-endrow", components[i].endrow)
+                    .attr("data-endcolumn", components[i].endcol)
+                    .css("grid-area", components[i].area)
+                    .appendTo(page$)
+            }
+        } else {
+            $(tab).css("display", "grid").attr("rows", json[tab].tabRows).attr("columns", json[tab].tabColumns).insertAfter(".autonomus")
+        }
+
+
+    }
+    let $ct = $(".tabNav").children(".tab").eq(0)
+    let currentPage$ = $($ct.attr("data-page"))
+    $(".page, .pageF").css("display", "none")
+    $(".tab").removeClass("currentTab").css("background-color", "rgb(12, 12, 12)")
+    $ct.addClass("currentTab").css("background-color", "rgb(32, 32, 32)")
+    if ($ct.attr("data-displaytype") == null) {
+        $(currentPage$).css("display", "grid")
+        tabGrid(parseFloat(currentPage$.attr("columns")), parseFloat(currentPage$.attr("rows")), currentPage$)
+
+    } else {
+        $(currentPage$).css("display", $ct.attr("data-displaytype"))
+    }
+
+    setGridInput(currentPage$)
+    if (Object.keys(json).length == 0) {
+        $(".setGridRow").addClass("hiddenClickless")
+        $(".setGridColumn").addClass("hiddenClickless")
+    }
+
+}
+
+function makeComponentFromJson(component) {
+    // type: componentType,
+    // row: comp$.attr("data-row"),
+    // col: comp$.attr("data-column"),
+    // endrow: comp$.attr("data-endrow"),
+    // endcol: comp$.attr("data-endcolumn"),
+    // area: comp$.css("grid-area"),
+    // topic: comp$.attr('data-topic'),
+    // similarOptions: comp$.attr("data-defaultsimilaroptions")
+    switch (component.type) {
+        case "actionButton":
+            return components.createActionButton(component.displayName, component.topic, false, component.color, component.similarOptions)
+        case "oneShotButton":
+            return components.createOneShotButton(component.displayName, component.topic, false, component.color, component.similarOptions)
+        case "toggleButton":
+            return components.createToggleButton(component.displayName, component.topic, false, component.color, component.value, component.similarOptions, component.persist)
+        case "axis":
+            return components.createAxis(component.displayName, component.topic, false, false, component.color, component.value, component.min, component.max, component.step, component.snapBack, component.similarOptions).div
+        case "verticalAxis":
+            return components.createAxis(component.displayName, component.topic, false, true, component.color, component.value, component.min, component.max, component.step, component.snapBack, component.similarOptions).div
+        case "select":
+            return components.createDropdown(component.topic, false, 0, component.index, JSON.parse(component.componentOptions), component.similarOptions, component.persist).div
+        case "buttonOptGroup":
+            return components.createOptGroup(component.topic, false, 0, component.index, JSON.parse(component.componentOptions), component.similarOptions, component.persist).div
+        case "numberComponent":
+            return components.createNumberComponent(component.displayName, component.topic, false, 0, component.value, component.min, component.max, component.step, component.persist, component.similarOptions).div
+        case "basicSubscription":
+            return components.createBasicSubscription(component.displayName, component.topic, false, component.color, component.similarOptions)
+        case "basicLogger":
+            return components.createBasicLogger(component.displayName, component.topic, false, component.color, component.similarOptions)
+        case "numberLine":
+            return components.createNumberLine(component.displayName, component.topic, false, component.color, component.max, component.min, component.low, component.high, component.optimum, component.similarOptions)
+        case "radialGauge":
+            return components.createRadialGauge(component.displayName, component.topic, false, component.color, component.maxDeg, 5, component.max, component.min, component.low, component.high, component.optimum, component.offsetDeg, component.similarOptions)
+        case "camera":
+            return components.createCamera(component.displayName, component.topic, false, JSON.parse(component.hideNav), component.videoFormat, JSON.parse(component.recordConditionHandler), component.similarOptions)
+        case "graph":
+            return components.createGraph(component.displayName, JSON.parse(component.topics), false, component.color, component.width, component.similarOptions)
+        }
 }
 
