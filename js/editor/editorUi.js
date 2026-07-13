@@ -83,6 +83,13 @@ function bindEditOpener() {
 
         $(".gridSquare").toggleClass("gridSquareEditing")
 
+        let currentPage$ = $($(".currentTab").attr("data-page"))
+
+        
+        setTimeout(() => {
+            tabGrid(parseFloat(currentPage$.attr("columns")), parseFloat(currentPage$.attr("rows")), currentPage$)
+        }, 300);
+
         setTimeout(() => {
             $("#connect").css("pointer-events", "")
 
@@ -338,16 +345,28 @@ function bindTabCreator() {
             .addClass("tabsEditActivated")
             .css("background-color", $(".fullScreen").css("background-color"))
             .addClass("tabConnection")
+            .addClass("tabVisible")
             .addClass("userTab")
             .addClass("pTAB" + tab)
             .attr("data-page", "." + tab)
             .text(name)
             .insertBefore(".tabCreator")
 
-        createSideTab(name, "." + tab)
 
         // <div class="uiTestTab page" style="display: grid;">/
         bindEditorResetter($ct)
+
+        if(window.innerWidth/ window.innerHeight < 4/3){
+            $(".manager").addClass("managerOpen")
+
+            setTimeout(() => {
+                createSideTab(name, "." + tab)
+            }, 400);
+
+            setTimeout(() => {
+                $(".manager").removeClass("managerOpen")
+            }, 1200);
+        }
 
         let currentPage$ = $("<div>").addClass("page").addClass(tab).css("display", "grid").attr("data-displaytype", "grid").attr("rows", "4").attr("columns", "9").insertAfter(".autonomus")
 

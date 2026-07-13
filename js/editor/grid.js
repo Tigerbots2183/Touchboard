@@ -40,6 +40,9 @@ grid.endRow = grid.row
 
 //Grid Setup
 
+let globalTimeout;
+let resizeTimeout;
+
 export function tabGrid(columns, rows, tab) {
     let $tab = $(tab)
 
@@ -48,11 +51,26 @@ export function tabGrid(columns, rows, tab) {
     $(".gridUnderlay").css("grid-template-rows", "repeat(" + rows + " ," + cqval + "cqmin)").css("grid-template-columns", "repeat(" + columns + " ," + cqval + "cqmin)")
     $(".gridUnderlayVisual").css("grid-template-rows", "repeat(" + rows + " ," + cqval + "cqmin)").css("grid-template-columns", "repeat(" + columns + " ," + cqval + "cqmin)")
 
+    clearTimeout(globalTimeout)
+    globalTimeout = setTimeout(() => {
+        let cqval = setGridSize($tab, columns, rows)
+        $(".gridUnderlay").css("grid-template-rows", "repeat(" + rows + " ," + cqval + "cqmin)").css("grid-template-columns", "repeat(" + columns + " ," + cqval + "cqmin)")
+        $(".gridUnderlayVisual").css("grid-template-rows", "repeat(" + rows + " ," + cqval + "cqmin)").css("grid-template-columns", "repeat(" + columns + " ," + cqval + "cqmin)")
+
+    }, 300);
+
     $(window).off("resize").on("resize", () => {
         let cqval = setGridSize($tab, columns, rows)
         $(".gridUnderlay").css("grid-template-rows", "repeat(" + rows + " ," + cqval + "cqmin)").css("grid-template-columns", "repeat(" + columns + " ," + cqval + "cqmin)")
         $(".gridUnderlayVisual").css("grid-template-rows", "repeat(" + rows + " ," + cqval + "cqmin)").css("grid-template-columns", "repeat(" + columns + " ," + cqval + "cqmin)")
 
+        clearTimeout(resizeTimeout)
+        resizeTimeout = setTimeout(() => {
+            let cqval = setGridSize($tab, columns, rows)
+            $(".gridUnderlay").css("grid-template-rows", "repeat(" + rows + " ," + cqval + "cqmin)").css("grid-template-columns", "repeat(" + columns + " ," + cqval + "cqmin)")
+            $(".gridUnderlayVisual").css("grid-template-rows", "repeat(" + rows + " ," + cqval + "cqmin)").css("grid-template-columns", "repeat(" + columns + " ," + cqval + "cqmin)")
+
+        }, 300);
     })
 
     $tab.attr("rows", rows).attr("columns", columns)
@@ -409,13 +427,13 @@ export function addToCurrentDrag(jQueryReference, initialX, initialY, componentT
     }).off("pointerdown.resetDragState").on("pointerdown.resetDragState", () => {
         if (grid.skipNextDown) {
             grid.skipNextDown = false;
-            
+
         }
     })
 
     $(".page").off("pointerdown.dragComponent").on("pointerdown.dragComponent", (event) => {
 
-       if (grid.skipNextDown) {
+        if (grid.skipNextDown) {
             grid.skipNextDown = false;
 
             return;

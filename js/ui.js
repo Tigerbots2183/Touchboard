@@ -275,7 +275,14 @@ function bindImportExport() {
 
 
 export function createSideTab(name, page, state = "") {
-    let div = $("<div>").addClass("sideTab").attr("data-page", page).addClass("sTAB" + page.slice(1)).addClass(state)
+    let div = $("<div>").addClass("sideTab").attr("data-page", page).addClass("sTAB" + page.slice(1)).css("background-color", "white").addClass(state)
+
+    setTimeout(() => {
+        div.offset()
+        div.css("background-color", "")
+    }, 0);
+
+    // div.css("background-color", "")
 
     if (state == "") {
         div.insertBefore(".titleMinimized")
