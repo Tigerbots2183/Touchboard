@@ -120,6 +120,7 @@ body {
     box-sizing: border-box;
 }
 
+
 .ioComponents>div {
     flex-shrink: 0;
     margin-top: 2.5vh;
@@ -347,7 +348,7 @@ foreignObject input[type=range]::-webkit-slider-thumb {
     top: 20vh;
     right: 25vw;
     background-color: rgba(0, 0, 0, 0.952);
-    z-index: 3;
+    z-index: 6;
     border-radius: 3vw;
     outline: 1vh #46009c solid;
     /* display: flex; */
@@ -3885,7 +3886,7 @@ input[type=number] {
     }
 
 
-    .colorCoderComponent {
+    .colorCoder {
         width: 30cqmin;
         height: 20cqmin;
 
@@ -3903,7 +3904,7 @@ input[type=number] {
         font-size: 4cqmin;
     }
 
-    .colorCoderComponent .editThisName {
+    .colorCoder .editThisName {
         font-size: 4cqmin;
         line-height: 6cqmin;
         width: 100%;
@@ -4911,7 +4912,7 @@ meter:not([value]) {
     top: 0cqh;
     left: 0;
     background-color: rgba(12, 12, 12);
-    z-index: 3;
+    z-index: 5;
     /* outline: .5vh #46009c solid; */
     /* display: flex; */
     flex-direction: column;
@@ -5370,4 +5371,12 @@ meter:not([value]) {
         height: 18%;
         position: sticky;
     }
+}
+
+.inputComponents>*{
+    touch-action:unset;
+}
+
+.outputComponents>*{
+    touch-action:unset;
 }

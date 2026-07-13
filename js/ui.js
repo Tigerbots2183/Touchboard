@@ -429,7 +429,7 @@ function setSavedLayout() {
     if (localStorage.getItem("layout")) {
         loadLayoutFromJson(localStorage.getItem("layout"))
     } else {
-        localStorage.setItem("layout", JSON.stringify({}))
+        localStorage.setItem("layout", JSON.stringify({".TeleopB29257671233746385":{"tabTitle":"Teleop","tabRows":"4","tabColumns":"9","state":"tabVisible","components":[]},".AutoB909642247728146":{"tabTitle":"Auto","tabRows":"4","tabColumns":"9","state":"tabVisible","components":[]}}))
 
         loadLayoutFromJson(localStorage.getItem("layout"))
     }

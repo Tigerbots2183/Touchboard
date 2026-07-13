@@ -144,7 +144,7 @@ function bindEditOpener() {
 }
 
 function bindComponentAdders() {
-    $(".ioComponents").children().off().on("pointerdown.addComponent ", (event) => {
+    $(".ioComponents").children().off().on("click.addComponent ", (event) => {
         $("*").removeClass("removeShake").off("pointerdown.remove")
         $(".trashCan").removeClass("trashActive")
 
@@ -366,6 +366,8 @@ function bindTabCreator() {
             setTimeout(() => {
                 $(".manager").removeClass("managerOpen")
             }, 1200);
+        }else{
+            createSideTab(name, "." + tab)
         }
 
         let currentPage$ = $("<div>").addClass("page").addClass(tab).css("display", "grid").attr("data-displaytype", "grid").attr("rows", "4").attr("columns", "9").insertAfter(".autonomus")
