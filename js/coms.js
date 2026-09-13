@@ -433,7 +433,7 @@ function onDisconnectCb() {
         $(".currentTab").css("background-color", "rgb(128, 32, 32)")
 
         setTimeout(() => {
-            // window.location.reload()
+            window.location.reload()
 
         }, 1000);
     }
