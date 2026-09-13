@@ -1319,6 +1319,55 @@ input[type=number] {
     margin-inline: 1cqh;
 }
 
+.colorCoderSidebarDotShower{
+    width: 2.5cqh;
+    height: 2.5cqh;
+    outline: white 0.25cqh solid;
+    margin-left: 1cqh;    
+    border-radius: 5cqh;
+}
+
+.colorCoder {
+    width: 15cqmin;
+    height: 10cqmin;
+
+    background-color: rgb(24, 24, 24);
+    border: rgb(12, 12, 12) solid 0.25cqh;
+
+    --data-value: attr(data-value raw-string, "");
+
+
+
+    border-radius: 1.5cqh;
+    color: white;
+    align-items: center;
+    justify-items: center;
+    font-size: 2cqmin;
+}
+
+.colorCoder .editThisName {
+    font-size: 2cqmin;
+    line-height: 3cqmin;
+    width: 100%;
+    text-align: center;
+    border: none;
+}
+
+.colorCoderValue {
+    width: 90%;
+    border-radius: 1cqmin;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-shadow: 0 0 .5cqh black;
+    height: calc(92.5% - 3cqmin);
+}
+
+.colorCoderValue::before {
+    content: "Value"
+}
+
 .graphSideBar {
     overflow: hidden;
     width: 18cqh;
@@ -4524,6 +4573,21 @@ meter:not([value]) {
     box-sizing: border-box;
 }
 
+
+.coderAdder {
+    transition: margin-top ease;
+
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    align-items: center;
+    justify-content: space-evenly;
+    /* padding-top: 1vh; */
+    border: 0.25vh solid rgb(58, 58, 58);
+    width: 95%;
+    box-sizing: border-box;
+}
+
 .optionAdder p {
     width: min-content;
 }
@@ -5230,7 +5294,7 @@ meter:not([value]) {
         height: 80%;
     }
 
-  
+
 
     .sideBarNav h1 {
         line-height: 20%;
@@ -5270,7 +5334,7 @@ meter:not([value]) {
         flex-wrap: wrap;
     }
 
-    .editSidebar{
+    .editSidebar {
         overflow-y: hidden;
         align-items: center;
         height: max-content;
@@ -5361,22 +5425,22 @@ meter:not([value]) {
         height: unset;
     }
 
-    .reposistionComponent{
+    .reposistionComponent {
         height: unset;
         width: 63%;
         margin-inline: auto;
     }
 
-      .sideBarNav {
+    .sideBarNav {
         height: 18%;
         position: sticky;
     }
 }
 
-.inputComponents>*{
-    touch-action:unset;
+.inputComponents>* {
+    touch-action: unset;
 }
 
-.outputComponents>*{
-    touch-action:unset;
+.outputComponents>* {
+    touch-action: unset;
 }

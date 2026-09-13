@@ -24,9 +24,9 @@
 
 import { changeSimilarInputs, addEditHandler } from "../editorUi.js"
 import { toastMessage } from "../../ui.js"
-import { connectionDate, subscribedTopics, nt4Client, getStructValue } from "../../coms.js"
+import { connectionDate, subscribedTopics, nt4Client, getStructValue, subscribeOrQueue } from "../../coms.js"
 import { objectIncludes } from "../../../lib/util.js"
-import { addToRender } from "../../renderer.js"
+import { addToRender, renderFrame } from "../../renderer.js"
 import { initGraph, CONVERSIONRATE } from "./graph.js"
 
 export let defaultSimilarOptions = {
@@ -1023,7 +1023,16 @@ export function createGraph(displayName, topics, append, hex = "#8400ff", width 
         displayName = displayName.split(":")[0]
     }
 
-    let graph = $("<div>").addClass("graph").attr("data-linkAxis", "false").attr("data-graphKey", graphKey).attr("data-componentType", "graph").attr("draggable", "false").attr("data-defaultSimilarOptions", JSON.stringify(similarOptions)).attr("data-topics", JSON.stringify(topics)).attr("data-color", hex).attr("data-width", width).addClass("editableComponent")
+    let graph = $("<div>").addClass("graph")
+    .attr("data-linkAxis", "false")
+    .attr("data-graphKey", graphKey)
+    .attr("data-componentType", "graph")
+    .attr("draggable", "false")
+    .attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
+    .attr("data-topics", JSON.stringify(topics))
+    .attr("data-color", hex)
+    .attr("data-width", width)
+    .addClass("editableComponent")
 
     if (append) {
         graph.appendTo(append)
@@ -1159,7 +1168,8 @@ export function createGraph(displayName, topics, append, hex = "#8400ff", width 
     return graph
 }
 
-export function createColorCoderBoolean(displayName, topic, append, hex = "#0c0c0c", keys = { "true": "rgb(0,255,128)", "false": "rgb(255, 0,0)", "else": "rgb(0,0,0)" }, similarOptions = defaultSimilarOptions) {
+export function createColorCoder(displayName, topic, append, hex = "#0c0c0c", keys = { "true": "rgb(0,255,128)", "false": "rgb(255, 0,0)", "else": "rgb(0,0,0)" }, similarOptions = defaultSimilarOptions) {
+
     if (displayName == null) {
         let topicSplit = topic.split("/")
         displayName = topicSplit[topicSplit.length - 1]
@@ -1174,11 +1184,10 @@ export function createColorCoderBoolean(displayName, topic, append, hex = "#0c0c
     let colorCoder = $("<div>")
         .addClass("colorCoder")
         .attr("data-topic", topic)
-        // .addClass("editableComponent")
+        .addClass("editableComponent")
         .css("border-color", hex)
         .attr("data-color", hex)
-        .attr("data-componentType", "colorCoderBoolean")
-        .attr("data-value", "null")
+        .attr("data-componentType", "colorCoder")
         .attr("data-keys", JSON.stringify(keys))
         .attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
 
@@ -1191,22 +1200,27 @@ export function createColorCoderBoolean(displayName, topic, append, hex = "#0c0c
     }
 
     setSimilarOptions(colorCoder, similarOptions)
-    addEditHandler(colorCoder, "subscription", ".colorCoderBooleanSpecific")
+    addEditHandler(colorCoder, "subscription", ".colorCoderSpecific")
 
     if (topic == "esc-UNSET-esc") return colorCoder;
 
     let colorCoderHandler = (value) => {
-        colorCoder.attr("data-value", JSON.stringify(value))
+        if (typeof value === "boolean") {
+            value = value.toString()
+        }
+
+        addToRender(colorCoder, { "updating": "attribute", "attrName": "data-value", "newValue": value })
     }
 
     let topicChangeHandler = (newTopic, val) => {
-
+        addToRender(colorCoder, { "updating": "attribute", "attrName": "data-value", "newValue": val })
     }
 
     let subscribedReference = {
         'jQueryReference': false,
         'parentReference': colorCoder,
         'valueHandeler': colorCoderHandler,
+        
         'topicChangeHandler': topicChangeHandler
     }
 
@@ -1229,6 +1243,7 @@ export function createColorCoderBoolean(displayName, topic, append, hex = "#0c0c
 
     if (nt4Client.serverTopics.get(topic)) {
         colorCoderHandler(nt4Client.serverTopics.get(topic).value)
+
     } else if (nt4Client.serverTopics.get(topic.split("|")[0])) {
         let topicRef = nt4Client.serverTopics.get(topic.split("|")[0]);
         colorCoderHandler(getStructValue(topic, topicRef.value))
@@ -1237,6 +1252,7 @@ export function createColorCoderBoolean(displayName, topic, append, hex = "#0c0c
     return colorCoder
 
 }
+
 
 //Subscription Blank
 
@@ -1259,6 +1275,7 @@ export function createColorCoderBoolean(displayName, topic, append, hex = "#0c0c
 //         .attr("data-componentType", "blank")
 //         .css("border-color", hex)
 //         .attr("data-color", hex)
+//         .attr("data-type", "blank")
 //         .attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
 
 //     if (append) {
@@ -1320,7 +1337,7 @@ export function createColorCoderBoolean(displayName, topic, append, hex = "#0c0c
 //      <button class="record emojiButton">🔴</button>
 //  </div>
 // </div> 
-function generateCssIfStatement(variableName, conditions) {
+export function generateCssIfStatement(variableName, conditions) {
     const entries = Object.entries(conditions);
     let branches = [];
 
@@ -1329,7 +1346,7 @@ function generateCssIfStatement(variableName, conditions) {
 
         if (cleanKey.toLowerCase() === 'else') {
             // The catch-all final fallback
-            branches.push(`else: ${value}`);
+            // branches.push(`else: ${value}`);
         } else {
             // Formats style checks sequentially: style(--data-value: Val1): rgb(...)
             branches.push(`style(${variableName}: "${cleanKey}"): ${value}`);
@@ -1337,6 +1354,8 @@ function generateCssIfStatement(variableName, conditions) {
 
         }
     });
+
+    branches.push(`else: ${conditions['else'] || 'black'}`); // Default fallback if 'else' is not provided
 
     // Flat semicolon-separated syntax inside a single if() block
     return `if(${branches.join('; ')})`;
@@ -1761,6 +1780,13 @@ function emulateMeterColors(min = 0, max = 360, low = "", high = "", optimum = "
 export function createDefaultOf(component, append, topic = "esc-UNSET-esc") {
     console.log(component, append, topic)
 
+    if(topic != "esc-UNSET-esc" && topic != "esc-UNDEFINED-esc"){
+        subscribeOrQueue(topic)
+
+        window.requestAnimationFrame(renderFrame);
+        
+    }
+
     switch (component) {
         case "actionButton":
             return createActionButton("Action Button", topic, append)
@@ -1790,8 +1816,8 @@ export function createDefaultOf(component, append, topic = "esc-UNSET-esc") {
             return createCamera(undefined, topic, append)
         case "graph":
             return createGraph(undefined, [topic], append)
-        case "colorCoderBoolean":
-            return createColorCoderBoolean(undefined, topic, append)
+        case "colorCoder":
+            return createColorCoder(undefined, topic, append)
     }
 }
 

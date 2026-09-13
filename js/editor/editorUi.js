@@ -23,7 +23,7 @@
 // 
 
 import { outputComponents, createSideTab, multiSwitchButtonSet, toastMessage } from "../ui.js"
-import { createDefaultOf, defaultSimilarOptions, setSimilarOptions, addButtonToAnimate, createDropdown, createOptGroup, globalGraphRef } from "./components/components.js"
+import { createDefaultOf, defaultSimilarOptions, setSimilarOptions, addButtonToAnimate, createDropdown, createOptGroup, globalGraphRef, generateCssIfStatement } from "./components/components.js"
 import { tabGrid, setGridInput, setCornerBorder, clientDragHandler, addToCurrentDrag, findEndOffset, grid } from "./grid.js"
 import { topicObject, nt4Client, getStructValue, subscribedTopics } from "../coms.js"
 import { vh } from "../../lib/util.js"
@@ -300,6 +300,21 @@ function bindConditionalHandlers() {
 
 }
 
+function bindCoderAdderHandlers() {
+    // $(".conditionPlus").on("click.addDiv", () => {
+    //     createConditionSidebarButton()
+
+    // })
+
+    $(".coderAdder").on("submit.addDiv", () => {
+        createColorCoderSidebarButton();
+
+        $(".newCoderValue").val("")
+
+        return false;
+    })
+}
+
 function bindComponentRepositioner() {
     $(".reposistionComponent").on("pointerdown.reposComponent", (event) => {
         $(".sideBar").off("pointerup.setEdit pointermove.setEdit")
@@ -446,10 +461,11 @@ function bindEditMenu(element, valueType, customEdit = false) {
     for (let i = 0; i < inputs.length; i++) {
         let inputBeingBound = inputs.eq(i)
         //Loops through all inputs and sets the event listeners for each
-
         if (inputBeingBound.attr('data-editing') == "text") {
             bindName(inputBeingBound)
-        } else if (inputBeingBound.hasClass("numberTextInput")) {
+        } else if (inputBeingBound.attr("data-editing") == "data-keys") {
+            bindColorCoderKeys(inputBeingBound)
+        }else if (inputBeingBound.hasClass("numberTextInput")) {
             bindNumbers(inputBeingBound)
         } else if (inputBeingBound.attr("data-editing") == "color") {
             bindColors(inputBeingBound)
@@ -471,7 +487,7 @@ function bindEditMenu(element, valueType, customEdit = false) {
             bindHideNav(inputBeingBound)
         } else if (inputBeingBound.attr("data-editing") == "data-recordconditions") {
             bindRecordConditions(inputBeingBound)
-        } else if (inputBeingBound.attr("data-editing") !== "na") {
+        }else if (inputBeingBound.attr("data-editing") !== "na") {
             bindOtherData(inputBeingBound)
         }
 
@@ -767,6 +783,25 @@ function bindEditMenu(element, valueType, customEdit = false) {
                 // console.log(conditions, conditions[i], JSON.stringify(conditions[i]), recordMap, recordMap.get(JSON.stringify(conditions[i])))
                 createConditionSidebarButton(recordMap.get(JSON.stringify(conditions[i])), JSON.stringify(conditions[i]), false)
             }
+        }
+    }
+
+    function bindColorCoderKeys() {
+        if (editComponent.currentTarget.hasClass("colorCoder")) {
+
+            let conditions = JSON.parse(editComponent.currentTarget.attr("data-keys"));
+            $(".sidebarCondition").remove();
+
+            console.log(conditions, "conditions")
+
+            for(let key of Object.keys(conditions)){
+                if(key == "else") continue;
+                createColorCoderSidebarButton(key, conditions[key], false)
+            }
+            // for (let i = 0; i < conditions.length; i++) {
+            //     // console.log(conditions, conditions[i], JSON.stringify(conditions[i]), recordMap, recordMap.get(JSON.stringify(conditions[i])))
+            //     createConditionSidebarButton(JSON.stringify(conditions[i])), JSON.stringify(conditions[i]), false)
+            // }
         }
     }
 
@@ -1220,6 +1255,11 @@ export function addEditHandler(element, valueType, specificClass = false, specif
 
             $(".addButtons").css("display", "none")
             $(".editNavButtons").css("display", "")
+
+            if(startString.includes("ColorCoder")){
+                startString = "ColorCoder"
+            }
+
             $(".editNavName").text(startString)
 
             bindEditMenu($ct, valueType, customEdit)
@@ -1242,6 +1282,7 @@ export function initEditor() {
     bindTrashCan()
     bindMinMaxHandlers()
     bindConditionalHandlers()
+    bindCoderAdderHandlers()
     bindComponentRepositioner();
     bindComponentFillOption();
     bindSidebarNav();
@@ -1620,6 +1661,72 @@ function createConditionSidebarButton(name = document.querySelector(".condition"
 
         $(event.currentTarget).parent().remove()
     }
+    )
+
+    return false
+}
+
+
+function createColorCoderSidebarButton(value = $(document.querySelector(".newCoderValue")).val(), color = document.querySelector(".newHexCoder").value, feedback = true) {
+    let conditions = $(".sidebarCondition")
+
+    for (let i = 0; i < conditions.length; i++) {
+        if (value == conditions.eq(i).attr("data-value").replaceAll(`'`, `"`)) {
+            return false
+        }
+    }
+
+    let $sbO = $("<div>").addClass("sidebarOption").addClass("sidebarCondition").insertBefore(".coderAdder").attr("data-value", value).attr("data-color", color)
+    $("<div>").css("background-color", color).addClass("colorCoderSidebarDotShower").appendTo($sbO)
+    $("<p>").text(value).appendTo($sbO).css("max-width", "calc(100cqw - 0.25vh - 0.25vh - 4vh - 4vh)")
+
+    if (feedback) {
+        let currentConditions = JSON.parse($(editComponent.currentTarget).attr("data-keys"))
+
+        delete currentConditions["else"]
+        try {
+            currentConditions[value] = color
+
+        }
+        catch (Err) {
+            console.error(Err)
+            return false
+        }
+
+        currentConditions["else"] = "#000000"
+
+        console.log(currentConditions);
+
+        $(editComponent.currentTarget).attr("data-keys", JSON.stringify(currentConditions))
+
+        $(editComponent.currentTarget).find(".colorCoderValue").css("background-color", generateCssIfStatement("--data-value", currentConditions))
+    }
+
+
+    $("<div>").text("❌").addClass("sideBarEmojiButton").addClass("trashOption").appendTo($sbO).on("pointerdown.remove", (event) => {
+
+        let currentConditions = JSON.parse(editComponent.currentTarget.attr("data-keys"))
+
+        let removeIndex;
+
+        for (let i = 0; i < currentConditions.length; i++) {
+            if (currentConditions[i] == $(event.currentTarget).attr("data-value")) {
+                removeIndex = i
+
+                break;
+            }
+        }
+
+        delete currentConditions[$(event.currentTarget).parent().attr("data-value")] 
+
+        editComponent.currentTarget.attr("data-keys", JSON.stringify(currentConditions))
+
+        $(event.currentTarget).parent().remove()
+
+        $(editComponent.currentTarget).find(".colorCoderValue").css("background-color", generateCssIfStatement("--data-value", currentConditions))
+
+    }
+
     )
 
     return false

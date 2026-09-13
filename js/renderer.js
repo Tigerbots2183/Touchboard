@@ -79,7 +79,7 @@ export function renderFrame(){
 
 
     for(let [element, instructions] of currentQueue){
-
+        console.log("Rendering: ", element, instructions)
         queueCount++
 
         for(let i = 0; i < instructions.length; i++){

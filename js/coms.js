@@ -30,6 +30,12 @@ import { renderFrame, isFrameScheduled } from "./renderer.js";
 
 let sidebaredStructs = []
 
+let isConnected = false;
+
+let queuedTopics = [];
+
+let allSubscribedTopics = [];
+
 export let connectionDate = "";
 
 export let topicObject = {
@@ -146,6 +152,18 @@ export function getStructValue(structTopic, value) {
     return value.value;
 }
 
+export function subscribeOrQueue(topic) {
+    if(allSubscribedTopics.includes(topic)) return
+
+    allSubscribedTopics.push(topic)
+
+    if (isConnected) {
+        nt4Client.subscribe([topic], false)
+    } else {
+        queuedTopics.push(topic)
+    }
+}
+
 function onConnectCb() {
     //on everything this is NOT on callback
 
@@ -154,6 +172,13 @@ function onConnectCb() {
             // console.log(nt4Client.serverTopics)
             // console.log(nt4Client.schemas)
         }, 1000)
+
+        setInterval(() => {
+                console.log(nt4Client)
+        }, 1000)
+
+
+        isConnected = true;
 
         setSelectOpener()
 
@@ -177,7 +202,11 @@ function onConnectCb() {
 
         nt4Client.addSample("/touchboard/musicIsFinished", true)
 
-        nt4Client.subscribe([""], true, true)
+        console.log(queuedTopics)
+
+        nt4Client.subscribe(queuedTopics, false)
+
+        nt4Client.subscribeTopicsOnly([""], true)
 
         const now = new Date(); // Creates a date object with the current date and time
 
@@ -215,7 +244,7 @@ function onConnectCb() {
         }
         let editTabs = $(".editTabs")
         for (let i = 0; i < $uiElements.length; i++) {
-            if($uiElements.eq(i).attr("data-topic") == "esc-UNDEFINED-esc" || $uiElements.eq(i).attr("data-topic") == "esc-UNSET-esc") {continue}
+            if ($uiElements.eq(i).attr("data-topic") == "esc-UNDEFINED-esc" || $uiElements.eq(i).attr("data-topic") == "esc-UNSET-esc") { continue }
 
             if ($uiElements.eq(i).hasClass("actionButton")) {
                 $($uiElements.eq(i)).on(" pointerdown", () => {
@@ -389,6 +418,7 @@ function onConnectCb() {
 
 }
 
+
 function onDisconnectCb() {
     if ($("#connect").is(":checked")) {
         $(".fullScreen").css("background-color", "rgb(128, 32, 32)")
@@ -403,7 +433,7 @@ function onDisconnectCb() {
         $(".currentTab").css("background-color", "rgb(128, 32, 32)")
 
         setTimeout(() => {
-            window.location.reload()
+            // window.location.reload()
 
         }, 1000);
     }

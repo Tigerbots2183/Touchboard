@@ -25,6 +25,7 @@
 import * as components from "./editor/components/components.js"
 import {tabGrid, setGridInput} from "./editor/grid.js"
 import {createSideTab} from "./ui.js"
+import { subscribeOrQueue } from "./coms.js"
 import { bindEditorResetter } from "./editor/editorUi.js"
 
 //Save
@@ -228,6 +229,12 @@ function getComponentSpecificAsObject(comp$) {
                 color: comp$.attr("data-color"),
                 width: comp$.attr("data-width")
             }
+        case "colorCoder":
+            return {
+                displayName: comp$.find(".editThisName").text(),
+                color: comp$.attr("data-color"),
+                keys: JSON.parse(comp$.attr("data-keys"))
+            }
     }
 }
 
@@ -269,6 +276,8 @@ export function loadLayoutFromJson(json) {
             let page$ = $("<div>").addClass("page").addClass(tab.slice(1)).css("display", "grid").attr("rows", json[tab].tabRows).attr("columns", json[tab].tabColumns).insertAfter(".autonomus")
 
             for (let i = 0; i < components.length; i++) {
+                subscribeOrQueue(components[i].topic)
+                
                 makeComponentFromJson(components[i])
                     .attr("data-row", components[i].row)
                     .attr("data-column", components[i].col)
@@ -342,6 +351,9 @@ function makeComponentFromJson(component) {
             return components.createCamera(component.displayName, component.topic, false, JSON.parse(component.hideNav), component.videoFormat, JSON.parse(component.recordConditionHandler), component.similarOptions)
         case "graph":
             return components.createGraph(component.displayName, JSON.parse(component.topics), false, component.color, component.width, component.similarOptions)
+        case "colorCoder":
+            return components.createColorCoder(component.displayName, component.topic, false, component.color, component.keys, component.similarOptions)
+
         }
 }
 

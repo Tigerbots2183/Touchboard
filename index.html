@@ -59,7 +59,7 @@ SOFTWARE. -->
             <!-- <div class="tab tabConnection" data-page=".guesstimator">Pose</div> -->
 
             <!-- <div class="tab tabConnection currentTab userTab" data-page=".uiTestTab">Ui Test</div> -->
-            <div class="connectionHolder" >
+            <div class="connectionHolder">
                 <p class="connectionText">Offline</p>
                 <label class="switch">
                     <input id="connect" type="checkbox">
@@ -89,7 +89,7 @@ SOFTWARE. -->
             <input type="text" class="textInput teamNumberInput" placeholder="">
             <p class="simHint">Use localhost for simulator</p>
             <input type="button" class="setTeam" value="Set">
-            <p class="version">Developed by Tigerbots 2183, Touchboard Version 2.5.0 (Dev) </p>
+            <p class="version">Developed by Tigerbots 2183, Touchboard Version 2.5.0 (RC1) </p>
         </div>
 
         <div class="importJson">
@@ -98,7 +98,7 @@ SOFTWARE. -->
             <input type="button" class="doImport" value="Import">
             <input type="button" class="cancelImport" value="Cancel">
 
-            <p class="version">Developed by Tigerbots 2183, Touchboard Version 2.5.0 (Dev) </p>
+            <p class="version">Developed by Tigerbots 2183, Touchboard Version 2.5.0 (RC1) </p>
         </div>
 
         <div class="manager">
@@ -431,6 +431,13 @@ SOFTWARE. -->
 
             </div>
 
+            <div class="colorCoder">
+                <h1 class="colorCoderTitle editThisName">Name</h1>
+                <div class="colorCoderValue"
+                    style="background: linear-gradient(100deg, rgb(110, 0, 178) 32%, rgb(0,0,0) 33%, rgb(0,0,0) 33% , rgb(255, 221, 0) 34%, rgb(255, 221, 0) 66%, rgb(0,0,0) 67%, rgb(0,0,0) 67% , rgb(0, 178, 125) 68%);">
+                </div>
+            </div>
+
         </div>
 
         <div class="doubleOutputComponents outputComponents ioComponents" style="user-select: none;">
@@ -602,7 +609,12 @@ SOFTWARE. -->
 
             </div>
 
-            <div class="colorCoderBoolean" style="color: white;">This da colorCoder</div>
+            <div class="colorCoder">
+                <h1 class="colorCoderTitle editThisName">Name</h1>
+                <div class="colorCoderValue"
+                    style="background: linear-gradient(100deg, rgb(0, 255, 128) 48%, rgb(0,0,0) 49%, rgb(0,0,0) 51% , rgb(255, 0, 0) 52%);">
+                </div>
+            </div>
         </div>
 
         <div class="streamOutputComponents outputComponents ioComponents" style="user-select: none;">
@@ -650,7 +662,8 @@ SOFTWARE. -->
                 <p>Persist?</p>
                 <input type="checkbox" class="isEdit checkbox" data-editing="data-persist">
             </div>
-        </div>
+        </div
+        >
         <div class="editSidebar subscriptionSidebar">
             <div class="sideInputDiv">
                 <p>Name:</p>
@@ -708,6 +721,25 @@ SOFTWARE. -->
                     </select>
 
                     <button class="sideBarEmojiButton plus conditionPlus">✚</button>
+
+                </form>
+            </div>
+
+            <div class="multiAdder isEdit specificComponent colorCoderSpecific" data-editing="data-keys">
+                <p>Coder Keys:</p>
+
+                <!-- <div class="sidebarOption test1">
+                    <button class="sideBarEmojiButton hamburger">☰</button>
+                    <p>Name: 1</p>
+                    <button class="sideBarEmojiButton editOption">✎</button>
+                </div> -->
+
+                <form class="coderAdder" name="optionAdder">
+                   
+                    <input type="text" class="textInput newCoderValue" placeholder="Value" required>
+                    <input type="color" class="newHexCoder hex" style="line-height: 3.5vh; height: 3.5vh; width: 3.5vh;" value="#7300ff">
+
+                    <button class="sideBarEmojiButton plus">✚</button>
 
                 </form>
             </div>
