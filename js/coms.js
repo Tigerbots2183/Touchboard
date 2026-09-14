@@ -175,14 +175,14 @@ function onConnectCb() {
     //on everything this is NOT on callback
 
     setTimeout(() => {
-        setInterval(() => {
-            // console.log(nt4Client.serverTopics)
-            // console.log(nt4Client.schemas)
-        }, 1000)
+        // setInterval(() => {
+        //     // console.log(nt4Client.serverTopics)
+        //     // console.log(nt4Client.schemas)
+        // }, 1000)
 
-        setInterval(() => {
-            console.log(nt4Client)
-        }, 1000)
+        // setInterval(() => {
+        //     console.log(nt4Client)
+        // }, 1000)
 
 
         isConnected = true;
@@ -211,7 +211,7 @@ function onConnectCb() {
 
         nt4Client.subscribe(["/.schema"], true)
 
-        console.log(queuedTopics)
+        // console.log(queuedTopics)
             nt4Client.subscribe(queuedTopics, false)
         nt4Client.subscribeTopicsOnly([""], true)
 
