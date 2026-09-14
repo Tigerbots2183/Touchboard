@@ -58,7 +58,7 @@ let tabDragInfo = {
 // Binders
 
 function bindEditOpener() {
-    $(".editTabs").on("click", () => {
+    $(".editTabs").off("click.editOpener").on("click", () => {
         $(".tabCreator").removeClass("tabCreatorOpen")
 
         $(".tabCreator").css("overflow-x", "hidden")
@@ -85,7 +85,7 @@ function bindEditOpener() {
 
         let currentPage$ = $($(".currentTab").attr("data-page"))
 
-        
+
         setTimeout(() => {
             tabGrid(parseFloat(currentPage$.attr("columns")), parseFloat(currentPage$.attr("rows")), currentPage$)
         }, 300);
@@ -97,11 +97,14 @@ function bindEditOpener() {
 
         if ($(".editTabs").hasClass("editingTabs")) {
 
-            $("body").on("pointermove.gridReact ", (event) => {
+            $("body").off("pointermove.gridReact").on("pointermove.gridReact", (event) => {
+
                 if ($(".gridSquareVisual").length > 600) {
-                    $(".gridSquare").css("width", "95%").css("height", "95%")
+    
+                    $(".gridSquareVisual").css("scale", "95%");
                     return
                 }
+
                 let $eq = $(".gridSquareVisual").eq(0)
 
                 let clientDrag = clientDragHandler(event, $eq)
@@ -121,14 +124,14 @@ function bindEditOpener() {
                     }
 
                     $eq.style.transform = 'scale(' + distVal + '%)'
-
-
-
                 }
 
             })
         } else {
-            $("*").removeClass("removeShake").off("pointerdown.remove").off("pointermove.dragComponent")//.off("pointerdown.editHandler")
+            // $("*").removeClass("removeShake").off("pointerdown.remove").off("pointermove.dragComponent")//.off("pointerdown.editHandler")
+            $(".dashboardHolder, .dashboardHolder *").removeClass("removeShake").off("pointerdown.remove pointermove.dragComponent");
+            $(".removeShake").removeClass("removeShake").off("pointerdown.remove pointermove.dragComponent");
+
             $(".trashCan").removeClass("trashActive")
 
             $("body").off("pointermove.gridReact")
@@ -371,7 +374,7 @@ function bindTabCreator() {
         // <div class="uiTestTab page" style="display: grid;">/
         bindEditorResetter($ct)
 
-        if(window.innerWidth/ window.innerHeight < 4/3){
+        if (window.innerWidth / window.innerHeight < 4 / 3) {
             $(".manager").addClass("managerOpen")
 
             setTimeout(() => {
@@ -381,7 +384,7 @@ function bindTabCreator() {
             setTimeout(() => {
                 $(".manager").removeClass("managerOpen")
             }, 1200);
-        }else{
+        } else {
             createSideTab(name, "." + tab)
         }
 
@@ -465,7 +468,7 @@ function bindEditMenu(element, valueType, customEdit = false) {
             bindName(inputBeingBound)
         } else if (inputBeingBound.attr("data-editing") == "data-keys") {
             bindColorCoderKeys(inputBeingBound)
-        }else if (inputBeingBound.hasClass("numberTextInput")) {
+        } else if (inputBeingBound.hasClass("numberTextInput")) {
             bindNumbers(inputBeingBound)
         } else if (inputBeingBound.attr("data-editing") == "color") {
             bindColors(inputBeingBound)
@@ -487,7 +490,7 @@ function bindEditMenu(element, valueType, customEdit = false) {
             bindHideNav(inputBeingBound)
         } else if (inputBeingBound.attr("data-editing") == "data-recordconditions") {
             bindRecordConditions(inputBeingBound)
-        }else if (inputBeingBound.attr("data-editing") !== "na") {
+        } else if (inputBeingBound.attr("data-editing") !== "na") {
             bindOtherData(inputBeingBound)
         }
 
@@ -794,8 +797,8 @@ function bindEditMenu(element, valueType, customEdit = false) {
 
             console.log(conditions, "conditions")
 
-            for(let key of Object.keys(conditions)){
-                if(key == "else") continue;
+            for (let key of Object.keys(conditions)) {
+                if (key == "else") continue;
                 createColorCoderSidebarButton(key, conditions[key], false)
             }
             // for (let i = 0; i < conditions.length; i++) {
@@ -1256,7 +1259,7 @@ export function addEditHandler(element, valueType, specificClass = false, specif
             $(".addButtons").css("display", "none")
             $(".editNavButtons").css("display", "")
 
-            if(startString.includes("ColorCoder")){
+            if (startString.includes("ColorCoder")) {
                 startString = "ColorCoder"
             }
 
@@ -1717,7 +1720,7 @@ function createColorCoderSidebarButton(value = $(document.querySelector(".newCod
             }
         }
 
-        delete currentConditions[$(event.currentTarget).parent().attr("data-value")] 
+        delete currentConditions[$(event.currentTarget).parent().attr("data-value")]
 
         editComponent.currentTarget.attr("data-keys", JSON.stringify(currentConditions))
 

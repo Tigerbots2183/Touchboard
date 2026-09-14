@@ -122,6 +122,8 @@ function setGridSize($tab, columns, rows) {
 //Grid Visuals
 function setGridUnderlay(columns, rows) {
     $(".gridSquare").remove()
+    $(".gridSquareVisual").remove()
+
     for (let i = 0; i < columns * rows; i++) {
         //added 1 to be consitent with css namings.
         $("<div>").addClass("gridSquare").appendTo(".gridUnderlay").attr("data-column", (i % columns) + 1).attr("data-row", (Math.floor(i / columns)) + 1)
