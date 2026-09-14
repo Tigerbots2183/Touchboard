@@ -30,7 +30,7 @@ export let renderFuncs = new Map()
 export let isFrameScheduled = {"scheduled": false};
 // renderQueue example
 
-//KEY : *NON - jQuery Reference object to basic subscription value, not the main component, what needs to be edited on it*
+//KEY : jQuery Reference object to basic subscription value, not the main component, what needs to be edited on it*
 //VALUE : [ 
 // {
 //  "updating": "text", 
@@ -77,9 +77,7 @@ export function renderFrame(){
 
     isFrameScheduled.scheduled = false;
 
-
     for(let [element, instructions] of currentQueue){
-        console.log("Rendering: ", element, instructions)
         queueCount++
 
         for(let i = 0; i < instructions.length; i++){

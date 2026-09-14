@@ -67,14 +67,6 @@ export function getHtmlFileName() {
 
 function topicAnnounce(topic) {
     topicToSidebar(topic)
-}
-
-function doNothing() { }
-
-
-function handleNewData(topic, timestamp, value) {
-    //Protos are not supported, and structschemas show no useful data to user. 
-    if (topic.type.includes("proto") || topic.type.includes("structschema")) return
 
     // So most topics are sent to the sidebar when they are created, but we cannot decode structs
     // without their values being sent, so if the topic is a struct, and the array of sidebared structs
@@ -85,6 +77,16 @@ function handleNewData(topic, timestamp, value) {
         topicToSidebar(topic, true)
         sidebaredStructs.push(topic.name.split("|")[0])
     }
+
+}
+
+function doNothing() { }
+
+
+function handleNewData(topic, timestamp, value) {
+    //Protos are not supported, and structschemas show no useful data to user. 
+    if (topic.type.includes("proto") || topic.type.includes("structschema")) return
+
 
     let topicSplit = topic.name.split("/")
 
@@ -120,6 +122,7 @@ function handleNewData(topic, timestamp, value) {
         for (let i = 0; i < subscribedTopics[topic.name].length; i++) {
             if (!subscribedTopics[topic.name][i]) continue; //Pass if value is null
             // console.log(subscribedTopics[topic.name][i])
+            if(value == undefined) return;
 
             if (topic.type.includes("struct")) {
                 foundValue = getStructValue(subscribedTopics[topic.name][i].structPath, value)
@@ -141,6 +144,8 @@ export function getStructValue(structTopic, value) {
     let path = structTopic.split("|")[1];
     let pathArr = path.split("/")
 
+    if(value == undefined) return;
+
 
     for (let i = 0; i < pathArr.length; i++) {
         let key = pathArr[i];
@@ -153,7 +158,9 @@ export function getStructValue(structTopic, value) {
 }
 
 export function subscribeOrQueue(topic) {
-    if(allSubscribedTopics.includes(topic)) return
+    topic = topic.split('|')[0].trim()
+
+    if (allSubscribedTopics.includes(topic)) return 
 
     allSubscribedTopics.push(topic)
 
@@ -174,7 +181,7 @@ function onConnectCb() {
         }, 1000)
 
         setInterval(() => {
-                console.log(nt4Client)
+            console.log(nt4Client)
         }, 1000)
 
 
@@ -202,12 +209,14 @@ function onConnectCb() {
 
         nt4Client.addSample("/touchboard/musicIsFinished", true)
 
+        nt4Client.subscribe(["/.schema"], true)
+
         console.log(queuedTopics)
-
-        nt4Client.subscribe(queuedTopics, false)
-
+            nt4Client.subscribe(queuedTopics, false)
         nt4Client.subscribeTopicsOnly([""], true)
 
+        // nt4Client.subscribe([],)
+        
         const now = new Date(); // Creates a date object with the current date and time
 
         const year = now.getFullYear();   // e.g., 2024
@@ -261,7 +270,7 @@ function onConnectCb() {
 
                     nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), !(JSON.parse($uiElements.eq(i).attr("data-value"))))
                     $uiElements.eq(i).toggleClass("toggledOn")
-                    console.log($uiElements.eq(i));
+                    // console.log($uiElements.eq(i));
                     let oldBG = $uiElements.eq(i).css("background-color").replace(/^([^,]*,[^,]*,[^,]*),.*$/, '$1')
 
                     if ($uiElements.eq(i).hasClass("toggledOn")) {
@@ -413,6 +422,7 @@ function onConnectCb() {
 
 
         $(".connectionText").text("Connected")
+        window.requestAnimationFrame(renderFrame);
 
     }, 1000);
 

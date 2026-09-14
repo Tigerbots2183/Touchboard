@@ -276,7 +276,7 @@ export function loadLayoutFromJson(json) {
             let page$ = $("<div>").addClass("page").addClass(tab.slice(1)).css("display", "grid").attr("rows", json[tab].tabRows).attr("columns", json[tab].tabColumns).insertAfter(".autonomus")
 
             for (let i = 0; i < components.length; i++) {
-                subscribeOrQueue(components[i].topic)
+                subscribeOrQueue(components[i].topic || JSON.parse(components[i].topics)[0])
                 
                 makeComponentFromJson(components[i])
                     .attr("data-row", components[i].row)
