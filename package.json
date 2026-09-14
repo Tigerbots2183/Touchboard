@@ -1,7 +1,7 @@
 {
   "name": "touchboard",
-  "version": "4.0.0",
-  "description": "A touchscreen button board that communicates over networktables.",
+  "version": "2.1.1",
+  "description": "A touchscreen button board and dashboard that communicates over networktables.",
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -20,12 +20,13 @@
     "@electron-forge/plugin-auto-unpack-natives": "^7.8.1",
     "@electron-forge/plugin-fuses": "^7.8.1",
     "@electron/fuses": "^1.8.0",
-    "electron": "^37.2.1"
+    "electron": "^37.2.1",
+    "eslint-plugin-import-x": "^4.16.2"
   },
   "dependencies": {
     "electron-squirrel-startup": "^1.0.1"
   },
   "build": {
-    "extraResources":"./coverArt"
+    "extraResources": "./coverArt"
   }
 }

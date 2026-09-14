@@ -1,6 +1,6 @@
 // MIT License
-
 // Copyright (c) 2025 Tigerbots
+// https://github.com/Tigerbots2183
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -18,12 +18,13 @@
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE. 
+// SOFTWARE.
+
 const svgNS = "http://www.w3.org/2000/svg";
  
-import { nt4Client } from "./ui.js"
+import { nt4Client } from "../ui.js"
 
-import { getHtmlFileName } from "./ui.js";
+import { getHtmlFileName } from "../ui.js";
 
 
 let paths = {}
@@ -59,12 +60,13 @@ function alongPath(angle, radius, xposLocal = 750, yposLocal = 750,) {
 multiSwitchButtonEvent()
 function multiSwitchButtonEvent() {
     $(".multiSwitchButton").off()
-    $(".multiSwitchButton").on("click", (event) => {
+    $(".multiSwitchButton").on("pointerdown.baseSwitching", (event) => {
         let leftOffset = $(event.target).offset().left - $(event.target).parent().offset().left
         $(event.target).parent().find(".multiSliding").css("margin-left", leftOffset + "px")
         $(event.target).parent().attr("data-value", $(event.target).val())
     })
 }
+
 
 
 let $pbt = $(".poseBTN")
@@ -143,7 +145,7 @@ function populateCommands() {
                 clearTimeout(currentTimeout)
             })
             $(".orderHolder").scrollLeft($(".orderHolder")[0].scrollWidth)
-            if ($(".multiSwitch").attr("data-value") == "Sync") {
+            if ($(".autoSwitch").attr("data-value") == "Sync") {
                 $cr.text(currentCommand.value + "+")
             }
 
@@ -362,10 +364,10 @@ function drawPath() {
 }
 
 
-function moveTo(x, y) {
+export function moveTo(x, y) {
     finishedPath = finishedPath + ` M ${x} ${y} `
 }
-function lineTo(x, y) {
+export function lineTo(x, y) {
     finishedPath = finishedPath + ` L ${x} ${y} `
 
 }

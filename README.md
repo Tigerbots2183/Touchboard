@@ -1,401 +1,257 @@
-# Touchboard
-A touchscreen button board that communicates over networktables.
+# **Touchboard**
+A touchscreen button board that communicates over NT4.
 
 
-## How it works
+## **How it works**
 Touchboard works by sending data over network tables to the robot. I've made adding buttons easy by simply editing the HTML and the layout can be styled with css grid, css flex, or any css.
 
 If you're not familiar with network tables, you should still be able to use this. I explain how things work but you don't have to understand everything. Just think of the topic name as a shared variable that the robot and touchboard need.
 
-Thanks to mechanical advantage for the nt4.js library that sends values to the robot!
+Thanks to mechanical advantage for the nt4.js library that sends values to the robot, I have made modifications to that library for streamlining and to support struct decoding. 
 
-## Setup
-Touchboard is built with electron, after cloning or downloading the repository, run
+# **Usage**
 
+## **Setting Team Number / IP**
 
-```
-npm install
-```
+Once Touchboard is open, a pop up will appear asking for the team number or IP, put in your team number if connecting to a robot. If you wish to connect Touchboard to a simulator, put in localhost. 
 
+To change it after it is set, press the # icon at the top of the screen. 
 
-Then drag the touchboard folder with java subsystems into the subsystem folder in your robot. (Will look into making this a vendordep)
+## **Opening the Editor**
 
+To use Touchboard components, they must be placed in a tab. Press the ✎ button at the top of the screen.
 
-## Components
-There are three types of buttons. An **Action Button** which executes a command when pressed and ends the command when released, an **One Shot Button** which executes the command once when pressed, and a **Toggle Button** which toggles a command on and off when pressed.
-There is a **Axis Knob** which sends a double to a command.
-There is a **Drop Down** which sends a string to a command.
-There is a **Number Input** which sends a double to a command.
-<!-- Lastly, there is a **Subscription Shower** that shows network table values.  -->
+## **Tabs**
 
+### **Tab Navigator**
+On widescreen devices, tabs with the visible state are displayed at the top of the screen. 
 
-## Development
-During development, using the live server extension on the index.html file is recommended, this makes development much quicker. Everything works this way, the page can connect to the robot and its mostly the same as the built app.
+### **Tab Manager**
+To open the tab manager, Press the ☰ Icon. This will hold both the visible tabs and minimized tabs. On non widescreen devices visible tabs and minimized tabs are the same. This tab manager will display buttons to edit and manage the tabs when the editor is open. 
 
+### **Adding Tabs**
+To add a tab, press the + icon at the top left of the screen. A pop up will open to name the tab, once the name has been entered press the ✓ button to add it.
 
-## Adding Tabs
+### **Editing Tab Grid**
+To edit the size of the grid, two inputs are at the bottom left of the editor, use those to change the size of the grid. Note that if there is a component blocking the grid from getting smaller, a red outline will appear around it. 
 
+### **Changing Tab Visibility**
+Tabs have three states they can be in:
+- Visible: Appears at the top of the screen on widescreen devices
+- Minimized: Appears in the tab manager on the side of the screen when opened (The ☰ icon)
+- Hidden: Tab is saved but not visible at the top or the tab manager on the side of the scren
 
-Adding tabs is simple. In the `.tabNav` add a new tab `div` with the `data-page` attribute being the class name of the tab you want it to reference, with a period in front of it. `Displaytype` sets the css display value of the tab when it's clicked. It defaults to grid if none is provided.
+To change visibility, open the tab manager while the editor is open, and use the handles on the tabs (also the ☰ icon next to the tab) and drag them under the state that you want it to have.
 
+To remove a tab, press the ❌ icon. 
 
-- The `tabConnection` class dims the tab while not connected to emphasize that the tab is unusable while not connected.
-- The `currentTab` class should be assigned to the initial starting tab in tabNav.
-```html
-<div class="tab tabConnection" data-page=".*tabClass" data-displaytype="*display">*DisplayName</div>
-```
-And then in the `body` of the html add the tab with the class reference in the tabnav (without the period)
-```html
-<div class="*tabClass page">
-    <!-- Components -->
-</div>
-```
-Then you can style this with css. Set the display value for the tab to none if the tab is not the initial one, and the displaytype to whatever value you want it to display as (block, inline, flex, etc).
+## **Connecting**
 
+### **Connection Slider**
 
+To connect to the robot or simulator, ensure the team number and ip have been set correctly and flip the slider. Touchboard will constantly refresh until connected to the robot, to stop it from connecting, flip the slider again. 
 
+### **Connection Notes**
 
-## Component Creation And Customization
-Each component is customizable and is added by making a new html element. The component is customized using classes and data-value attributes. Touchboard scans each tab for these buttons and makes everything work for you. You can see how these elements look in the ui test tab. If for styling or other purposes you want to put buttons in a `div`, in order for touchboard to scan for them you must add "btnHolder" to the classes of that parent `div` element.
+The dashboard is able to connect and send values to the robot while it is disabled, so if you pass in a command that has `.ignoringDisabled(true)`, it can run. (Of course, motors and other physical components are not allowed to move until enabled, but this can be useful for setting a starting position for example). On the field, the dashboard can still connect while its plugged in to the FMS before the match begins. 
 
+## **Components**
 
-### Action Button
-Here is a template of a **Action Button**
+The top right of the editor has two words, Input and Output. Clicking on each will change what components you can add. 
 
-```html
-<button  class="actionButton animatedButton"  data-type="boolean"  data-topic="*topic" data-value="false">*name</button>
-```
+### **Input Components**
 
-- The data-type for buttons should always be boolean.
-- The data-topic attribute will publish the button's value to that topic on the network tables. (Each component must have a unique topic).
-- The data-value for action buttons should be false.
-- Action buttons must have both the `actionButton` class and the `animatedButton` class.
-- The display name is put in the element.
+Input components are listed to the right of the screen, these components give the robot various different types of input. 
 
+### **Output Components**
 
-**This is the robot side code** (Ours is in `robotContainer`)
+Output components differ based on the type of the output. The output menu shows the avalible outputs from Network Tables when the robot connects. 
 
+Touchboard has the ability to get all basic value types, and is also able to decode structs, but not protos at this time. 
 
-```java
-  private final ActionButton *name = new ActionButton(*topic, new *Command);
-```
+**Any values under the Touchboard folder may not be the robot sees, they are fed back into touchboard, so there is no guarantee that what is in the touchboard folder is the value that the robot sees, but all other values and folders are what the robot sees.**
 
+To add an output, click on the output desired and it will open up the available components for that type. 
 
-### Toggle Button
-Here is a template of a **Toggle Button**
+### **Placing Components**
 
+To place components, click the desired component, and then release. Components are given spots on the grid, to specify what spot, after you initally release, click again on any square in the grid then drag the box till the desired spots are given then release again. 
 
-```html
-<button class="toggleButton animatedButton" data-type="boolean" data-topic="*topic" data-value="*initalValue">*name</button>
-```
-- The data-type for buttons should always be boolean.
-- The data-topic attribute will publish the button's value to that topic on the network tables. (Each component must have a unique topic).
-- The data-value sets the initial value for the toggle button. If the data-value is set to true, in order for the button to look as if its toggled on you must add the `toggledOn` class. Should be a string of "true" or "false"
-- Toggle buttons must have both the *toggleButton* class and the *animatedButton* class.
-- The display name is put in the element.
-- The buttons background color needs to have a 0 alpha to start and the toggle opacity is automatically handled.
-- The border-color style can be set to change the border color, the style is automatically handeled.
+The menu is still displayed if you want to add any more output viewers of that topic to the grid
 
-**This is the robot side code** (Ours is in `robotContainer`)
-```java
-  private final ToggleButton *name = new ToggleButton(*topic, new *Command);
-```
+### **Editing Components**
 
+To edit a component, click on the desired component, the sidebar will switch to an edit menu. 
 
-### Note for Action and Toggle buttons.
+Input components may be given a name and **must** have a topic. 
 
+Output components are assigned the topic that was clicked on and is given a default name that can be changed. The topic can be changed by clicking the change button, and if the topic path goes off the screen it can be scrolled to the right. 
 
-If for whatever reason you need a command to run when the button sends true and a different command for when the button is released or toggled off, use `DoubleActionButton`
+The fill button at the bottom will maintain the last value if retain similar properties is checked in the bottom bar. If fill is checked the component will attempt to fill the avalible space. 
 
+### **Removing Components**
 
-```java
-private final DoubleActionButton *name = new DoubleActionButton("*topic", new *onTrueCommand, new *offCommand);
-```
+Click the 🗑 icon to enable the remove mode, the components will shake to show that the remove mode is active, click on the component(s) that you want to remove, to disable remove mode, click the 🗑 icon again. (It will also stop the mode under other conditions as well)
+ 
+
+# **Code Tutorial**
+
+Snippets on how to access the values that touchboard provides. Various options are given depending on the component. 
+
+## **Binders**
+
+Touchboard Input components will send values to the robot even if commands have not been bound to them. Binders streamline the process of triggering commands when the buttons have been modified by the user. 
+
+Touchboard works mainly due to the use of Wpilib triggers, and each binder method will return the trigger so that you can add debounce or other modifiers to it if wanted. 
+
+ You can have multiple buttons assigned to the same topic (although it may have unexpected behaviour) but they all must have the same topic type. Buttons return booleans, Axis and Number Components return doubles, Dropdown and Optgroups return strings.
 
 
-### One shot Button
-Here is a template of a **One Shot Button**.
-```html
-<button  class="oneShotButton *topic"  data-type="boolean"  data-topic="*topic" data-value="false">*name</button>
-```
- - The data-type for buttons should always be boolean.
- - The data-topic attribute will publish the button's value to that topic on the network tables. (Each component must have a unique topic).
- - The data-value for one shot buttons should be false.
- - The data-topic name must be included in the class of the component for the animation to play. This is because the one shot button only animates once the robot sets the value to false. (This is so that the button is only animated if the value gets sent).
-- The display name is put in the element.
+### **Action Button**
 
+Action buttons behave like the trigger ` .whileTrue()` that wpilib provides. It starts the command once the button is pressed and cancels it once it is released. 
 
-
-
-**This is the robot side code** (Ours is in `robotContainer`)
-
+The setup for an action button is as follows (Ours is in `configureBindings()`)
 
 ```java
-private final OneShotButton *name = new OneShotButton(*topic, new *Command)
+  Touchboard.bindActionButton("*Topic", *Command);
 ```
 
-
-
-
-### Axis Knob
-
-
-Here is a template of a **Axis Knob**
-
-
-
-
-```html
-<div class="axis" data-topic="*topic" data-value="*axisInitalValue" data-type="double">
-    <h1 class="axisLabel">*name</h1>
-    <input class="axisKnob" type="range" min="*axisMinumum" max="*axisMaximum" step="*axisStepValue" value="*axisInitalValue">
-</div>
-```
-- The data-type for axis should be double
-- The data-topic attribute is what topic the value will be published to on network tables. (Each component must have a unique topic).
-- The axis min and max values are self explanatory.
-- The step value is the amount that the input can change by.
-- The value is the initial value that the axis should have. When the axis is released the knob will snap back to this value.
-- The name should be in the axis label.
-
-
-- For a vertical axis, change the `axis` class to `verticalAxis` and the `axisKnob` class to `verticalAxisKnob`
-
-
-**This is the robot side code, this is split into two parts, one sets the topic and the next sets the command.** (The first half of ours is in `robotContainer`, and the command setter is in `configureBindings()`)
-
+Command suppliers are also supported:
 
 ```java
-//Half One
-private final AxisKnob *name = new AxisKnob("*topic");
-//Second half
-//Put the get value in the parameter that you the axis value to modify
-//You can still put other parameters that your command may need.
-//Remember the ()-> as it is a supplier.
-*name.setCommand(()-> new *Command(*name.getValue()));
-//Note, you do not have to set a command, if you want the value to be passed
-//elsewhere do so, but note that there must be a supplier for the value to
-//update.
+  Touchboard.bindActionButton("*Topic", *Supplier<Command>);
 ```
 
+### **Toggle Button**
+Toggle buttons behave like the trigger ` .toggleOnTrue()` that Wpilib provides. It starts the command once the button is pressed and cancels it once it is pressed again.
 
-### Dropdown
-Here is a template of a **DropDown**
-
-
-```html
-<div class="select" data-value="*initalOption" data-topic="*topic" data-type="string">
-    <h1 class="selectTitle">*initalOptionName</h1>
-    <h1 class="selectOption" data-value="*initalOption">*initalOptionName</h1>
-    <h1 class="selectOption" data-value="*optionValue">*optionName</h1>
-    <h1 class="selectOption" data-value="*optionValue">*optionName</h1>
-    ...
-</div>
-```
-- The dropdown element lets the user switch between premade string values.
-- The title is updated based on the selected value, but the initial value must be set properly
-- The data-topic attribute is what topic the value will be published to on network tables. (Each component must have a unique topic).
-- The data-type for dropdown should be string
-- You can add as many options as you'd like.
-- The data-value of the options is the string value that will be sent
-- The option name is what will be displayed on screen.
-
-
-**This is the robot side code, this is split into two parts, one sets the topic and the next sets the command.** (The first half of ours is in `robotContainer`, and the command setter is in `configureBindings()`)
+The setup for a toggle button is as follows (Ours is in `configureBindings()`)
 ```java
-//Half One
-private final Dropdown *name = new Dropdown("*topic");
-//Second half
-//Put the get value in the parameter that you the axis value to modify
-//You can still put other parameters that your command may need.
-//Remember the ()-> as it is a supplier.
-*name.setCommand(()-> new *Command(*name.getValue()));
-//Note, you do not have to set a command, if you want the value to be passed
-//elsewhere do so, but note that there must be a supplier for the value to
-//update.
+  Touchboard.bindToggleButton("*Topic", *Command);
 ```
 
-
-### Number Input
-Here is a template of a **Number Input**
-
-
-```html
-<div class="numberComponent" data-topic='*topic' data-type="double" data-step="*stepValue" data-min="*minValue" data-max="*maxValue" data-value="*initalValue" data-persist="*boolean" >
-    <p class="numberTitle">*name</p>
-    <button class="numberMinus animatedButton">-</button>
-    <input class="numberTextInput" type="number" value="*initalValue">
-    <button class="numberPlus animatedButton">+</button>
-</div>
-```
-- The number input has a parent div which wraps a addition, subtraction, and manual number input.
-- The `numberTextInput` value and the `numberComponent` data-value must be equal. This sets the initial value.
-- The min and max values are self explanatory.
-- The step value is the amount that the input can change by.
-- The data-type for Number Input should be double
-- The data-persist sets whether or not the value should persist or reset when the app closes. Should be a string of "true" or "false"
-- The layout should stay as shown.
-- **Note that due to JS using floating point decimal math, the value may sometimes be 0.3000004** or something similar when using + and - Buttons with a step value less than 1 this value is too small to affect motor speed however.
-
-
-**This is the robot side code, this is split into two parts, one sets the topic and the next sets the command.** (The first half of ours is in `robotContainer`, and the command setter is in `configureBindings()`)s  
-```java
-//Half One
-private final NumberComponent *name = new NumberComponent("*topic");
-
-
-//Second half
-//Put the get value in the parameter that you the axis value to modify
-//You can still put other parameters that your command may need.
-//Remember the ()-> as it is a supplier.
-*name.setCommand(()-> new *Command(*name.getValue()));
-//Note, you do not have to set a command, if you want the value to be passed
-//elsewhere do so, but note that there must be a supplier for the value to
-//update.
-```
-
-### Option Group
-
-Here is a template for an **OptGroup**
-
-```html
-        <div class="buttonOptGroup" data-type="string" data-topic="testBOG">
-            <button class="animatedButton optGroupButton toggledOn" style="background-color: rgba(0, 81, 255, 0); border-color: rgb(0, 47, 255)" data-value="*optionValue">*OptionName</button>
-            <button class="animatedButton optGroupButton" style="background-color: rgba(255, 0, 0, 0); border-color: rgb(255, 0, 0)" data-value="*optionValue">*OptionName</button>
-            <button class="animatedButton optGroupButton" style="background-color: rgba(247, 0, 255, 0); border-color: rgb(255, 0, 225) " data-value="*optionValue">*OptionName</button>
-            ...
-        </div>
-```
-
-- **The inital button must have the toggledOn class**
-- The OptGroup element lets the user switch between premade string values with a button interface.
-- The data-topic attribute is what topic the value will be published to on network tables. (Each component must have a unique topic).
-- The data-type for OptGroup should be string
-- You can add as many optGroupButtons as you'd like.
-- The data-value of the options is the string value that will be sent.
-- The option name is what will be displayed on screen.
-- The buttons background color needs to have a 0 alpha to start and the toggle opacity is automatically handled.
-- The border-color style can be set to change the border color, the style is automatically handeled.
-
-### Basic Subscription
-
-
-Here is a template of a **Basic Subscription**
-
-
-```html
-<div class="basicSubscription *fullTopicPath" data-topic="*fullTopicPath">
-  <h1 class="bSTopic">*name</h1>
-  <h1 class="bSValue">*initalValue</h1>
-</div>
-```
-- Unlike other components, basic subscription starts at the root of network tables.
-- The name can be set to anything
-- Make sure that the full topic path is also in the classes.
-- Note that basic subscriptions only update if the bot changes the value, they will not update if the touchboard changes the value. This is because the callback only executes when the robot sends a new value to the touchboard.
-
-
-# Pose Plotter
-
-
-Pose plotter is the optional auto builder that is in this project. It is able to send autos to the bot without needing to deploy code to make a new auto. This along with its quick ui allows you to make quick changes before a match starts, and simplifies the auto process. This auto builder creates a string from the ui and sends it to the robot, after the robot decodes the string and makes a command sequence from them.
-
-
-To disable this feature simple comment out the tab in tabnav.
-
-
-Note that the robots displayed path **will not** correspond to how the robot will move, It is for visual purposes.
-
-
-You will see at the top a bar, this bar while house the auto commands ordered left to right, you can scroll, drag by clicking or tapping and holding, or remove by clicking or tapping quickly.
-
-
-To the lower left you will see a field map, This has a movable starting position for the robot (doesn't do anything just for cosmetic purposes) and buttons which will add a command when clicked.
-
-
-To the upper right you will see a bar holding a clear button with an X on it, a dropdown to save autos for later, and a send button with an ➦ that will send the string to the robot.
-
-
-To set the next command, click on it in the commands tab. (Note a smaller view will be toggled when Commands text is clicked at the top). Notice the await and sync switcher at the top. If the switcher is on await before clicking the command, it will wait for the `isFinished()` of the command, If it is sync, it will execute itself and the next command at the same time (If the next is also sync after that will be run along with it). Once finished you can use the dropdown to name and save the auto. Press the send button to send the auto to the bot. (Your current auto will be saved and resent on refresh, but you must name and save it to use it later after a clear or different auto)
-
-
-The auto you are working on will save when the window is closed or open or refreshed, but will only be sent when the send button is clicked, then it will be in a queue to be sent which will also persist.
-
-## Pose Plotter setup
-
-You must add commands, (see below), and then return the pose plotter auto in `getAutonomousCommand()`.
-
-Simply replace your `getAutonomousCommand()` with the below code.
+Command suppliers are also supported:
 
 ```java
-  public Command getAutonomousCommand() {
-
-    return posePlotterUtil.getAuto();
-  }
+  Touchboard.bindToggleButton("*Topic", *Supplier<Command>);
 ```
 
-## Adding commands
+### **One Shot Buttons**
 
+One Shot buttons behave like the trigger ` .onTrue()` that Wpilib provides. It starts the command once the button is pressed and keeps running once it is released. If the button is pressed again the old command that was scheduled automatically gets cancelled.
 
-To add a command to the list, look for the `commandHolder` div in the html, and add one of these for every command pair you want to use in auto: 
-
-
-```html
-  <div class="autoCommand" data-value="*value" data-displayName="*DisplayName"></div>
+The setup for a one shot button is as follows (Ours is in `configureBindings()`)
+```java
+  Touchboard.bindOneShotButton("*Topic", *Command);
 ```
 
-To set the command to execute when the value is made, you must add a command pair for each command you add, and for the position buttons as well. We have ours in `robotContainer()`
-The value should match what's in the command list, and the command must have `()->` since it is a command supplier. Ensure that the commands you add finish, otherwise they will be either stuck on the command or it will instantly finish.
-
+Command suppliers are also supported:
 
 ```java
-  posePlotterUtil.addCommandPair("*value", ()-> new *command);
+  Touchboard.bindOneShotButton("*Topic", *Supplier<Command>);
 ```
 
+### **Axis**
 
-**For robot movement during auto with the positioning buttons, we use pathplanners pathfinding command with a smaller navigation grid for accuracy. Your team may opt for a pathfind then path or autopilot instead. But if the movement system you use does not account for obsticles then your robot will crash if pathed through one.**
+Axis will schedule a command once the axis is moved, and will cancel and schedule a new command once it moved after the initial one. Note that the axis still schedules a command when it returns to zero, and it will remain scheduled. 
 
-
-# Jukebox
-
-
-An optional chrp player ui that lets you select from chrp files on your robot. To add them, put the cover art in the `coverArt` folder. Then add a songsetter element in the `songSelector` div. Then make sure the file name matches the chrp in the deploy folder.
-
-
-This is a template for a songSetter:
-
-
-```html
- <div class='songSetter' data-displayName='*name' data-coverSrc='*coverArtSrc' data-robotFileName='*filename.chrp'></div>
-```
-
-
-To add talonfx motors to the jukebox, use the `.addTalon(*talonFx)` method. This will set the motor config to allow music during disable and add it to the orchestra.
-
-
-**This is the robot side code** (Ours is in `robotContainer()`)
-
+This will only schedule the command when it is moved, Only command suppliers are supported:
 
 ```java
-    JukeboxUtil jukebox = new JukeboxUtil();
-    jukebox.addTalon(*talonfx);
-    jukebox.addTalon(*talonfx2);
-    ...
+  Touchboard.bindAxis("*Topic", *Supplier<Command>);
+```
+
+To pass in the axis value once it is moved you must pass the value into the command. For example:
+
+```java
+  Supplier<Command> example = ()-> new exampleCommand(Touchboard.getDoubleValue("*Topic"))
+  Touchboard.bindAxis("*Topic", example);
+```
+
+### **Number Component**
+
+Number Component will schedule a command once the value changes, and will cancel and schedule a new command once it changes after the initial one. Note that the Number Component still schedules a command when it returns to zero, and it will remain scheduled. 
+
+This will only schedule the command when it is changed, Only command suppliers are supported:
+
+```java
+  Touchboard.bindNumberComponent("*Topic", *Supplier<Command>);
+```
+
+To pass in the Number Component value once it is changed you must pass the value into the command. For example:
+
+```java
+  Supplier<Command> example = ()-> new exampleCommand(Touchboard.getDoubleValue("*Topic"))
+  Touchboard.bindNumberComponent("*Topic", example);
+```
+
+### **Dropdown**
+
+Dropdown will schedule a command once the value changes, and will cancel and schedule a new command once it changed after the inital one. Note that the command will execute once the dashboard connects. 
+
+This will only schedule the command when it is changed, Only command suppliers are supported:
+
+```java
+  Touchboard.bindDropdown("*Topic", *Supplier<Command>);
+```
+
+To pass in the Dropdowns value once it is changed you must pass the value into the command. For example:
+
+```java
+  Supplier<Command> example = ()-> new exampleCommand(Touchboard.getStringValue("*Topic"))
+  Touchboard.bindDropdown("*Topic", example);
+```
+
+### **Opt Group**
+
+Opt Group will schedule a command once the value changes, and will cancel and schedule a new command once it changes after the initial one. Note that the command will execute once the dashboard connects. 
+
+This will only schedule the command when it is changed, Only command suppliers are supported:
+
+```java
+  Touchboard.bindOptGroup("*Topic", *Supplier<Command>);
+```
+
+To pass in the Opt Groups value once it is changed you must pass the value into the command. For example:
+
+```java
+  Supplier<Command> example = ()-> new exampleCommand(Touchboard.getStringValue("*Topic"))
+  Touchboard.bindOptGroup("*Topic", example);
+```
+
+## **Getters**
+
+Methods are provided to retrieve Touchboard values, the parameter should be the topic name (without the touchboard path as it already begins in that path).
+
+```java
+  Touchboard.getDoubleValue("*Topic")
+  Touchboard.getStringValue("*Topic")
 ```
 
 
+## **Output Components**
 
+There are many different components that output data retrieved from the robots networktables. Touchboard currently supports all types, but does not have any components for arrays. Touchboard also supports **struct decoding**, individual values from the structs can be displayed with the standard components for that type.
 
-## Building
-This step isn't exactly 'necessary', since the app will run on the webpage just fine. But running a live server before every match is cumbersome, so we make a electron app to set everything for us. (Loading the index.html offline does not work due to CORS).
+### **Basic Subscription**
 
+This components lists the given name and value on the dashboard, the text will wrap in fill mode. This component supports all types.
 
-In order to build the app after customizing, you must run:
-```
-npm run make
-```
-This will create an automatic setup file in the out/make folder. This setup file needs to be run once, then the program will be installed and accessible through the start menu. **The version must be bumped in the package.json or the old version must be uninstalled before running a new setup file**.
+### **Basic Logger**
 
+This components logs all value updates and stores them. There is a ⏸ button that stops displaying the logged values, but they are still logged in the background while paused. The component will display the last 100 values, to show all the values, press the ⏿ button. The values will stop showing after the component is unpaused again and revert back to the 100 limit. This component supports all types.
 
-There may be warnings about promisify and or a DeprecationWarning which can be ignored.
-There may be an error in which the folder is locked, if so close all programs with that folder open and restart vscode.
+###  **Number Line**
+
+This component shows the current value of a number, the top of the number line shows 5 values. These values show the minimum, between, mid, between, and maximum amounts, even if their position isnt exactly at those points, these numbers are rounded to the nearest whole number. If no min or max is given, the number line will derive this information based on the minimum and maximum value it reads. This component supports numerical types.
+
+###  **Radial Gauge**
+
+This value displays the current value of a number on a guage. If no maximum value is given, the maximum value will be the maximum degree value. The max value can be changed and the guage values will respond accordingly. The offset value rotates the gauge by the given value. This component supports numerical types. 
+
+###  **Camera Stream / Recorder**
+
+Touchboard has the ability to show camera streams from the robot, to access it, go to the camera stream you want and click on the stream button. Streams are technically string arrays of urls, but touchboard displays it as the stream type. Touchboard will attempt each url in the list until one works.
+
+Touchboard has the ability to record camera streams in the app, without the use of OBS or other recording software. Streams can be manually recorded by pressing the 🔴 button on the component. Recordings can be automatically started by adding conditions in the sidebar. FMS = Field management software linked to driverstation, DS = driverstation linked without FMS. Connected means when touchboard connects, and enabled starts recording when any mode is enabled, then stops after the robot has been disabled for 8 seconds, this is to allow time between auto and teleop when on the field. When the recording stops, it saves and the downloads itself. But if touchboard is closed before the stream downloads, it will be lost. You can choose to save as WebM (More Effiecent) or Mp4 (More compatability), but the dashboard must be refreshed before that change will take effect for technical reasons. 

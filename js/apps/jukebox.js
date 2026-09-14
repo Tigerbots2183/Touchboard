@@ -1,6 +1,6 @@
 // MIT License
-
 // Copyright (c) 2025 Tigerbots
+// https://github.com/Tigerbots2183
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -18,9 +18,9 @@
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE. 
+// SOFTWARE.
 
-import { nt4Client } from "./ui.js"
+import { nt4Client } from "../ui.js"
 
 let tracks = []
 
@@ -208,7 +208,3 @@ function goToPrevSong(){
     nt4Client.addSample("/touchboard/stopMusic", true);
 }
 
-$(".teamNumber").on("click", ()=>{
-    $(".setTeamNumberOrIp").toggleClass("showTeamSet")
-    
-})
