@@ -21,6 +21,13 @@
 - Robot library overhaul (Commands v3 library in the works)
     - Robot library has been overhauled to use proxy commands instead of manual command scheduling and canceling workaound. 
 
+- Fixed an issue with components only binding on connection to the robot
+
+- Fixed an issue where the grid underlay duplicated when the editor menu was opened
+
+- Added data validation to Axis Component
+    - Currently only the axis has data validation, as the value changes could be faster then the callback could respond too. If others become an issue I can add data validation there too.
+
 # 2.1.0
 
 - Added Camera Stream Component

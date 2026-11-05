@@ -1,10 +1,15 @@
-package frc.robot;
+// Library Version 2.2
+// PLEASE NOTE: The following imports are for WPILib 2026. If you are using WPILib 2027 (with commands v2), please uncomment the WPILib 2027 imports and comment out the WPILib 2026 imports.
+
+package frc.robot.util;
 
 import java.util.HashMap;
 import java.util.function.Supplier;
 
+// Wpilib 2026 Imports
 import edu.wpi.first.networktables.BooleanPublisher;
 import edu.wpi.first.networktables.BooleanSubscriber;
+import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.DoubleSubscriber;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -15,13 +20,26 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
+// Wpilib 2027 Imports
+// import org.wpilib.networktables.BooleanPublisher;
+// import org.wpilib.networktables.BooleanSubscriber;
+// import org.wpilib.networktables.DoubleSubscriber;
+// import org.wpilib.networktables.NetworkTable;
+// import org.wpilib.networktables.NetworkTableInstance;
+// import org.wpilib.networktables.PubSubOption;
+// import org.wpilib.networktables.StringSubscriber;
+// import org.wpilib.command2.Command;
+// import org.wpilib.command2.CommandScheduler;
+// import org.wpilib.command2.Commands;
+// import org.wpilib.command2.button.Trigger;
+
 public class Touchboard {
 
+    
     private static NetworkTableInstance inst = NetworkTableInstance.getDefault();
     private static NetworkTable datatable = inst.getTable("touchboard");
 
     public Touchboard() {
-
     }
 
     // Action Button Methods
@@ -140,9 +158,11 @@ public class Touchboard {
 
         Trigger trigger = new Trigger(() -> dataSubscriber.get());
 
+        trigger.onTrue(selfCancelingCommand(topic, command));
+  
         trigger.onTrue(Commands.runOnce(() -> dataPublisher.set(false)).ignoringDisable(true));
 
-        return trigger.onTrue(selfCancelingCommand(topic, command));
+        return trigger;
     }
 
     /**
@@ -170,6 +190,18 @@ public class Touchboard {
                 t -> datatable.getBooleanTopic(t).subscribe(false)).get();
     }
 
+    
+    /**
+     * Gets the boolean value of the given topic. This method will not duplicate the subscriber and can be called repeatedly.
+     * @param topic The topic assigned in touchboard.
+     * @param defaultValue The default value given if none is found
+     * @return The boolean value of the given topic.
+     */
+    public static boolean getBooleanValue(String topic, boolean defaultValue) {
+        return BooleanSubscriberMap.computeIfAbsent(topic,
+                t -> datatable.getBooleanTopic(t).subscribe(defaultValue)).get();
+    }
+
     // Axis Methods
 
     /**
@@ -181,11 +213,26 @@ public class Touchboard {
     public static Trigger bindAxis(String topic, Supplier<Command> command) {
         datatable.getDoubleTopic(topic).publish();
 
+        DoublePublisher feedbackPublisher = datatable.getDoubleTopic("Feedback/" + topic).publish();
+
+        DoubleSubscriber feedbackSubscriber = datatable.getDoubleTopic(topic).subscribe(0);
+
         DoubleSubscriber dataSubscriber = datatable.getDoubleTopic(topic).subscribe(0,
                 PubSubOption.pollStorage(1), PubSubOption.keepDuplicates(true));
 
-        return new Trigger(() -> dataSubscriber.readQueueValues().length > 0)
-                .onTrue(selfCancelingCommand(topic, command));
+        Trigger trigger = new Trigger(() -> dataSubscriber.readQueueValues().length > 0);
+
+        trigger.onTrue(Commands.runOnce(()->{
+                    feedbackPublisher.set(feedbackSubscriber.get());
+
+                    CommandScheduler.getInstance().schedule(selfCancelingCommand(topic,command));
+                }).ignoringDisable(true));
+
+        // trigger.onTrue(selfCancelingCommand(topic, command));
+
+
+        return trigger;
+                
     }
 
     /**
@@ -240,6 +287,19 @@ public class Touchboard {
     public static double getDoubleValue(String topic) {
         return DoubleSubscriberMap.computeIfAbsent(topic,
                 t -> datatable.getDoubleTopic(t).subscribe(0.0)).get();
+    }
+
+    
+    /**
+     * Gets the double value of the given topic. This method will not duplicate the subscriber and can be called repeatedly.
+     * @param topic The topic assigned in touchboard.
+     * @param defaultValue The value that should be used if none is found.
+     * 
+     * @return The double value of the given topic.
+     */
+    public static double getDoubleValue(String topic, double defaultValue) {
+        return DoubleSubscriberMap.computeIfAbsent(topic,
+                t -> datatable.getDoubleTopic(t).subscribe(defaultValue)).get();
     }
 
     // Dropdown Methods
@@ -310,6 +370,18 @@ public class Touchboard {
                 t -> datatable.getStringTopic(t).subscribe("")).get();
     }
 
+        
+    /**
+     * Gets the string value of the given topic. This method will not duplicate the subscriber and can be called repeatedly.
+     * @param topic The topic assigned in touchboard.
+     * @param defaultValue The default value given if none is found.
+     * @return The string value of the given topic.
+     */
+    public static String getStringValue(String topic, String defaultValue) {
+        return StringSubscriberMap.computeIfAbsent(topic,
+                t -> datatable.getStringTopic(t).subscribe(defaultValue)).get();
+    }
+
     // Helper Methods:
 
     private static final HashMap<String, Command> selfCancelingCommands = new HashMap<>();
@@ -333,3 +405,5 @@ public class Touchboard {
         }).ignoringDisable(true);
     }
 }
+
+

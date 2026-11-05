@@ -3,11 +3,11 @@ A touchscreen button board that communicates over NT4.
 
 
 ## **How it works**
-Touchboard works by sending data over network tables to the robot. I've made adding buttons easy by simply editing the HTML and the layout can be styled with css grid, css flex, or any css.
+Touchboard works by sending data over network tables to the robot.
 
 If you're not familiar with network tables, you should still be able to use this. I explain how things work but you don't have to understand everything. Just think of the topic name as a shared variable that the robot and touchboard need.
 
-Thanks to mechanical advantage for the nt4.js library that sends values to the robot, I have made modifications to that library for streamlining and to support struct decoding. 
+Thanks to mechanical advantage for the nt4.js library that sends values to the robot, I have made modifications to that library for streamlining, to support struct decoding, and other various features. 
 
 # **Usage**
 

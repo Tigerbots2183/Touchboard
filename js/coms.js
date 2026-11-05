@@ -25,12 +25,13 @@
 import { NT4_Client } from "../lib/nt4.js";
 import { topicToSidebar } from "./editor/editorUi.js";
 import { setSelectOpener } from "./ui.js";
-import { MathUtils } from "../lib/util.js";
-import { renderFrame, isFrameScheduled } from "./renderer.js";
+import { rebindAllComponents } from "./editor/components/components.js";
+// import { MathUtils } from "../lib/util.js";
+// import { renderFrame, isFrameScheduled } from "./renderer.js";
 
 let sidebaredStructs = []
 
-let isConnected = false;
+export let isConnected = false;
 
 let queuedTopics = [];
 
@@ -128,14 +129,14 @@ function handleNewData(topic, timestamp, value) {
                 foundValue = getStructValue(subscribedTopics[topic.name][i].structPath, value)
             }
 
-            subscribedTopics[topic.name][i].valueHandeler(foundValue, timestamp) // Send value to topic handler
+            subscribedTopics[topic.name][i].valueHandeler(foundValue, timestamp, topic) // Send value to topic handler
         }
     }
 
-    if (!isFrameScheduled.scheduled) {
-        window.requestAnimationFrame(renderFrame);
-        isFrameScheduled.scheduled = true;
-    }
+    // if (!isFrameScheduled.scheduled) {
+    //     // window.requestAnimationFrame(renderFrame);
+    //     isFrameScheduled.scheduled = true;
+    // }
 
 }
 
@@ -255,166 +256,7 @@ function onConnectCb() {
         for (let i = 0; i < $uiElements.length; i++) {
             if ($uiElements.eq(i).attr("data-topic") == "esc-UNDEFINED-esc" || $uiElements.eq(i).attr("data-topic") == "esc-UNSET-esc") { continue }
 
-            if ($uiElements.eq(i).hasClass("actionButton")) {
-                $($uiElements.eq(i)).on(" pointerdown", () => {
-                    if (editTabs.hasClass("editingTabs")) return
-                    nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), true)
-                    $uiElements.eq(i).attr("data-value", "true")
-                }).on("pointerup   mouseleave touchcancel", () => {
-                    nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), false)
-                    $uiElements.eq(i).attr("data-value", "false");
-                })
-            } else if ($uiElements.eq(i).hasClass("toggleButton")) {
-                $uiElements.eq(i).on(" pointerdown", () => {
-                    if (editTabs.hasClass("editingTabs")) return
-
-                    nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), !(JSON.parse($uiElements.eq(i).attr("data-value"))))
-                    $uiElements.eq(i).toggleClass("toggledOn")
-                    // console.log($uiElements.eq(i));
-                    let oldBG = $uiElements.eq(i).css("background-color").replace(/^([^,]*,[^,]*,[^,]*),.*$/, '$1')
-
-                    if ($uiElements.eq(i).hasClass("toggledOn")) {
-                        $uiElements.eq(i).css("background-color", oldBG + ", 0.6)")
-                    } else {
-                        $uiElements.eq(i).css("background-color", oldBG + ", 0)")
-
-                    }
-                    $uiElements.eq(i).attr("data-value", JSON.stringify(!(JSON.parse($uiElements.eq(i).attr("data-value")))))
-                })
-            } else if ($uiElements.eq(i).hasClass("oneShotButton")) {
-
-                nt4Client.subscribe(["/touchboard/" + $uiElements.eq(i).attr("data-topic")])
-                $uiElements.eq(i).on(" pointerdown", () => {
-                    if (editTabs.hasClass("editingTabs")) return
-
-                    nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), true)
-                })
-            } else if ($uiElements.eq(i).hasClass("numberComponent")) {
-                // if ($uiElements.eq(i).attr('data-persist') == "true") {
-                //     if (localStorage.getItem(getHtmlFileName() + $uiElements.eq(i).attr("data-topic")) == null) {
-                //         localStorage.setItem(getHtmlFileName() + $uiElements.eq(i).attr("data-topic"), $uiElements.eq(i).attr("data-value"))
-                //     } else {
-                //         let currentPersitant = localStorage.getItem(getHtmlFileName() + $uiElements.eq(i).attr("data-topic"));
-                //         $uiElements.eq(i).attr("data-value", currentPersitant)
-                //         $uiElements.eq(i).children(".numberTextInput").attr("value", currentPersitant)
-                //     }
-                // }
-
-                $uiElements.eq(i).children(".numberPlus").on("pointerdown ", (event) => {
-                    if (editTabs.hasClass("editingTabs")) return
-
-                    let $ct = $(event.currentTarget)
-                    let max = parseFloat($ct.parent().attr("data-max"))
-                    let step = parseFloat($ct.parent().attr("data-step"))
-                    let $numberTarget = $ct.parent().children(".numberTextInput")
-                    let currentVal = MathUtils.add($numberTarget.val(), step)
-                    if (currentVal <= max) {
-                        $numberTarget.val(currentVal)
-                        $ct.parent().attr("data-value", $numberTarget.val())
-                        nt4Client.addSample("/touchboard/" + $ct.parent().attr("data-topic"), parseFloat($ct.parent().attr("data-value")))
-                        // if ($ct.parent().attr('data-persist') == "true") {
-                        //     localStorage.setItem(getHtmlFileName() + $ct.parent().attr("data-topic"), $numberTarget.val())
-                        // }
-                    }
-                })
-                $uiElements.eq(i).children(".numberMinus").on("pointerdown ", (event) => {
-                    if (editTabs.hasClass("editingTabs")) return
-
-                    let $ct = $(event.currentTarget)
-                    let min = parseFloat($ct.parent().attr("data-min"))
-                    let step = parseFloat($ct.parent().attr("data-step"))
-                    let $numberTarget = $ct.parent().children(".numberTextInput")
-                    let currentVal = MathUtils.subtract($numberTarget.val(), step)
-                    if (currentVal >= min) {
-                        $numberTarget.val(currentVal)
-                        $ct.parent().attr("data-value", $numberTarget.val())
-                        nt4Client.addSample("/touchboard/" + $ct.parent().attr("data-topic"), parseFloat($ct.parent().attr("data-value")))
-                        // if ($ct.parent().attr('data-persist') == "true") {
-                        //     localStorage.setItem(getHtmlFileName() + $ct.parent().attr("data-topic"), $numberTarget.val())
-                        // }
-                    }
-                })
-                $uiElements.eq(i).children(".numberTextInput").on("blur", (event) => {
-                    if (editTabs.hasClass("editingTabs")) return
-
-                    let $ct = $(event.currentTarget)
-                    let max = parseFloat($ct.parent().attr("data-max"))
-                    let min = parseFloat($ct.parent().attr("data-min"))
-
-                    if ($ct.val() > max) {
-                        $ct.val(max)
-                    } else if ($ct.val() < min) {
-                        $ct.val(min)
-                    }
-                    $ct.parent().attr("data-value", $ct.val())
-                    nt4Client.addSample("/touchboard/" + $ct.parent().attr("data-topic"), parseFloat($ct.parent().attr("data-value")))
-                    // if ($ct.parent().attr('data-persist') == "true") {
-                    //     localStorage.setItem(getHtmlFileName() + $ct.parent().attr("data-topic"), $ct.val())
-                    // }
-                })
-            } else if ($uiElements.eq(i).hasClass("select")) {
-
-                $uiElements.eq(i).children(".selectOption").on("pointerdown", (event) => {
-                    if (editTabs.hasClass("editingTabs")) return
-
-                    let $ct = $(event.target)
-                    $uiElements.eq(i).attr("data-value", $ct.attr("data-value")).css("background-color", $ct.attr("data-hex") + "6b").attr("data-index", $ct.attr("data-index"))
-                    $uiElements.eq(i).children(".selectTitle").text($ct.text())
-                    nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), $uiElements.eq(i).attr("data-value"))
-
-                })
-            } else if ($uiElements.eq(i).hasClass("axis") || $uiElements.eq(i).hasClass("verticalAxis")) {
-
-                $uiElements.eq(i).attr("data-value", 0)
-                $uiElements.eq(i).children(".axisKnob, .verticalAxisKnob").val(0)
-
-                $uiElements.eq(i).children(".axisKnob, .verticalAxisKnob").on("input", (event) => {
-                    if (editTabs.hasClass("editingTabs")) return
-
-                    let $ct = $(event.target)
-                    $uiElements.eq(i).attr("data-value", $ct.val())
-                    nt4Client.addSample("/touchboard/" + $ct.parent().attr("data-topic"), parseFloat($ct.parent().attr("data-value")))
-
-                }).on("pointerup  ", (event) => {
-                    if (JSON.parse($uiElements.eq(i).attr("data-snapBack"))) {
-                        let $ct = $(event.target)
-                        $uiElements.eq(i).attr("data-value", 0)
-                        $(event.currentTarget).val(0)
-                        nt4Client.addSample("/touchboard/" + $ct.parent().attr("data-topic"), parseFloat($ct.parent().attr("data-value")))
-                    }
-                })
-            }
-            // else if ($uiElements.eq(i).hasClass("basicSubscription")) {
-
-            //     nt4Client.subscribe([$uiElements.eq(i).attr('data-topic')])
-
-            //     $uiElements.eq(i).addClass($uiElements.eq(i).attr('data-topic').replaceAll("/", "esc-Sl-esc").replaceAll(".", "esc-period-esc"))
-            // } 
-            else if ($uiElements.eq(i).hasClass("buttonOptGroup")) {
-
-                $uiElements.eq(i).children(".optGroupButton").on("pointerdown", (event) => {
-                    if (editTabs.hasClass("editingTabs")) return
-
-                    let cI = $uiElements.eq(i).children(".optGroupButton")
-                    for (let j = 0; j < cI.length; j++) {
-                        cI.eq(j).css("background-color", cI.eq(j).css("background-color").replace(/^([^,]*,[^,]*,[^,]*),.*$/, '$1') + ", 0)").removeClass("toggledOn")
-                    }
-                    let oldBG = $(event.target).css("background-color").replace(/^([^,]*,[^,]*,[^,]*),.*$/, '$1')
-                    let $ct = $(event.target).addClass("toggledOn").css("background-color", oldBG + ", 0.6)")
-
-                    $uiElements.eq(i).attr("data-value", $ct.attr("data-value")).attr("data-index", $ct.attr("data-index"))
-                    nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), $uiElements.eq(i).attr("data-value"))
-
-                })
-
-                let cH = $uiElements.eq(i).children(".optGroupButton")
-                for (let j = 0; j < cH.length; j++) {
-                    if (cH.eq(j).hasClass("toggledOn")) {
-                        cH.eq(j).css("background-color", cH.eq(j).css("background-color").replace(/^([^,]*,[^,]*,[^,]*),.*$/, '$1') + ", 0.6)");
-                        $uiElements.eq(i).attr("data-value", cH.eq(j).attr("data-value")).attr("data-index", cH.eq(j).attr("data-index"))
-                    }
-                }
-            }
+            rebindAllComponents();
         }
 
         // console.log(nt4Client.subscriptions)
@@ -422,7 +264,7 @@ function onConnectCb() {
 
 
         $(".connectionText").text("Connected")
-        window.requestAnimationFrame(renderFrame);
+        // window.requestAnimationFrame(renderFrame);
 
     }, 1000);
 

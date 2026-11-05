@@ -1,8 +1,9 @@
 // import { NT4_Client } from "../../../lib/nt4.js";
-import { pxToCq, clamp, toastMessage } from "../../ui.js";
+import { pxToCq, clamp, toastMessage} from "../../ui.js";
 import { nt4Client } from "../../coms.js";
 import { WebGPULineGraph } from "../../../lib/gpuDrawer.js"
-import { renderFuncs } from "../../renderer.js";
+import { renderFuncs} from "../../renderer.js";
+
 
 // let canvas = document.getElementById("testMain");
 
@@ -1301,7 +1302,6 @@ function dragPseudoEvent($elementBound, fn, fireEndOnLeave = true, executeFnOnLe
         $("html").on(randomEventNamespaceM, moveFunc)
 
     }
-
 
 
 }

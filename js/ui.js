@@ -1,7 +1,7 @@
 // import "./nt4.js"
-import {initEditor} from "./editor/editorUi.js"
-import {saveLayoutToJSON, loadLayoutFromJson} from "./save.js"
-import { getHtmlFileName, nt4Client} from "./coms.js";
+import { initEditor } from "./editor/editorUi.js"
+import { saveLayoutToJSON, loadLayoutFromJson } from "./save.js"
+import { getHtmlFileName, nt4Client } from "./coms.js";
 import { setGridInput, tabGrid } from "./editor/grid.js";
 import { renderFrame } from "./renderer.js"
 
@@ -42,8 +42,6 @@ import { renderFrame } from "./renderer.js"
 //So usage of multiple is not recommnded besides action and one shot buttons. 
 
 
-
-// const isObject = (val) => val !== null && typeof val === 'object';
 
 let toastOpen = false
 let toastTimeout;
@@ -429,7 +427,7 @@ function setSavedLayout() {
     if (localStorage.getItem("layout")) {
         loadLayoutFromJson(localStorage.getItem("layout"))
     } else {
-        localStorage.setItem("layout", JSON.stringify({".TeleopB29257671233746385":{"tabTitle":"Teleop","tabRows":"4","tabColumns":"9","state":"tabVisible","components":[]},".AutoB909642247728146":{"tabTitle":"Auto","tabRows":"4","tabColumns":"9","state":"tabVisible","components":[]}}))
+        localStorage.setItem("layout", JSON.stringify({ ".TeleopB29257671233746385": { "tabTitle": "Teleop", "tabRows": "4", "tabColumns": "9", "state": "tabVisible", "components": [] }, ".AutoB909642247728146": { "tabTitle": "Auto", "tabRows": "4", "tabColumns": "9", "state": "tabVisible", "components": [] } }))
 
         loadLayoutFromJson(localStorage.getItem("layout"))
     }
@@ -513,10 +511,15 @@ function init() {
     initEditor();
 
     //Util
-    autoSaveOnExit();
-    setSavedLayout();
+
     bindTeamNumberMenuOpener();
     setCurrentState()
+
+    $(document).ready(() => {
+        setSavedLayout();
+
+        autoSaveOnExit();
+    })
 
     window.requestAnimationFrame(renderFrame)
 

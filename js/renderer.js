@@ -27,7 +27,7 @@ import { toastMessage } from "./ui.js";
 export let renderQueue = new Map();
 export let renderFuncs = new Map()
 
-export let isFrameScheduled = {"scheduled": false};
+export let isFrameScheduled = { "scheduled": false };
 // renderQueue example
 
 //KEY : jQuery Reference object to basic subscription value, not the main component, what needs to be edited on it*
@@ -52,8 +52,8 @@ export let isFrameScheduled = {"scheduled": false};
 //  }
 //]
 
-export function addToRender(element, instruction){
-    if(renderQueue.has(element)){
+export function addToRender(element, instruction) {
+    if (renderQueue.has(element)) {
         let elementQueue = renderQueue.get(element);
 
         elementQueue.push(instruction);
@@ -66,7 +66,7 @@ export function addToRender(element, instruction){
 
 
 
-export function renderFrame(){
+export function renderFrame() {
 
     let currentQueue = renderQueue;
 
@@ -77,10 +77,10 @@ export function renderFrame(){
 
     isFrameScheduled.scheduled = false;
 
-    for(let [element, instructions] of currentQueue){
+    for (let [element, instructions] of currentQueue) {
         queueCount++
 
-        for(let i = 0; i < instructions.length; i++){
+        for (let i = 0; i < instructions.length; i++) {
             let instruction = instructions[i]
             element = $(element);
 
@@ -107,12 +107,22 @@ export function renderFrame(){
 
     let funcCount = 0;
 
-    for(let [element, func] of renderFuncs){
+    for (let [element, func] of renderFuncs) {
         funcCount++
 
-        func(element);
+
+        if(element.attr("data-parentPage") == undefined) {
+            console.log(element.parent()[0].classList[1])
+            element.attr("data-parentPage",element.parent()[0].classList[1]);
+        }
+
+        if ("." + element.attr("data-parentPage") == $(".currentTab").attr("data-page")) {
+            func(element);
+
+        }
     }
 
+    window.requestAnimationFrame(renderFrame);
     // toastMessage(queueCount + ", " funcCount)
 
 }

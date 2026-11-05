@@ -22,11 +22,12 @@
 
 // 
 
-import { outputComponents, createSideTab, multiSwitchButtonSet, toastMessage } from "../ui.js"
-import { createDefaultOf, defaultSimilarOptions, setSimilarOptions, addButtonToAnimate, createDropdown, createOptGroup, globalGraphRef, generateCssIfStatement } from "./components/components.js"
+import { outputComponents, createSideTab, multiSwitchButtonSet, setSelectOpener} from "../ui.js"
+import { createDefaultOf, defaultSimilarOptions, setSimilarOptions, addButtonToAnimate, createDropdown, createOptGroup, globalGraphRef, generateCssIfStatement, rebindAllComponents } from "./components/components.js"
 import { tabGrid, setGridInput, setCornerBorder, clientDragHandler, addToCurrentDrag, findEndOffset, grid } from "./grid.js"
 import { topicObject, nt4Client, getStructValue, subscribedTopics } from "../coms.js"
 import { vh } from "../../lib/util.js"
+
 
 let nonSupportedTypes = {
     "basicSubscription": false,
@@ -140,6 +141,8 @@ function bindEditOpener() {
                 // window.location.reload();
             }
 
+            rebindAllComponents();
+            setSelectOpener();
         }
 
     })
@@ -1310,6 +1313,8 @@ export function changeSimilarInputs(similarOptions) {
 export function topicToSidebar(topic, schemasPassed = false) {
     if (topic.type.includes("proto") || topic.type.includes("structschema")) return
     if (topic.type.includes("struct") && !schemasPassed) return;
+    if (topic.name.split("/")[1].includes("touchboard")) return;
+
     let split = topic.name.split("/")
     split.shift();
 
