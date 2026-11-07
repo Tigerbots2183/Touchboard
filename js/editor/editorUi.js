@@ -22,7 +22,7 @@
 
 // 
 
-import { outputComponents, createSideTab, multiSwitchButtonSet, setSelectOpener} from "../ui.js"
+import { outputComponents, createSideTab, multiSwitchButtonSet, setSelectOpener, cq, v, toastMessage } from "../ui.js"
 import { createDefaultOf, defaultSimilarOptions, setSimilarOptions, addButtonToAnimate, createDropdown, createOptGroup, globalGraphRef, generateCssIfStatement, rebindAllComponents } from "./components/components.js"
 import { tabGrid, setGridInput, setCornerBorder, clientDragHandler, addToCurrentDrag, findEndOffset, grid } from "./grid.js"
 import { topicObject, nt4Client, getStructValue, subscribedTopics } from "../coms.js"
@@ -96,12 +96,19 @@ function bindEditOpener() {
 
         }, 1000);
 
+
+        intervalFor(() => {
+            $(".dashboardHolder").attr("data-vhCminDif", v(.01).vh / cq($($(".currentTab").attr('data-page')), 1).cqmin)
+            $(".dashboardHolder").attr("data-vwCminDif", v(.01).vw / cq($($(".currentTab").attr('data-page')), 1).cqmin)
+
+        }, 10, 1000)
+
         if ($(".editTabs").hasClass("editingTabs")) {
 
             $("body").off("pointermove.gridReact").on("pointermove.gridReact", (event) => {
 
                 if ($(".gridSquareVisual").length > 600) {
-    
+
                     $(".gridSquareVisual").css("scale", "95%");
                     return
                 }
@@ -131,6 +138,7 @@ function bindEditOpener() {
         } else {
             // $("*").removeClass("removeShake").off("pointerdown.remove").off("pointermove.dragComponent")//.off("pointerdown.editHandler")
             $(".dashboardHolder, .dashboardHolder *").removeClass("removeShake").off("pointerdown.remove pointermove.dragComponent");
+
             $(".removeShake").removeClass("removeShake").off("pointerdown.remove pointermove.dragComponent");
 
             $(".trashCan").removeClass("trashActive")
@@ -147,6 +155,14 @@ function bindEditOpener() {
 
     })
 
+}
+
+function intervalFor(func, interval, timeout) {
+    let newInterval = setInterval(func, interval);
+
+    setTimeout(() => {
+        clearInterval(newInterval)
+    }, timeout);
 }
 
 function bindComponentAdders() {
@@ -489,10 +505,14 @@ function bindEditMenu(element, valueType, customEdit = false) {
             bindToggleMultiSwitch(inputBeingBound)
         } else if (inputBeingBound.attr("data-editing") == "data-snapBack") {
             bindSnapBack(inputBeingBound)
+        } else if (inputBeingBound.attr('data-editing') == "data-autoSend") {
+            bindAutoSend(inputBeingBound)
         } else if (inputBeingBound.attr("data-editing") == "data-hideNav") {
             bindHideNav(inputBeingBound)
         } else if (inputBeingBound.attr("data-editing") == "data-recordconditions") {
             bindRecordConditions(inputBeingBound)
+        } else if (inputBeingBound.attr("data-editing") == "data-topic") {
+            bindTopic(inputBeingBound)
         } else if (inputBeingBound.attr("data-editing") !== "na") {
             bindOtherData(inputBeingBound)
         }
@@ -520,6 +540,34 @@ function bindEditMenu(element, valueType, customEdit = false) {
 
                 editComponent.currentTarget.attr("data-snapBack", JSON.stringify($ct.prop("checked")))
             })
+        }
+    }
+    6
+    function bindAutoSend(inputBeingBound) {
+        if (editComponent.currentTarget.attr("data-autoSend")) {
+
+            inputBeingBound.prop("checked", JSON.parse(editComponent.currentTarget.attr("data-autoSend")))
+            console.log(inputBeingBound, JSON.parse(editComponent.currentTarget.attr("data-autoSend")))
+
+
+
+            inputBeingBound.off("input.autoSend").on("input.autoSend", (event) => {
+                let $ct = $(event.currentTarget)
+
+                let allComponents = $(".editableComponent")
+                for (let i = 0; i < allComponents.length; i++) {
+                    let currentComponent = allComponents.eq(i)
+
+                    if (currentComponent.attr("data-topic") == editComponent.currentTarget.attr("data-topic")) {
+                        currentComponent.attr("data-autoSend", JSON.stringify($ct.prop("checked")))
+
+                    }
+                }
+
+                nt4Client.publishedTopics.get("/touchboard/" + editComponent.currentTarget.attr("data-topic")).autoSend = $ct.prop("checked");
+                // editComponent.currentTarget.attr("data-autoSend", JSON.stringify($ct.prop("checked")))
+            })
+
         }
     }
 
@@ -752,9 +800,13 @@ function bindEditMenu(element, valueType, customEdit = false) {
             if ($(event.target).val() == "Y-Axis") {
                 editComponent.currentTarget.removeClass("axis").addClass("verticalAxis").attr("data-componentType", "verticalAxis")
                 editComponent.currentTarget.find(".axisKnob").removeClass("axisKnob").addClass("verticalAxisKnob")
+                multiSwitchButtonSet(inputBeingBound, "Y-Axis")
+
             } else if ($(event.target).val() == "X-Axis") {
                 editComponent.currentTarget.removeClass("verticalAxis").addClass("axis").attr("data-componentType", "axis")
                 editComponent.currentTarget.find(".verticalAxisKnob").removeClass("verticalAxisKnob").addClass("axisKnob")
+                multiSwitchButtonSet(inputBeingBound, "X-Axis")
+
 
             }
         })
@@ -772,8 +824,12 @@ function bindEditMenu(element, valueType, customEdit = false) {
         inputBeingBound.find(".multiSwitchButton").off("pointerdown.axisDirection").on("pointerdown.axisDirection", (event) => {
             if ($(event.target).val() == "Mp4") {
                 editComponent.currentTarget.attr("data-videoFormat", "Mp4")
+                multiSwitchButtonSet(inputBeingBound, "Mp4")
+
             } else if ($(event.target).val() == "WebM") {
                 editComponent.currentTarget.attr("data-videoFormat", "WebM")
+                multiSwitchButtonSet(inputBeingBound, "Mp4")
+
             }
         })
     }
@@ -843,8 +899,13 @@ function bindEditMenu(element, valueType, customEdit = false) {
 
             if ($(event.target).val() == "False") {
                 editComponent.currentTarget.css("background-color", oldBG + ", 0)").removeClass("toggledOn").attr("data-value", "false").attr("data-initialvalue", "false")
+                multiSwitchButtonSet(inputBeingBound, "False")
+
+
             } else if ($(event.target).val() == "True") {
                 editComponent.currentTarget.css("background-color", oldBG + ", 0.6)").addClass("toggledOn").attr("data-value", "true").attr("data-initialvalue", "true")
+                multiSwitchButtonSet(inputBeingBound, "True")
+
             }
         })
     }
@@ -873,7 +934,7 @@ function bindEditMenu(element, valueType, customEdit = false) {
 
         })
 
-        $(".sideBar").off("pointerup.setEdit pointermove.setEdit").on("pointerup.setEdit pointermove.setEdit", () => {
+        $(".sideBar").off("pointerup.setEdit").on("pointerup.setEdit", () => {
             bindStrings(inputBeingBound)
 
         })
@@ -884,6 +945,44 @@ function bindEditMenu(element, valueType, customEdit = false) {
 
             }, 1);
             return false
+        })
+    }
+
+    function bindTopic(inputBeingBound) {
+
+        //bind components attribute which is found by the current input being bounds data-editing attribute.
+        let boundEditing = editComponent.currentTarget.attr(inputBeingBound.attr("data-editing"))
+
+        if (boundEditing === "esc-UNDEFINED-esc") {
+            boundEditing = ""
+        }
+
+        if (inputBeingBound.hasClass("isntEdit")) {
+            inputBeingBound.text(boundEditing)
+        }
+
+        //defaults selection to all text for easy deletion
+        inputBeingBound.val(boundEditing).on(`focus.selectText`, (event) => setTimeout(() => $(event.currentTarget)[0].setSelectionRange(0, $(event.currentTarget).val().length), 100))
+
+        inputBeingBound.off("input.typing blur.typing").on("input.typing blur.typing", (event) => {
+            let $ct = $(event.currentTarget)
+            let $comp = editComponent.currentTarget
+
+            if (nt4Client.publishedTopics.get("/touchboard/" + $ct.val()) && !(editComponent.currentTarget.attr("data-componenttype") == "oneShotButton" || editComponent.currentTarget.attr("data-componenttype") == "actionButton")) {
+                let allComponents = $(".editableComponent")
+                for (let i = 0; i < allComponents.length; i++) {
+                    let currentComponent = allComponents.eq(i)
+
+                    if (currentComponent.attr("data-autoSend") == "true") {
+                        editComponent.currentTarget.attr("data-autoSend", "true")
+
+                        inputBeingBound.parent().parent().find(".autoSend").prop("checked", true)
+                    };
+
+                }
+            }
+
+            $comp.attr($ct.attr('data-editing'), $ct.val())
         })
     }
 
@@ -935,7 +1034,7 @@ function bindEditMenu(element, valueType, customEdit = false) {
 
         if (editComponent.currentTarget.hasClass("buttonOptGroup")) {
 
-            newComponent = createOptGroup(eDCT.attr("data-topic"), $(".currentTab").attr("data-page"), eDCT.attr("data-color"), JSON.parse(eDCT.attr("data-persist")) ? eDCT.attr("data-index") : 0, componentsOptions, JSON.parse(eDCT.attr("data-defaultsimilaroptions")), JSON.parse(eDCT.attr("data-persist"))).div
+            newComponent = createOptGroup(eDCT.attr("data-topic"), $(".currentTab").attr("data-page"), JSON.parse(eDCT.attr("data-autoSend")), eDCT.attr("data-color"), JSON.parse(eDCT.attr("data-persist")) ? eDCT.attr("data-index") : 0, componentsOptions, JSON.parse(eDCT.attr("data-defaultsimilaroptions")), JSON.parse(eDCT.attr("data-persist"))).div
                 .css("grid-area", eDCT.css("grid-area"))
                 .attr("data-row", eDCT.attr("data-row"))
                 .attr("data-column", eDCT.attr("data-column"))
@@ -944,7 +1043,7 @@ function bindEditMenu(element, valueType, customEdit = false) {
                 .attr("data-componentOptions", JSON.stringify(componentsOptions))
 
         } else {
-            newComponent = createDropdown(eDCT.attr("data-topic"), $(".currentTab").attr("data-page"), eDCT.attr("data-color"), JSON.parse(eDCT.attr("data-persist")) ? eDCT.attr("data-index") : 0, componentsOptions, JSON.parse(eDCT.attr("data-defaultsimilaroptions")), JSON.parse(eDCT.attr("data-persist"))).div
+            newComponent = createDropdown(eDCT.attr("data-topic"), $(".currentTab").attr("data-page"), JSON.parse(eDCT.attr("data-autoSend")), eDCT.attr("data-color"), JSON.parse(eDCT.attr("data-persist")) ? eDCT.attr("data-index") : 0, componentsOptions, JSON.parse(eDCT.attr("data-defaultsimilaroptions")), JSON.parse(eDCT.attr("data-persist"))).div
                 .css("grid-area", eDCT.css("grid-area"))
                 .attr("data-row", eDCT.attr("data-row"))
                 .attr("data-column", eDCT.attr("data-column"))
@@ -1280,6 +1379,47 @@ export function addEditHandler(element, valueType, specificClass = false, specif
     })
 }
 
+function addExplainers() {
+    let comp$ = $(".needsExplanation");
+
+    $(".explanation").on("click", () => {
+        $(".explanation").css("display", "none")
+        $(".explanation").children(".editThisText").text("")
+    })
+
+    for (let i = 0; i < comp$.length; i++) {
+        let currentComp$ = comp$.eq(i);
+        let currentExplanation = "";
+
+        if (currentComp$.attr("data-explaining") === "autoTriggerBinder") {
+            currentExplanation = "When enabled, the value of this component will be sent to the robot, and any binders will trigger on connection and when the robot is enabled. When disabled, the binders will only activate once the value is changed, and the value will be inaccessable before that."
+        }
+
+
+        let currentTimeout;
+
+        currentComp$.on("pointerdown.explain", (event) => {
+            let explanation$ = $(".explanation");
+            // let determinantWidth = currentComp$.attr("data-parent") == "true" ? currentComp$.parent().width() : currentComp$.width();
+            console.log(currentComp$.attr("data-parent") == "true", currentComp$.attr("data-parent"))
+
+            explanation$.children(".editThisText").text(currentExplanation)
+            explanation$.css("display", "block").css("left", currentComp$.offset().left).css("top", currentComp$.offset().top + currentComp$.height())
+
+            explanation$.children(".progress").removeClass("progressAnimating")
+            explanation$.offset()
+            explanation$.children(".progress").addClass("progressAnimating")
+
+            clearTimeout(currentTimeout)
+
+            currentTimeout = setTimeout(() => {
+                $(".explanation").css("display", "none")
+                $(".explanation").children(".editThisText").text("")
+            }, 10000);
+        })
+    }
+}
+
 //Init
 
 export function initEditor() {
@@ -1296,6 +1436,7 @@ export function initEditor() {
     handleOptionDrag()
     bindOptionAdder();
     bindTabCreator();
+    addExplainers();
     bindEditorResetter($(".editNavBack, .trashCan, .editTabs, .tab, .addTab, .tabCreator")) //Multi use
 
 }

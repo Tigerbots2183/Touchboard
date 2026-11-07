@@ -21,12 +21,26 @@
 - Robot library overhaul (Commands v3 library in the works)
     - Robot library has been overhauled to use proxy commands instead of manual command scheduling and canceling workaound. 
 
+- Added data validation to Axis Component
+    - Currently only the axis has data validation, as the value changes could be faster then the callback could respond too. If others become an issue I can add data validation there too.
+
+- Added an option that determines whether the inital value should be sent when the dashboard is connected and or when teleop is enabled, or to only send the first value when it is changed by the user. 
+    - For example, if you wanted a number component to send a value when the robot is enabled, then the Auto Trigger Binders option should be enabled. But if you had an opt group that determined the level of an elevator, you may want to disable Auto Trigger Binders as it would move the elevator automatically when the robot is enabled. Up to you. 
+
+- Camera now shows ⌛ when it is on cooldown before automatically stopping the recording
+    - The camera waits 8 seconds before downloading and stopping a recording in case the robot is in transition time from auto to teleop. Now during that time ⌛ is shown. 
+
+- Dashboard no longer refereshes until connection
+
+- Optgroup buttons now resize when fill is enabled
+
+- Fixed inconsitensies how components send their values on default
+
 - Fixed an issue with components only binding on connection to the robot
 
 - Fixed an issue where the grid underlay duplicated when the editor menu was opened
 
-- Added data validation to Axis Component
-    - Currently only the axis has data validation, as the value changes could be faster then the callback could respond too. If others become an issue I can add data validation there too.
+- Fixed an issue where selecting a new topic for a output component displayed unsupported types for that component
 
 # 2.1.0
 

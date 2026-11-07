@@ -78,6 +78,11 @@ export function saveLayoutToJSON() {
                 similarOptions: JSON.parse(comp$.attr("data-defaultsimilaroptions"))
             }
 
+            if(comp$.attr("data-autoSend")){
+                component.autoSend =  JSON.parse(comp$.attr("data-autoSend"))
+
+            }
+
             if(component.type == "graph"){
                 component.topics = comp$.attr("data-topics");
                 component.topic = null
@@ -327,17 +332,17 @@ function makeComponentFromJson(component) {
         case "oneShotButton":
             return components.createOneShotButton(component.displayName, component.topic, false, component.color, component.similarOptions)
         case "toggleButton":
-            return components.createToggleButton(component.displayName, component.topic, false, component.color, component.value, component.similarOptions, component.persist)
+            return components.createToggleButton(component.displayName, component.topic, component.autoSend, false, component.color, component.value, component.similarOptions, component.persist)
         case "axis":
-            return components.createAxis(component.displayName, component.topic, false, false, component.color, component.value, component.min, component.max, component.step, component.snapBack, component.similarOptions).div
+            return components.createAxis(component.displayName, component.topic,component.autoSend, false, false, component.color, component.value, component.min, component.max, component.step, component.snapBack, component.similarOptions).div
         case "verticalAxis":
-            return components.createAxis(component.displayName, component.topic, false, true, component.color, component.value, component.min, component.max, component.step, component.snapBack, component.similarOptions).div
+            return components.createAxis(component.displayName, component.topic,component.autoSend, false, true, component.color, component.value, component.min, component.max, component.step, component.snapBack, component.similarOptions).div
         case "select":
-            return components.createDropdown(component.topic, false, 0, component.index, JSON.parse(component.componentOptions), component.similarOptions, component.persist).div
+            return components.createDropdown(component.topic, false,component.autoSend, 0, component.index, JSON.parse(component.componentOptions), component.similarOptions, component.persist).div
         case "buttonOptGroup":
-            return components.createOptGroup(component.topic, false, 0, component.index, JSON.parse(component.componentOptions), component.similarOptions, component.persist).div
+            return components.createOptGroup(component.topic, false,component.autoSend, 0, component.index, JSON.parse(component.componentOptions), component.similarOptions, component.persist).div
         case "numberComponent":
-            return components.createNumberComponent(component.displayName, component.topic, false, 0, component.value, component.min, component.max, component.step, component.persist, component.similarOptions).div
+            return components.createNumberComponent(component.displayName, component.topic, component.autoSend, false, 0, component.value, component.min, component.max, component.step, component.persist, component.similarOptions).div
         case "basicSubscription":
             return components.createBasicSubscription(component.displayName, component.topic, false, component.color, component.similarOptions)
         case "basicLogger":

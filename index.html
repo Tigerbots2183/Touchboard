@@ -440,7 +440,8 @@ SOFTWARE. -->
 
         </div>
 
-        <div class="doubleOutputComponents floatOutputComponents intOutputComponents outputComponents ioComponents" style="user-select: none;">
+        <div class="doubleOutputComponents floatOutputComponents intOutputComponents outputComponents ioComponents"
+            style="user-select: none;">
             <div class="basicSubscription" data-topic=""> <!-- must be the full path -->
                 <h1 class="bSTopic">Name:</h1>
                 <h1 class="bSValue">Value</h1>
@@ -567,8 +568,13 @@ SOFTWARE. -->
                 <p>Persist?</p>
                 <input type="checkbox" class="isEdit checkbox" data-editing="data-persist">
             </div>
-        </div
-        >
+
+            <!-- //Toggle Button ONLY -->
+            <div class="sideInputDiv specificComponent toggleSpecific">
+                <p class="needsExplanation" data-explaining="autoTriggerBinder" data-parent="true"><u>Auto Trigger Binder?</u></p>
+                <input type="checkbox" class="isEdit checkbox autoSend" data-editing="data-autoSend">
+            </div>
+        </div>
         <div class="editSidebar subscriptionSidebar">
             <div class="sideInputDiv">
                 <p>Name:</p>
@@ -640,9 +646,10 @@ SOFTWARE. -->
                 </div> -->
 
                 <form class="coderAdder" name="optionAdder">
-                   
+
                     <input type="text" class="textInput newCoderValue" placeholder="Value" required>
-                    <input type="color" class="newHexCoder hex" style="line-height: 3.5vh; height: 3.5vh; width: 3.5vh;" value="#7300ff">
+                    <input type="color" class="newHexCoder hex" style="line-height: 3.5vh; height: 3.5vh; width: 3.5vh;"
+                        value="#7300ff">
 
                     <button class="sideBarEmojiButton plus">✚</button>
 
@@ -763,6 +770,13 @@ SOFTWARE. -->
                 <p>Persist?</p>
                 <input type="checkbox" class="isEdit checkbox" data-editing="data-persist">
             </div>
+
+            <div class="sideInputDiv">
+                <p class="needsExplanation" data-explaining="autoTriggerBinder" data-parent="true"><u>Auto Trigger Binder?</u></p>
+
+                <input type="checkbox" class="isEdit checkbox autoSend" data-editing="data-autoSend">
+            </div>
+
         </div>
         <div class="editSidebar stringSidebar">
             <!-- <div class="sideInputDiv specificComponent optGroupSpecific">
@@ -798,6 +812,11 @@ SOFTWARE. -->
             <div class="sideInputDiv">
                 <p>Persist?</p>
                 <input type="checkbox" class="isEdit checkbox" data-editing="data-persist">
+            </div>
+
+            <div class="sideInputDiv">
+                <p class="needsExplanation" data-explaining="autoTriggerBinder" data-parent="true"><u>Auto Trigger Binder?</u></p>
+                <input type="checkbox" class="isEdit checkbox autoSend" data-editing="data-autoSend">
             </div>
 
         </div>
@@ -840,6 +859,10 @@ SOFTWARE. -->
         <button class="trashCan">🗑</button>
     </div>
 
+    <div class="explanation">
+        <p class="editThisText">When enabled, the value of this component will be sent to the robot, and any binders will trigger on connection and when the robot is enabled. When disabled, the binders will only activate once the value is changed, and the value will be inaccessable before that.</p>
+        <div class="progress"></div>
+    </div>
 
     <script src="./js/ui.js" type="module"></script>
     <!-- <script src="./js/autoBuilder.js" type="module"></script> -->

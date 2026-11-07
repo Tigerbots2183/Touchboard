@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { pxToCq, toastMessage } from "../ui.js"
+import { pxToCq, toastMessage, v, cq} from "../ui.js"
 import { createDefaultOf } from "./components/components.js"
 import { roundToNearestX } from "../../lib/util.js"
 
@@ -63,12 +63,16 @@ export function tabGrid(columns, rows, tab) {
         let cqval = setGridSize($tab, columns, rows)
         $(".gridUnderlay").css("grid-template-rows", "repeat(" + rows + " ," + cqval + "cqmin)").css("grid-template-columns", "repeat(" + columns + " ," + cqval + "cqmin)")
         $(".gridUnderlayVisual").css("grid-template-rows", "repeat(" + rows + " ," + cqval + "cqmin)").css("grid-template-columns", "repeat(" + columns + " ," + cqval + "cqmin)")
+            $(".dashboardHolder").attr("data-vhCminDif", v(.01).vh / cq($($(".currentTab").attr('data-page')), 1).cqmin)
+            $(".dashboardHolder").attr("data-vwCminDif", v(.01).vw / cq($($(".currentTab").attr('data-page')), 1).cqmin)
 
         clearTimeout(resizeTimeout)
         resizeTimeout = setTimeout(() => {
             let cqval = setGridSize($tab, columns, rows)
             $(".gridUnderlay").css("grid-template-rows", "repeat(" + rows + " ," + cqval + "cqmin)").css("grid-template-columns", "repeat(" + columns + " ," + cqval + "cqmin)")
             $(".gridUnderlayVisual").css("grid-template-rows", "repeat(" + rows + " ," + cqval + "cqmin)").css("grid-template-columns", "repeat(" + columns + " ," + cqval + "cqmin)")
+            $(".dashboardHolder").attr("data-vhCminDif", v(.01).vh / cq($($(".currentTab").attr('data-page')), 1).cqmin)
+            $(".dashboardHolder").attr("data-vwCminDif", v(.01).vw / cq($($(".currentTab").attr('data-page')), 1).cqmin)
 
         }, 300);
     })

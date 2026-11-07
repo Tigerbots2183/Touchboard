@@ -42,8 +42,9 @@ export function createActionButton(displayName, topic, append = false, hex = "#2
         .addClass("editableComponent")
         .attr("data-type", "boolean")
         .attr("data-topic", topic)
-        .attr("data-value", false)
+        .attr("data-value", "false")
         .attr("data-color", hex)
+        // .attr("data-autoSend", autoSend)
         .attr("data-componentType", "actionButton")
         .attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
         .text(displayName)
@@ -70,7 +71,7 @@ export function createOneShotButton(displayName, topic, append = false, hex = "#
         .addClass("editableComponent")
         .attr("data-type", "boolean")
         .attr("data-topic", topic)
-        .attr("data-value", false)
+        .attr("data-value", "false")
         .attr("data-color", hex)
         .attr("data-componentType", "oneShotButton")
         .attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
@@ -89,7 +90,7 @@ export function createOneShotButton(displayName, topic, append = false, hex = "#
     return oneShotButton
 }
 
-export function createToggleButton(displayName, topic, append = false, hex = "#ff7300", value = false, similarOptions = defaultSimilarOptions, persist) {
+export function createToggleButton(displayName, topic, autoSend = false, append = false, hex = "#ff7300", value = false, similarOptions = defaultSimilarOptions, persist) {
     let toggleButton = $("<button>")
         .addClass("editableComponent")
         .addClass("toggleButton")
@@ -97,11 +98,12 @@ export function createToggleButton(displayName, topic, append = false, hex = "#f
         .attr("data-topic", topic)
         .attr("data-color", hex)
         .attr("data-componentType", "toggleButton")
-
+        .attr("data-autoSend", JSON.stringify(autoSend))
         .attr("data-persist", "false")
         .attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
         .css("border-color", hex)
         .text(displayName)
+
 
     if (JSON.parse(value)) {
 
@@ -128,9 +130,9 @@ export function createToggleButton(displayName, topic, append = false, hex = "#f
     return toggleButton
 }
 
-export function createAxis(displayName, topic, append = false, vertical = false, hex = "#8a2be2", value = 0, min = -1, max = 1, step = 0.01, snapBack = true, similarOptions = defaultSimilarOptions) {
+export function createAxis(displayName, topic, autoSend = false, append = false, vertical = false, hex = "#8a2be2", value = 0, min = -1, max = 1, step = 0.01, snapBack = true, similarOptions = defaultSimilarOptions) {
     let axis = {
-        div: $('<div>').attr("data-snapBack", "false").attr("data-defaultSimilarOptions", JSON.stringify(similarOptions)).addClass("editableComponent"),
+        div: $('<div>').attr("data-snapBack", "false").attr("data-autoSend", JSON.stringify(autoSend)).attr("data-defaultSimilarOptions", JSON.stringify(similarOptions)).addClass("editableComponent"),
         label: $("<h1>").addClass("axisLabel").addClass("editThisName"),
         knob: $("<input>")
     }
@@ -175,10 +177,10 @@ export function createAxis(displayName, topic, append = false, vertical = false,
     return axis
 }
 
-export function createNumberComponent(title, topic, append = false, hex = 0, value = 0, min = -1, max = 1, step = 0.1, persist = false, similarOptions = defaultSimilarOptions) {
+export function createNumberComponent(title, topic, autoSend = false, append = false, hex = 0, value = 0, min = -1, max = 1, step = 0.1, persist = false, similarOptions = defaultSimilarOptions) {
 
     let numberComponent = {
-        div: $("<div>").addClass("numberComponent").addClass("editableComponent").attr("data-type", 'double').attr("data-step", step).attr("data-min", min).attr("data-max", max).attr("data-value", value).attr("data-initialValue", value).attr("data-persist", "false").attr("data-topic", topic).attr("data-componentType", "numberComponent").attr("data-defaultSimilarOptions", JSON.stringify(similarOptions)),
+        div: $("<div>").addClass("numberComponent").attr("data-autoSend", JSON.stringify(autoSend)).addClass("editableComponent").attr("data-type", 'double').attr("data-step", step).attr("data-min", min).attr("data-max", max).attr("data-value", value).attr("data-initialValue", value).attr("data-persist", "false").attr("data-topic", topic).attr("data-componentType", "numberComponent").attr("data-defaultSimilarOptions", JSON.stringify(similarOptions)),
     }
 
     if (persist) numberComponent.div.attr("data-persist", "true")
@@ -205,12 +207,12 @@ export function createNumberComponent(title, topic, append = false, hex = 0, val
 
 }
 
-export function createDropdown(topic, append = false, hex = 0, initialOptionIndex = 0, options = [], similarOptions = defaultSimilarOptions, persist = false) {
+export function createDropdown(topic, append = false, autoSend = false, hex = 0, initialOptionIndex = 0, options = [], similarOptions = defaultSimilarOptions, persist = false) {
 
 
 
     let dropdown = {
-        div: $("<div>").addClass("editableComponent").attr("data-persist", "false").attr('data-index', initialOptionIndex).addClass("select").attr("data-topic", topic).attr("data-type", "string").attr("data-componentType", "select").attr("data-componentOptions", JSON.stringify(options)).attr("data-defaultSimilarOptions", JSON.stringify(similarOptions)),
+        div: $("<div>").addClass("editableComponent").attr("data-persist", "false").attr("data-autoSend", JSON.stringify(autoSend)).attr('data-index', initialOptionIndex).addClass("select").attr("data-topic", topic).attr("data-type", "string").attr("data-componentType", "select").attr("data-componentOptions", JSON.stringify(options)).attr("data-defaultSimilarOptions", JSON.stringify(similarOptions)),
 
     }
 
@@ -247,10 +249,10 @@ export function createDropdown(topic, append = false, hex = 0, initialOptionInde
     return dropdown
 }
 
-export function createOptGroup(topic, append, hex = 0, initialOptionIndex = 0, options = [], similarOptions = defaultSimilarOptions, persist = false) {
+export function createOptGroup(topic, append, autoSend = false, hex = 0, initialOptionIndex = 0, options = [], similarOptions = defaultSimilarOptions, persist = false) {
 
 
-    let optDiv = $("<div>").addClass("editableComponent").attr("data-index", initialOptionIndex).addClass("buttonOptGroup").attr("data-topic", topic).attr("data-type", "string").attr("data-componentOptions", JSON.stringify(options)).attr("data-componentType", "buttonOptGroup").attr("data-defaultSimilarOptions", JSON.stringify(similarOptions)).attr("data-persist", "false")
+    let optDiv = $("<div>").addClass("editableComponent").attr("data-autoSend", JSON.stringify(autoSend)).attr("data-index", initialOptionIndex).addClass("buttonOptGroup").attr("data-topic", topic).attr("data-type", "string").attr("data-componentOptions", JSON.stringify(options)).attr("data-componentType", "buttonOptGroup").attr("data-defaultSimilarOptions", JSON.stringify(similarOptions)).attr("data-persist", "false")
 
     if (persist) {
         optDiv.attr("data-persist", "true")
@@ -283,6 +285,7 @@ export function createOptGroup(topic, append, hex = 0, initialOptionIndex = 0, o
 
         if (i == initialOptionIndex) {
             newButton.addClass("toggledOn").css("background-color", color.backgroundOn)
+            optDiv.attr("data-value", newButton.attr("data-value"))
         }
         $aO.push(newButton)
     }
@@ -896,7 +899,7 @@ export function createCamera(displayName, topic, append, hideNav = false, videoF
     let img = $("<img>").addClass("cameraStream").attr("crossOrigin", "anonymous").addClass("cameraPlaceholder").appendTo(camera)
     $("<canvas>").addClass("encoder").appendTo(camera)
     let cameraNav = $("<div>").addClass("cameraNav").appendTo(camera);
-    $("<button>").addClass("record").text("🔴").appendTo(cameraNav)
+    let camButton = $("<button>").addClass("record").text("🔴").appendTo(cameraNav)
 
 
     if (append) {
@@ -913,6 +916,7 @@ export function createCamera(displayName, topic, append, hideNav = false, videoF
     let cameraHandler = (value) => {
         let i = 0;
 
+        console.log(value)
         // console.log(value[0])
         setSrc()
 
@@ -948,6 +952,7 @@ export function createCamera(displayName, topic, append, hideNav = false, videoF
 
         for (let i in conditions) {
             if (objectIncludes(robotState, conditions[i])) {
+                camButton.text("🎬")
                 try {
                     clearTimeout(disableDownloadCooldown)
                 } catch {
@@ -959,9 +964,16 @@ export function createCamera(displayName, topic, append, hideNav = false, videoF
             }
 
         }
+
+        if(camButton.text() == "🎬"){
+            camButton.text("⌛")
+        }
+
         disableDownloadCooldown = setTimeout(() => {
+            camButton.text("🔴")
             setCaptureState(false)
         }, 8000);
+
     }
 
     // let topicChangeHandler = (newTopic, val) => {
@@ -1009,7 +1021,9 @@ export function createCamera(displayName, topic, append, hideNav = false, videoF
     }
 
     if (nt4Client.serverTopics.get(topic)) {
-        cameraHandler(nt4Client.serverTopics.get(topic).value)
+        if(nt4Client.serverTopics.get(topic).value != undefined){
+            cameraHandler(nt4Client.serverTopics.get(topic).value)
+        }
     } else if (nt4Client.serverTopics.get(topic.split("|")[0])) {
         let topicRef = nt4Client.serverTopics.get(topic.split("|")[0]);
         cameraHandler(getStructValue(topic, topicRef.value))
@@ -1475,7 +1489,10 @@ function captureMJPEG(cameraComponent, topic = "", videoFormat = "mp4") {
     })
 
     function drawToCanvas() {
-        ctx.drawImage(mJpegStream[0], 0, 0, encoder[0].width, encoder[0].height)
+        try{ctx.drawImage(mJpegStream[0], 0, 0, encoder[0].width, encoder[0].height)}
+        catch(err){
+            mediaRecorder.stop()
+        }
         requestAnimationFrame(drawToCanvas);
     }
 
@@ -1536,7 +1553,7 @@ function captureMJPEG(cameraComponent, topic = "", videoFormat = "mp4") {
 
 }
 
-function decodeFMSControlData(state) {
+export function decodeFMSControlData(state) {
     // Define the bitmask constants
     const ENABLED_FLAG = 1;
     const AUTO_FLAG = 2;
@@ -1589,7 +1606,6 @@ export function setSimilarOptions(element, similarOptions = JSON.parse($(element
 
 export function addButtonToAnimate(jQueryReference) {
     let text = jQueryReference.addClass("animatedButton").text()
-    console.log(jQueryReference.text())
     jQueryReference.css("color", "white").css("font-size", "0px")
 
     if (typeof text === "string") {
@@ -1982,10 +1998,13 @@ export function rebindAllComponents() {
 export function createDefaultOf(component, append, topic = "esc-UNSET-esc") {
     console.log(component, append, topic)
 
+    let forceAutosend = false;
+
     if (topic != "esc-UNSET-esc" && topic != "esc-UNDEFINED-esc") {
         subscribeOrQueue(topic)
 
         // window.requestAnimationFrame(renderFrame);
+
 
     }
 
@@ -1995,17 +2014,17 @@ export function createDefaultOf(component, append, topic = "esc-UNSET-esc") {
         case "oneShotButton":
             return createOneShotButton("One Shot Button", topic, append)
         case "toggleButton":
-            return createToggleButton("Toggle Button", topic, append)
+            return createToggleButton("Toggle Button", topic, forceAutosend, append)
         case "axis":
-            return createAxis("Axis", topic, append, false).div
+            return createAxis("Axis", topic, forceAutosend, append, false).div
         case "verticalAxis":
-            return createAxis("Y-Axis", topic, append, true).div
+            return createAxis("Y-Axis", topic, forceAutosend, append, true).div
         case "select":
-            return createDropdown(topic, append, 0, 0, [{ name: "Dropdown", value: "" }]).div
+            return createDropdown(topic, append, forceAutosend, 0, 0, [{ name: "Dropdown", value: "" }]).div
         case "buttonOptGroup":
-            return createOptGroup(topic, append, 0, 0, []).div
+            return createOptGroup(topic, append, forceAutosend, 0, 0, []).div
         case "numberComponent":
-            return createNumberComponent("Number", topic, append).div
+            return createNumberComponent("Number", topic, forceAutosend, append).div
         case "basicSubscription":
             return createBasicSubscription(undefined, topic, append)
         case "basicLogger":
@@ -2027,17 +2046,25 @@ function addFeedbackCheck(topic) {
     // console.log("feedback check added for: " + "/touchboard/Feedback/" + topic)
     let feedbackHandler = (value, timestamp, topic) => {
 
-        if(!nt4Client.publishedTopics.get("/touchboard/" + topic.name.split("/")[3])){
+        if (!nt4Client.publishedTopics.get("/touchboard/" + topic.name.split("/")[3])) {
             return
         }
 
         checkFeedback();
         function checkFeedback() {
+            if (nt4Client.serverTopics.get(topic.name) == undefined) {
+                return
+            }
+            if (!nt4Client.serverTopics.get(topic.name).hasOwnProperty("value")) {
+                return
+            }
+
             let feedbackValue = nt4Client.serverTopics.get(topic.name).value
             let expectedValue = nt4Client.publishedTopics.get("/touchboard/" + topic.name.split("/")[3]).value
 
+
             if (feedbackValue != expectedValue) {
-                nt4Client.addSample("/touchboard/" + topic.name.split("/")[3], expectedValue)
+                if (topic.type !== typeof expectedValue) return
                 setTimeout(checkFeedback, 100)
             }
         }

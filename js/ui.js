@@ -84,7 +84,7 @@ document.addEventListener('dragstart', (event) => {
 
 export function clamp(num, min = 0, max = 1) { return Math.min(Math.max(num, min), max) };
 
-function cq(container, percent) {
+export function cq(container, percent) {
 
     let testspan = $("<span>").css("height", "1cqh").css("width", "1cqw").css("position", "absolute").appendTo(container)
 
@@ -98,6 +98,20 @@ function cq(container, percent) {
     testspan.remove()
 
     return cqValues;
+}
+
+export function v(percent) {
+  const $win = $(window);
+  
+  const calculatedVw = $win.width() * percent;
+  const calculatedVh = $win.height() * percent;
+
+  return {
+    vw: calculatedVw,
+    vh: calculatedVh,
+    vmax: Math.max(calculatedVh, calculatedVw),
+    vmin: Math.min(calculatedVh, calculatedVw)
+  };
 }
 
 export function pxToCq(container, pixels) {
@@ -205,7 +219,6 @@ function bindTabChanger() {
         t$.parent().remove()
     })
 }
-
 
 
 export function multiSwitchButtonSet(element, optionValue) {
@@ -326,11 +339,11 @@ function bindConnectionToggle() {
             $(".addTab").css("background-color", "rgb(32, 32, 32)")
             $(".tabManager").css("background-color", "rgb(32, 32, 32)")
             $(".tabCreator").css("background-color", "rgb(32, 32, 32)")
+            $(".page").css("background-color", "")
 
             $(".tabNav").css("background-color", "rgb(12, 12, 12)")
             $(".currentTab").css("background-color", "rgb(32, 32, 32)")
             nt4Client.disconnect()
-
         } else {
             $(".connectionText").text("Connecting")
             localStorage.setItem(getHtmlFileName() + "connect", "true")

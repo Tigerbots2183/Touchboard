@@ -25,11 +25,13 @@
 import { NT4_Client } from "../lib/nt4.js";
 import { topicToSidebar } from "./editor/editorUi.js";
 import { setSelectOpener } from "./ui.js";
-import { rebindAllComponents } from "./editor/components/components.js";
+import { rebindAllComponents, decodeFMSControlData } from "./editor/components/components.js";
 // import { MathUtils } from "../lib/util.js";
 // import { renderFrame, isFrameScheduled } from "./renderer.js";
 
 let sidebaredStructs = []
+
+let queueValueSends = false;
 
 export let isConnected = false;
 
@@ -113,6 +115,27 @@ function handleNewData(topic, timestamp, value) {
         }
     }
 
+    if (topic.name.includes("/FMSInfo/FMSControlData")) {
+        console.log("FMSControlData decoded: ", decodeFMSControlData(value));
+
+        if (!decodeFMSControlData(value).enabled) {
+            queueValueSends = true;
+        } else if (queueValueSends && decodeFMSControlData(value).enabled) {
+            for (let [key, value] of nt4Client.publishedTopics) {
+                if (value.autoSend) {
+                    if(value.value == undefined) continue
+
+                    nt4Client.addSample(key, value.value)
+
+                }else{
+                    // console.log(value)
+                }
+            }
+
+            queueValueSends = false;
+        }
+    }
+
     //Random data that the user shouldnt see usually has . in it
     if (topic.name.includes(".")) return
 
@@ -123,7 +146,7 @@ function handleNewData(topic, timestamp, value) {
         for (let i = 0; i < subscribedTopics[topic.name].length; i++) {
             if (!subscribedTopics[topic.name][i]) continue; //Pass if value is null
             // console.log(subscribedTopics[topic.name][i])
-            if(value == undefined) return;
+            if (value == undefined) return;
 
             if (topic.type.includes("struct")) {
                 foundValue = getStructValue(subscribedTopics[topic.name][i].structPath, value)
@@ -145,7 +168,7 @@ export function getStructValue(structTopic, value) {
     let path = structTopic.split("|")[1];
     let pathArr = path.split("/")
 
-    if(value == undefined) return;
+    if (value == undefined) return;
 
 
     for (let i = 0; i < pathArr.length; i++) {
@@ -161,7 +184,8 @@ export function getStructValue(structTopic, value) {
 export function subscribeOrQueue(topic) {
     topic = topic.split('|')[0].trim()
 
-    if (allSubscribedTopics.includes(topic)) return 
+    if (allSubscribedTopics.includes(topic)) return
+    if (nt4Client.subscriptions.get(topic)) return;
 
     allSubscribedTopics.push(topic)
 
@@ -174,8 +198,11 @@ export function subscribeOrQueue(topic) {
 
 function onConnectCb() {
     //on everything this is NOT on callback
+    $(".connectionText").text("Connecting")
 
     setTimeout(() => {
+
+        console.log(subscribedTopics)
         // setInterval(() => {
         //     // console.log(nt4Client.serverTopics)
         //     // console.log(nt4Client.schemas)
@@ -199,6 +226,7 @@ function onConnectCb() {
         $(".addTab").css("background-color", "rgb(32, 32, 32)")
         $(".tabManager").css("background-color", "rgb(32, 32, 32)")
         $(".tabCreator").css("background-color", "rgb(32, 32, 32)")
+        $(".page").css("background-color", "")
 
         $(".tabNav").css("background-color", "rgb(12, 12, 12)")
         $(".currentTab").css("background-color", "rgb(32, 32, 32)")
@@ -210,14 +238,16 @@ function onConnectCb() {
 
         nt4Client.addSample("/touchboard/musicIsFinished", true)
 
+        subscribeOrQueue("/FMSInfo/FMSControlData");
+
         nt4Client.subscribe(["/.schema"], true)
 
         // console.log(queuedTopics)
-            nt4Client.subscribe(queuedTopics, false)
+        nt4Client.subscribe(queuedTopics, false)
         nt4Client.subscribeTopicsOnly([""], true)
 
         // nt4Client.subscribe([],)
-        
+
         const now = new Date(); // Creates a date object with the current date and time
 
         const year = now.getFullYear();   // e.g., 2024
@@ -233,12 +263,20 @@ function onConnectCb() {
 
         for (let i = 0; i < $uiElements.length; i++) {
             if ($uiElements.eq(i).attr("data-topic")) {
-                if ($uiElements.eq(i).hasClass("basicSubscription")) {
-                    continue
-                }
+
 
                 nt4Client.publishTopic("/touchboard/" + $uiElements.eq(i).attr("data-topic"), $uiElements.eq(i).attr("data-type"))
+                // console.log($uiElements.eq(i).attr("data-topic"), $uiElements.eq(i).attr("data-value"), $uiElements.eq(i))
+
                 if ($uiElements.eq(i).attr("data-value")) {
+                    if ($uiElements.eq(i).attr("data-autoSend")) {
+                        if ($uiElements.eq(i).attr("data-autoSend") == "false") {
+                            continue
+                        } else {
+                            nt4Client.publishedTopics.get( "/touchboard/" + $uiElements.eq(i).attr("data-topic")).autoSend = true
+                        }
+                    }
+
                     if ($uiElements.eq(i).attr("data-type") === "string") {
                         nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), $uiElements.eq(i).attr("data-value"))
                         // console.log($uiElements.eq(i).attr("data-value"))
@@ -275,18 +313,28 @@ function onDisconnectCb() {
     if ($("#connect").is(":checked")) {
         $(".fullScreen").css("background-color", "rgb(128, 32, 32)")
 
+        $(".connectionText").text("Retrying")
 
         $("html").css("background-color", "rgb(128, 32, 32)")
         $(".tab").css("background-color", "rgb(64, 12, 12)")
         $(".addTab").css("background-color", "rgb(128, 32, 32)")
         $(".tabCreator").css("background-color", "rgb(128, 32, 32)")
-
+        $(".tabManager").css("background-color", "rgb(128, 32, 32)")
         $(".tabNav").css("background-color", "rgb(64, 12, 12)")
         $(".currentTab").css("background-color", "rgb(128, 32, 32)")
+        $(".page").css("background-color", "rgb(128, 32, 32)")
 
-        setTimeout(() => {
-            window.location.reload()
 
-        }, 1000);
+        // setTimeout(() => {
+        //     window.location.reload()
+
+        // }, 1000);
     }
+
+    $(".outputTopics").empty()
+    topicObject = {
+        "esc-esc-$-esc-esc": $(".outputTopics")
+    }
+
+    sidebaredStructs = []
 }

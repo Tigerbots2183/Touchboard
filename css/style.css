@@ -78,6 +78,10 @@ body {
     container-name: dashboardHolder;
     container-type: size;
     overflow: hidden;
+
+    --vhDif: attr(data-vhCminDif type(<number>), 1);
+    --vwDif: attr(data-vwCminDif type(<number>), 1);
+
 }
 
 
@@ -1319,11 +1323,11 @@ input[type=number] {
     margin-inline: 1cqh;
 }
 
-.colorCoderSidebarDotShower{
+.colorCoderSidebarDotShower {
     width: 2.5cqh;
     height: 2.5cqh;
     outline: white 0.25cqh solid;
-    margin-left: 1cqh;    
+    margin-left: 1cqh;
     border-radius: 5cqh;
 }
 
@@ -3980,7 +3984,6 @@ input[type=number] {
         margin-left: auto;
     }
 
-
     @media (max-aspect-ratio: 1/1) {
         .connectionHolder {
             height: 7cqh;
@@ -4082,6 +4085,8 @@ input[type=number] {
 
             border-radius: 50%;
         }
+
+
     }
 }
 
@@ -4760,6 +4765,32 @@ meter:not([value]) {
     flex-wrap: wrap;
     justify-content: space-evenly;
     align-content: space-evenly;
+
+    container-type: size;
+    container-name: buttonOptGroup;
+}
+
+.fill:not(.currentDrag).buttonOptGroup .optGroupButton {
+    height: calc(75% / sibling-count());
+    width: auto;
+    aspect-ratio: 1/1;
+    font-size: calc(4vmin / var(--vhDif));
+    border-width: calc(.5vmin / var(--vhDif));
+    border-radius: 10cqmin;
+
+}
+
+@container buttonOptGroup (min-aspect-ratio: 1/1) {
+    .fill:not(.currentDrag).buttonOptGroup .optGroupButton {
+        width: calc(75% / sibling-count());
+        height: auto;
+        font-size: calc(4vmin / var(--vhDif));
+        border-radius: 10cqmin;
+        border-width: calc(.5vmin / var(--vhDif));
+        aspect-ratio: 1/1;
+    }
+
+
 }
 
 .fill:not(.currentDrag) .axisKnob {
@@ -5443,4 +5474,57 @@ meter:not([value]) {
 
 .outputComponents>* {
     touch-action: unset;
+}
+
+.explanation {
+    display: none;
+    position: absolute;
+    z-index: 99;
+
+    top: 50%;
+    left: 50%;
+
+    width: 16.25%;
+    /* padding: 1vh; */
+    padding-bottom: 0px;
+
+    text-align: center;
+    height: min-content;
+
+    outline: 0.1vh black solid;
+
+    border-radius: 1vh;
+
+    background-color: rgb(32, 32, 32);
+    color: white;
+}
+
+.explanation p {
+    margin: 1vh;
+}
+
+.explanation .progress {
+    width: 100%;
+    height: 1vh;
+    border-radius: 0vh 0vh 1vh 1vh;
+    background-color: rgb(107, 107, 107);
+    clip-path: xywh(0% 0% 100% 100%);
+}
+
+.progressAnimating {
+    animation: progressLess 10s linear 1 forwards;
+    animation-fill-mode: forwards;
+    animation-play-state: running;
+}
+
+@keyframes progressLess {
+    0% {
+        clip-path: xywh(0% 0% 100% 100%);
+
+    }
+
+    100% {
+        clip-path: xywh(0% 0% 0% 100%);
+
+    }
 }
