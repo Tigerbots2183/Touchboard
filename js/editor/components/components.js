@@ -1,5 +1,5 @@
 // MIT License
-// Copyright (c) 2025 Tigerbots
+// Copyright (c) 2026 Tigerbots
 // https://github.com/Tigerbots2183
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,14 +24,14 @@
 
 import { changeSimilarInputs, addEditHandler } from "../editorUi.js"
 import { toastMessage } from "../../ui.js"
-import { connectionDate, subscribedTopics, nt4Client, getStructValue, subscribeOrQueue, isConnected } from "../../coms.js"
+import { connectionDate, subscribedTopics, nt4Client, getStructValue, subscribeOrQueue, isConnected, compatabilityYear } from "../../coms.js"
 import { objectIncludes } from "../../../lib/util.js"
 import { addToRender, renderFrame } from "../../renderer.js"
-import { initGraph, CONVERSIONRATE } from "./graph.js"
+import { initGraph, CONVERSIONRATE, startTime, startTimeQueue, startTimeChanged, queueForStartTimeIfRequired } from "./graph.js"
 import { MathUtils } from "../../../lib/util.js"
 
 export let defaultSimilarOptions = {
-    fill: false,
+    fill: true,
 }
 
 export let globalGraphRef = {}
@@ -365,34 +365,12 @@ export function createBasicSubscription(displayName, topic, append = false, hex 
     let subscribedReference = {
         'jQueryReference': topicReference,
         'parentReference': basicSubscription,
+        'topic': topic,
         'valueHandeler': basicSubscriptionHandler,
     }
 
-    if (topic.includes("|")) {
-        if (!subscribedTopics.hasOwnProperty(topic.split("|")[0])) {
-            subscribedTopics[topic.split("|")[0]] = []
-        }
-        subscribedReference.structPath = topic
-        subscribedTopics[topic.split("|")[0]].push(subscribedReference)
-        basicSubscription.attr("data-subscriptionIndex", subscribedTopics[topic.split("|")[0]].length - 1)
 
-    } else {
-        if (!subscribedTopics.hasOwnProperty(topic)) {
-            subscribedTopics[topic] = []
-        }
-        subscribedTopics[topic].push(subscribedReference)
-        basicSubscription.attr("data-subscriptionIndex", subscribedTopics[topic].length - 1)
-
-    }
-
-    // console.log(topic, nt4Client.serverTopics.get(topic.split("|")[0]))
-    if (nt4Client.serverTopics.get(topic)) {
-        basicSubscriptionHandler(nt4Client.serverTopics.get(topic).value)
-    } else if (nt4Client.serverTopics.get(topic.split("|")[0])) {
-        let topicRef = nt4Client.serverTopics.get(topic.split("|")[0]);
-        basicSubscriptionHandler(getStructValue(topic, topicRef.value))
-    }
-
+    addSubscribedReference(subscribedReference)
     // console.log(topic)
 
     return basicSubscription
@@ -561,34 +539,12 @@ export function createBasicLogger(displayName, topic, append = false, hex = "#0c
         'jQueryReference': false,
         'parentReference': basicLogger,
         'storedValues': [],
+        'topic': topic,
         'valueHandeler': basicLoggerHandler,
         'topicChangeHandler': topicChangeHandler
     }
 
-    if (topic.includes("|")) {
-        if (!subscribedTopics.hasOwnProperty(topic.split("|")[0])) {
-            subscribedTopics[topic.split("|")[0]] = []
-        }
-        subscribedReference.structPath = topic
-        subscribedTopics[topic.split("|")[0]].push(subscribedReference)
-        basicLogger.attr("data-subscriptionIndex", subscribedTopics[topic.split("|")[0]].length - 1)
-
-    } else {
-        if (!subscribedTopics.hasOwnProperty(topic)) {
-            subscribedTopics[topic] = []
-        }
-        subscribedTopics[topic].push(subscribedReference)
-        basicLogger.attr("data-subscriptionIndex", subscribedTopics[topic].length - 1)
-
-    }
-
-    // console.log(topic, nt4Client.serverTopics.get(topic.split("|")[0]))
-    if (nt4Client.serverTopics.get(topic)) {
-        basicLoggerHandler(nt4Client.serverTopics.get(topic).value)
-    } else if (nt4Client.serverTopics.get(topic.split("|")[0])) {
-        let topicRef = nt4Client.serverTopics.get(topic.split("|")[0]);
-        basicLoggerHandler(getStructValue(topic, topicRef.value))
-    }
+    addSubscribedReference(subscribedReference)
 
     // console.log(topic)
 
@@ -632,26 +588,54 @@ export function createNumberLine(displayName, topic, append = false, hex = "#0c0
         let newMeter = $("<div>").addClass("meterHolder").appendTo(numberLineMeterHolder)
 
         $("<div>").addClass("numberLineNoValue").appendTo(newMeter)
-        $("<meter>").addClass("numberLineHasValue").appendTo(newMeter).attr("max", "0").attr("min", "0")
+        let tickHolder = $("<div>").addClass("numberLineTicks").appendTo(newMeter)
+        for (let i = 0; i < 5; i++) {
+            $("<p>").addClass("numberLineTick").appendTo(tickHolder).text(i)
+        }
+        let meterLine = $("<meter>").addClass("numberLineHasValue").appendTo(newMeter).attr("max", "0").attr("min", "0")
+
 
         if (maxNumber) {
             newMeter.attr("data-maxNumber", maxNumber)
+            meterLine.attr("max", maxNumber)
         }
         if (minNumber) {
             newMeter.attr("data-minNumber", minNumber)
+            meterLine.attr("min", maxNumber)
         }
         if (low) {
             newMeter.attr("data-low", low)
+            meterLine.attr("low", low)
+
         }
         if (high) {
             newMeter.attr("data-high", high)
+            meterLine.attr("high", high)
+
         }
         if (optimum) {
             newMeter.attr("data-optimum", optimum)
+            meterLine.attr("optimum", optimum)
         }
+
+        if (!(maxNumber && minNumber)) return newMeter;
+
+        let subticks = $(".numberLineTick");
+
+        let step = (maxNumber - minNumber) / (subticks.length - 1)
+
+        for (let i = 0; i < subticks.length; i++) {
+            let subtick = subticks.eq(i);
+
+            let text = parseFloat(((step * i) + parseFloat(minNumber)).toFixed(3));
+
+            subtick.text(text)
+        }
+
 
         return newMeter
     }
+
 
 
 
@@ -694,6 +678,23 @@ export function createNumberLine(displayName, topic, append = false, hex = "#0c0
                     }
                 }
 
+                let max = meter.attr("max")
+                let min = meter.attr("min")
+
+                let subticks = meter.parent().find(".numberLineTick");
+
+                let step = (max - min) / (subticks.length - 1)
+
+                for (let i = 0; i < subticks.length; i++) {
+                    let subtick = subticks.eq(i);
+                    let text = parseFloat(((step * i) + parseFloat(min)).toFixed(3));
+                    console.log(text, i)
+
+                    // subtick.text(text)
+                    addToRender(subtick[0], { "updating": "text", "newValue": text })
+                }
+
+
                 addToRender(meter[0], { "updating": "attribute", "attrName": "value", "newValue": value })
 
             }
@@ -707,34 +708,12 @@ export function createNumberLine(displayName, topic, append = false, hex = "#0c0
     let subscribedReference = {
         'jQueryReference': false,
         'parentReference': numberLine,
+        'topic': topic,
         'valueHandeler': numberLineHandler,
         'topicChangeHandler': topicChangeHandler
     }
 
-    if (topic.includes("|")) {
-        if (!subscribedTopics.hasOwnProperty(topic.split("|")[0])) {
-            subscribedTopics[topic.split("|")[0]] = []
-        }
-        subscribedReference.structPath = topic
-        subscribedTopics[topic.split("|")[0]].push(subscribedReference)
-        numberLine.attr("data-subscriptionIndex", subscribedTopics[topic.split("|")[0]].length - 1)
-
-    } else {
-        if (!subscribedTopics.hasOwnProperty(topic)) {
-            subscribedTopics[topic] = []
-        }
-        subscribedTopics[topic].push(subscribedReference)
-        numberLine.attr("data-subscriptionIndex", subscribedTopics[topic].length - 1)
-
-    }
-
-    // console.log(topic, nt4Client.serverTopics.get(topic.split("|")[0]))
-    if (nt4Client.serverTopics.get(topic)) {
-        numberLineHandler(nt4Client.serverTopics.get(topic).value)
-    } else if (nt4Client.serverTopics.get(topic.split("|")[0])) {
-        let topicRef = nt4Client.serverTopics.get(topic.split("|")[0]);
-        numberLineHandler(getStructValue(topic, topicRef.value))
-    }
+    addSubscribedReference(subscribedReference)
 
 
     return numberLine
@@ -840,34 +819,11 @@ export function createRadialGauge(displayName, topic, append, hex = "#0c0c0c", m
     let subscribedReference = {
         'jQueryReference': false,
         'parentReference': radialGauge,
+        'topic': topic,
         'valueHandeler': gaugeHandler,
     }
 
-    if (topic.includes("|")) {
-        if (!subscribedTopics.hasOwnProperty(topic.split("|")[0])) {
-            subscribedTopics[topic.split("|")[0]] = []
-        }
-        subscribedReference.structPath = topic
-        subscribedTopics[topic.split("|")[0]].push(subscribedReference)
-        radialGauge.attr("data-subscriptionIndex", subscribedTopics[topic.split("|")[0]].length - 1)
-
-    } else {
-        if (!subscribedTopics.hasOwnProperty(topic)) {
-            subscribedTopics[topic] = []
-        }
-        subscribedTopics[topic].push(subscribedReference)
-        radialGauge.attr("data-subscriptionIndex", subscribedTopics[topic].length - 1)
-
-    }
-
-    // console.log(topic, nt4Client.serverTopics.get(topic.split("|")[0]))
-    if (nt4Client.serverTopics.get(topic)) {
-        gaugeHandler(nt4Client.serverTopics.get(topic).value)
-    } else if (nt4Client.serverTopics.get(topic.split("|")[0])) {
-        let topicRef = nt4Client.serverTopics.get(topic.split("|")[0]);
-        gaugeHandler(getStructValue(topic, topicRef.value))
-    }
-
+    addSubscribedReference(subscribedReference)
 
     return radialGauge
 }
@@ -877,9 +833,10 @@ export function createCamera(displayName, topic, append, hideNav = false, videoF
         let topicSplit = topic.split("/")
         displayName = topicSplit[topicSplit.length - 1]
 
-        if (displayName == "value" && topicSplit.length > 1) {
+        if ((displayName == "value" || displayName == "streams") && topicSplit.length > 1) {
             displayName = topicSplit[topicSplit.length - 2]
         }
+
 
         displayName = displayName.split(":")[0]
 
@@ -965,7 +922,7 @@ export function createCamera(displayName, topic, append, hideNav = false, videoF
 
         }
 
-        if(camButton.text() == "🎬"){
+        if (camButton.text() == "🎬") {
             camButton.text("⌛")
         }
 
@@ -976,13 +933,10 @@ export function createCamera(displayName, topic, append, hideNav = false, videoF
 
     }
 
-    // let topicChangeHandler = (newTopic, val) => {
-
-    // }
-
     let subscribedReference = {
         'jQueryReference': false,
         'parentReference': camera,
+        'topic': topic,
         'valueHandeler': cameraHandler,
         // 'topicChangeHandler': topicChangeHandler
     }
@@ -990,44 +944,13 @@ export function createCamera(displayName, topic, append, hideNav = false, videoF
     let fmsReference = {
         'jQueryReference': false,
         'parentReference': camera,
+        'topic': "/FMSInfo/FMSControlData",
         'valueHandeler': recordConditionHandler,
         // 'topicChangeHandler': topicChangeHandler
     }
 
-    if (topic.includes("|")) {
-        if (!subscribedTopics.hasOwnProperty(topic.split("|")[0])) {
-            subscribedTopics[topic.split("|")[0]] = []
-        }
-        subscribedReference.structPath = topic
-        subscribedTopics[topic.split("|")[0]].push(subscribedReference)
-        camera.attr("data-subscriptionIndex", subscribedTopics[topic.split("|")[0]].length - 1)
-
-    } else {
-        if (!subscribedTopics.hasOwnProperty(topic)) {
-            subscribedTopics[topic] = []
-        }
-        subscribedTopics[topic].push(subscribedReference)
-        camera.attr("data-subscriptionIndex", subscribedTopics[topic].length - 1)
-
-    }
-
-    if (!subscribedTopics.hasOwnProperty("/FMSInfo/FMSControlData")) {
-        subscribedTopics["/FMSInfo/FMSControlData"] = []
-    }
-    subscribedTopics["/FMSInfo/FMSControlData"].push(fmsReference)
-
-    if (nt4Client.serverTopics.get("/FMSInfo/FMSControlData")) {
-        recordConditionHandler(nt4Client.serverTopics.get("/FMSInfo/FMSControlData").value)
-    }
-
-    if (nt4Client.serverTopics.get(topic)) {
-        if(nt4Client.serverTopics.get(topic).value != undefined){
-            cameraHandler(nt4Client.serverTopics.get(topic).value)
-        }
-    } else if (nt4Client.serverTopics.get(topic.split("|")[0])) {
-        let topicRef = nt4Client.serverTopics.get(topic.split("|")[0]);
-        cameraHandler(getStructValue(topic, topicRef.value))
-    }
+    subscribedReference(subscribedReference)
+    subscribedReference(fmsReference)
 
     return camera
 
@@ -1088,13 +1011,18 @@ export function createGraph(displayName, topics, append, hex = "#8400ff", width 
     let rightTicks = $("<div>").addClass("rightTicks").attr("data-max", "false").attr("data-min", "false").attr("data-absMax", "1").attr("data-absMin", "-1").css("display", "none").appendTo(graph)
     createTicks(11, "Right", rightTicks)
 
-    let bottomSuperSlider = $("<div>").addClass("bottomSuperSlider").attr("data-absMin", (nt4Client.getServerTime_us() / 1000000.0)).attr("data-absMax", (nt4Client.getServerTime_us() / 1000000.0)).appendTo(graph)
+    let bottomSuperSlider = $("<div>").addClass("bottomSuperSlider").appendTo(graph)
 
     createSliderParts("mid", bottomSuperSlider)
     createSliderParts("bottom", bottomSuperSlider)
     createSliderParts("top", bottomSuperSlider)
 
-    let bottomTicks = $("<div>").addClass("bottomTicks").attr("data-max", "false").attr("data-min", "false").attr("data-absMax", (nt4Client.getServerTime_us() / 1000000.0)).attr("data-absMin", (nt4Client.getServerTime_us() / 1000000.0)).appendTo(graph)
+    let bottomTicks = $("<div>").addClass("bottomTicks").attr("data-max", "false").attr("data-min", "false").appendTo(graph)
+
+    queueForStartTimeIfRequired(() => {
+        bottomSuperSlider.attr("data-absMin", (nt4Client.getServerTime_us() / 1000000.0) - startTime).attr("data-absMax", (nt4Client.getServerTime_us() / 1000000.0) - startTime)
+        bottomTicks.attr("data-absMax", (nt4Client.getServerTime_us() / 1000000.0) - startTime).attr("data-absMin", (nt4Client.getServerTime_us() / 1000000.0) - startTime)
+    })
 
     createTicks(11, "Bottom", bottomTicks)
 
@@ -1164,31 +1092,18 @@ export function createGraph(displayName, topics, append, hex = "#8400ff", width 
     setSimilarOptions(graph, similarOptions)
 
     function graphDataHandler(value, timestamp) {
-        topicData.push(timestamp / CONVERSIONRATE, value)
+        topicData.push(timestamp / CONVERSIONRATE - startTime, value)
     }
 
     let subscribedReference = {
         'jQueryReference': false,
         'parentReference': graph,
+        'topic': topics[0],
         'valueHandeler': graphDataHandler,
     }
 
 
-    if (topics[0].includes("|")) {
-        if (!subscribedTopics.hasOwnProperty(topics[0].split("|")[0])) {
-            subscribedTopics[topics[0].split("|")[0]] = []
-        }
-        subscribedReference.structPath = topics[0]
-        subscribedTopics[topics[0].split("|")[0]].push(subscribedReference)
-        graph.attr("data-subscriptionIndex", subscribedTopics[topics[0].split("|")[0]].length - 1)
-
-    } else {
-        if (!subscribedTopics.hasOwnProperty(topics[0])) {
-            subscribedTopics[topics[0]] = []
-        }
-        subscribedTopics[topics[0]].push(subscribedReference)
-        graph.attr("data-subscriptionIndex", subscribedTopics[topics[0]].length - 1)
-    }
+    addSubscribedReference(subscribedReference)
 
     return graph
 }
@@ -1245,39 +1160,64 @@ export function createColorCoder(displayName, topic, append, hex = "#0c0c0c", ke
         'jQueryReference': false,
         'parentReference': colorCoder,
         'valueHandeler': colorCoderHandler,
-
+        "topic": topic,
         'topicChangeHandler': topicChangeHandler
     }
 
-    if (topic.includes("|")) {
-        if (!subscribedTopics.hasOwnProperty(topic.split("|")[0])) {
-            subscribedTopics[topic.split("|")[0]] = []
-        }
-        subscribedReference.structPath = topic
-        subscribedTopics[topic.split("|")[0]].push(subscribedReference)
-        colorCoder.attr("data-subscriptionIndex", subscribedTopics[topic.split("|")[0]].length - 1)
-
-    } else {
-        if (!subscribedTopics.hasOwnProperty(topic)) {
-            subscribedTopics[topic] = []
-        }
-        subscribedTopics[topic].push(subscribedReference)
-        colorCoder.attr("data-subscriptionIndex", subscribedTopics[topic].length - 1)
-
-    }
-
-    if (nt4Client.serverTopics.get(topic)) {
-        colorCoderHandler(nt4Client.serverTopics.get(topic).value)
-
-    } else if (nt4Client.serverTopics.get(topic.split("|")[0])) {
-        let topicRef = nt4Client.serverTopics.get(topic.split("|")[0]);
-        colorCoderHandler(getStructValue(topic, topicRef.value))
-    }
+    addSubscribedReference(subscribedReference)
 
     return colorCoder
 
 }
 
+//Tunable Interface
+
+export function createTunableInterface(displayName, topic, append, similarOptions = defaultSimilarOptions) {
+    if (displayName == null) {
+        let topicSplit = topic.split("/")
+        displayName = topicSplit[topicSplit.length - 1]
+
+        if (displayName == "value" && topicSplit.length > 1) {
+            displayName = topicSplit[topicSplit.length - 2]
+        }
+
+        displayName = displayName.split(":")[0]
+    }
+
+    let tunableInterface = $("<div>")
+        .addClass("tunableInterface")
+        .attr("data-topic", topic)
+        .addClass("editableComponent")
+        .attr("data-componentType", "tunableInterface")
+        .attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
+
+    if (append) {
+        tunableInterface.appendTo(append)
+    }
+
+    if (topic == "esc-UNSET-esc") return tunableInterface
+
+    let tunableInterfaceHandler = (value) => {
+
+    }
+
+    let topicChangeHandler = (newTopic, val) => {
+
+    }
+
+    let subscribedReference = {
+        'jQueryReference': false,
+        'parentReference': tunableInterface,
+        'topic': topic,
+        'valueHandeler': tunableInterfaceHandler,
+        'topicChangeHandler': topicChangeHandler
+    }
+
+    createActionButton(displayName, "test", tunableInterface)
+
+    return tunableInterface
+
+}
 
 //Subscription Blank
 
@@ -1386,6 +1326,36 @@ export function generateCssIfStatement(variableName, conditions) {
     return `if(${branches.join('; ')})`;
 }
 
+function addSubscribedReference(subscribedReference, executeFirst = true) {
+    let topic = subscribedReference.topic;
+
+    if (topic.includes("|")) {
+        if (!subscribedTopics.hasOwnProperty(topic.split("|")[0])) {
+            subscribedTopics[topic.split("|")[0]] = []
+        }
+        subscribedReference.structPath = topic
+        subscribedTopics[topic.split("|")[0]].push(subscribedReference)
+        subscribedReference.parentReference.attr("data-subscriptionIndex", subscribedTopics[topic.split("|")[0]].length - 1)
+
+    } else {
+        if (!subscribedTopics.hasOwnProperty(topic)) {
+            subscribedTopics[topic] = []
+        }
+        subscribedTopics[topic].push(subscribedReference)
+        subscribedReference.parentReference.attr("data-subscriptionIndex", subscribedTopics[topic].length - 1)
+
+    }
+
+    if (!executeFirst) return
+    // console.log(topic, nt4Client.serverTopics.get(topic.split("|")[0]))
+    if (nt4Client.serverTopics.get(topic)) {
+        subscribedReference.valueHandeler(nt4Client.serverTopics.get(topic).value)
+    } else if (nt4Client.serverTopics.get(topic.split("|")[0])) {
+        let topicRef = nt4Client.serverTopics.get(topic.split("|")[0]);
+        subscribedReference.valueHandeler(getStructValue(topic, topicRef.value))
+    }
+}
+
 function captureMJPEG(cameraComponent, topic = "", videoFormat = "mp4") {
     videoFormat = videoFormat.toLowerCase();
 
@@ -1489,8 +1459,8 @@ function captureMJPEG(cameraComponent, topic = "", videoFormat = "mp4") {
     })
 
     function drawToCanvas() {
-        try{ctx.drawImage(mJpegStream[0], 0, 0, encoder[0].width, encoder[0].height)}
-        catch(err){
+        try { ctx.drawImage(mJpegStream[0], 0, 0, encoder[0].width, encoder[0].height) }
+        catch (err) {
             mediaRecorder.stop()
         }
         requestAnimationFrame(drawToCanvas);
@@ -1808,6 +1778,13 @@ function bindComponent(component$) {
     let editTabs = $(".editTabs")
     if (!isConnected) return
 
+
+    if (!nt4Client.publishedTopics.get("/touchboard/" + component$.attr("data-topic"))) {
+        if (component$.attr("data-topic") != "esc-UNDEFINED-esc" && component$.attr("data-topic") != "esc-UNSET-esc") {
+            nt4Client.publishTopic("/touchboard/" + component$.attr("data-topic"), component$.attr("data-type"))
+        }
+    }
+
     switch (component$.attr("data-componentType")) {
         case "actionButton":
             bindActionButton(component$)
@@ -1996,7 +1973,6 @@ export function rebindAllComponents() {
 }
 
 export function createDefaultOf(component, append, topic = "esc-UNSET-esc") {
-    console.log(component, append, topic)
 
     let forceAutosend = false;
 
@@ -2039,6 +2015,8 @@ export function createDefaultOf(component, append, topic = "esc-UNSET-esc") {
             return createGraph(undefined, [topic], append)
         case "colorCoder":
             return createColorCoder(undefined, topic, append)
+        case "tunableInterface":
+            return createTunableInterface(undefined, topic, append)
     }
 }
 

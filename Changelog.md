@@ -42,6 +42,10 @@
 
 - Fixed an issue where selecting a new topic for a output component displayed unsupported types for that component
 
+- Fixed an issue with number lines tick values rounding
+
+- Fixed an issue with number line values not saving
+
 # 2.1.0
 
 - Added Camera Stream Component

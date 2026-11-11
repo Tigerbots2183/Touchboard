@@ -175,7 +175,13 @@ Runnables are also supported the code will run once:
 
 Axis will schedule a command once the axis is moved, and will cancel and schedule a new command once it moved after the initial one. Note that the axis still schedules a command when it returns to zero, and it will remain scheduled. 
 
-This will only schedule the command when it is moved, Only command suppliers are supported:
+This will only schedule the command when it is moved:
+
+```java
+  Touchboard.bindAxis("*Topic", *Command);
+```
+
+Command suppliers are also supported:
 
 ```java
   Touchboard.bindAxis("*Topic", *Supplier<Command>);
@@ -190,7 +196,7 @@ Runnables are also supported, the code will run when there is a new value:
 To pass in the axis value once it is moved you must pass the value into the command. For example:
 
 ```java
-  Supplier<Command> example = ()-> new exampleCommand(Touchboard.getDoubleValue("*Topic"))
+  Command example = new exampleCommand(Touchboard.getDoubleValue("*Topic"))
 
   Touchboard.bindAxis("*Topic", example);
 ```
@@ -199,11 +205,17 @@ To pass in the axis value once it is moved you must pass the value into the comm
 
 Number Component will schedule a command once the value changes, and will cancel and schedule a new command once it changes after the initial one. Note that the Number Component still schedules a command when it returns to zero, and it will remain scheduled. 
 
-This will only schedule the command when it is changed, Only command suppliers are supported:
+This will only schedule the command when it is changed:
 
+```java
+  Touchboard.bindNumberComponent("*Topic", *Command);
+```
+
+Command suppliers are also supported:
 ```java
   Touchboard.bindNumberComponent("*Topic", *Supplier<Command>);
 ```
+
 Runnables are also supported, the code will run when there is a new value:
 ```java
   Touchboard.bindNumberComponent("*Topic", *Runnable);
@@ -213,7 +225,7 @@ Runnables are also supported, the code will run when there is a new value:
 To pass in the Number Component value once it is changed you must pass the value into the command. For example:
 
 ```java
-  Supplier<Command> example = ()-> new exampleCommand(Touchboard.getDoubleValue("*Topic"))
+  Command example = new exampleCommand(()-> Touchboard.getDoubleValue("*Topic"))
 
   Touchboard.bindNumberComponent("*Topic", example);
 ```
@@ -222,10 +234,15 @@ To pass in the Number Component value once it is changed you must pass the value
 
 Dropdown will schedule a command once the value changes, and will cancel and schedule a new command once it changed after the inital one. Note that the command will execute once the dashboard connects. 
 
-This will only schedule the command when it is changed, Only command suppliers are supported:
+This will only schedule the command when it is changed,:
 
 ```java
-  Touchboard.bindDropdown("*Topic", *Supplier<Command>);
+  Touchboard.bindDropdown("*Topic", *Command);
+```
+
+Command suppliers are also supported:
+```java
+  Touchboard.bindDropdown("*Topic", *<Supplier>Command);
 ```
 
 Runnables are also supported, the code will run when there is a new value:
@@ -237,7 +254,7 @@ Runnables are also supported, the code will run when there is a new value:
 To pass in the Dropdowns value once it is changed you must pass the value into the command. For example:
 
 ```java
-  Supplier<Command> example = ()-> new exampleCommand(Touchboard.getStringValue("*Topic"))
+  Command example = new exampleCommand(()-> Touchboard.getStringValue("*Topic"))
   Touchboard.bindDropdown("*Topic", example);
 ```
 
@@ -245,10 +262,15 @@ To pass in the Dropdowns value once it is changed you must pass the value into t
 
 Opt Group will schedule a command once the value changes, and will cancel and schedule a new command once it changes after the initial one. Note that the command will execute once the dashboard connects. 
 
-This will only schedule the command when it is changed, Only command suppliers are supported:
+This will only schedule the command when it is changed:
 
 ```java
-  Touchboard.bindOptGroup("*Topic", *Supplier<Command>);
+  Touchboard.bindOptGroup("*Topic", *Command);
+```
+
+Command suppliers are also supported:
+```java
+  Touchboard.bindOptGroup("*Topic", Supplier<Command>);
 ```
 
 Runnables are also supported, the code will run when there is a new value:
@@ -260,7 +282,7 @@ Runnables are also supported, the code will run when there is a new value:
 To pass in the Opt Groups value once it is changed you must pass the value into the command. For example:
 
 ```java
-  Supplier<Command> example = ()-> new exampleCommand(Touchboard.getStringValue("*Topic"))
+  Command example = new exampleCommand(()-> Touchboard.getStringValue("*Topic"))
   Touchboard.bindOptGroup("*Topic", example);
 ```
 
@@ -272,6 +294,14 @@ Methods are provided to retrieve Touchboard values, the parameter should be the 
   Touchboard.getDoubleValue("*Topic")
   Touchboard.getBooleanValue("*Topic")
   Touchboard.getStringValue("*Topic")
+```
+
+You can specify default values that can be returned if none is available
+
+```java
+  Touchboard.getDoubleValue("*Topic", defaultValue)
+  Touchboard.getBooleanValue("*Topic", defaultValue)
+  Touchboard.getStringValue("*Topic", defaultValue)
 ```
 
 
@@ -299,7 +329,7 @@ This value displays the current value of a number on a guage. If no maximum valu
 
 Touchboard has the ability to show camera streams from the robot, to access it, go to the camera stream you want and click on the stream button. Streams are technically string arrays of urls, but touchboard displays it as the stream type. Touchboard will attempt each url in the list until one works.
 
-Touchboard has the ability to record camera streams in the app, without the use of OBS or other recording software. Streams can be manually recorded by pressing the 🔴 button on the component. Recordings can be automatically started by adding conditions in the sidebar. FMS = Field management software linked to driverstation, DS = driverstation linked without FMS. Connected means when touchboard connects, and enabled starts recording when any mode is enabled, then stops after the robot has been disabled for 8 seconds, this is to allow time between auto and teleop when on the field. When the recording stops, it saves and the downloads itself. But if touchboard is closed before the stream downloads, it will be lost. You can choose to save as WebM (More Effiecent) or Mp4 (More compatability), but the dashboard must be refreshed before that change will take effect for technical reasons. 
+Touchboard has the ability to record camera streams in the app, without the use of OBS or other recording software. Streams can be manually recorded by pressing the 🔴 button on the component. Recordings can be automatically started by adding conditions in the sidebar. FMS = Field management software linked to driverstation, DS = driverstation linked without FMS. Connected means when touchboard connects, and enabled starts recording when any mode is enabled, then stops after the robot has been disabled for 8 seconds, this is to allow time between auto and teleop when on the field. It will show ⏳ during this time. When the recording stops, it saves and the downloads itself. But if touchboard is closed before the stream downloads, it will be lost. You can choose to save as WebM (More Effiecent) or Mp4 (More compatability), but the dashboard must be refreshed before that change will take effect for technical reasons. 
 
 ### **Graph**
 

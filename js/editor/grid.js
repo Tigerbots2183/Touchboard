@@ -1,5 +1,5 @@
 // MIT License
-// Copyright (c) 2025 Tigerbots
+// Copyright (c) 2026 Tigerbots
 // https://github.com/Tigerbots2183
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { pxToCq, toastMessage, v, cq} from "../ui.js"
+import { pxToCq, toastMessage, v, cq } from "../ui.js"
 import { createDefaultOf } from "./components/components.js"
 import { roundToNearestX } from "../../lib/util.js"
 
@@ -63,8 +63,8 @@ export function tabGrid(columns, rows, tab) {
         let cqval = setGridSize($tab, columns, rows)
         $(".gridUnderlay").css("grid-template-rows", "repeat(" + rows + " ," + cqval + "cqmin)").css("grid-template-columns", "repeat(" + columns + " ," + cqval + "cqmin)")
         $(".gridUnderlayVisual").css("grid-template-rows", "repeat(" + rows + " ," + cqval + "cqmin)").css("grid-template-columns", "repeat(" + columns + " ," + cqval + "cqmin)")
-            $(".dashboardHolder").attr("data-vhCminDif", v(.01).vh / cq($($(".currentTab").attr('data-page')), 1).cqmin)
-            $(".dashboardHolder").attr("data-vwCminDif", v(.01).vw / cq($($(".currentTab").attr('data-page')), 1).cqmin)
+        $(".dashboardHolder").attr("data-vhCminDif", v(.01).vh / cq($($(".currentTab").attr('data-page')), 1).cqmin)
+        $(".dashboardHolder").attr("data-vwCminDif", v(.01).vw / cq($($(".currentTab").attr('data-page')), 1).cqmin)
 
         clearTimeout(resizeTimeout)
         resizeTimeout = setTimeout(() => {
@@ -408,6 +408,22 @@ export function addToCurrentDrag(jQueryReference, initialX, initialY, componentT
                         .appendTo($(".currentTab").attr("data-page"))
                     setCornerBorder(parseInt(grid.row), parseInt(grid.column), parseInt(grid.endRow) + grid.rowOffset, parseInt(grid.endColumn) + grid.columnOffset, $(".currentTab").attr("data-page"))
 
+                    $(".psuedoCurrentDrag").removeClass(".psuedoCurrentDrag")
+
+                    const pointerUpEvent = new PointerEvent('pointerdown', {
+                        bubbles: true,
+                        cancelable: true,
+                        pointerId: 1,
+                        pointerType: 'mouse', // 'mouse', 'touch', or 'pen'
+                        isPrimary: true,
+                        clientX: jQueryReference.offset().left + (jQueryReference.width()/2),
+                        clientY: jQueryReference.offset().top + (jQueryReference.height()/2),                        
+                        button: 0,
+                        buttons: 0 // 0 means no buttons are currently pressed down
+                    });
+
+                    jQueryReference[0].dispatchEvent(pointerUpEvent)
+                    // jQueryReference[0].click()
                 }
 
                 // jQueryReference.remove()

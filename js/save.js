@@ -1,5 +1,5 @@
 // MIT License
-// Copyright (c) 2025 Tigerbots
+// Copyright (c) 2026 Tigerbots
 // https://github.com/Tigerbots2183
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -357,7 +357,9 @@ function makeComponentFromJson(component) {
             return components.createGraph(component.displayName, JSON.parse(component.topics), false, component.color, component.width, component.similarOptions)
         case "colorCoder":
             return components.createColorCoder(component.displayName, component.topic, false, component.color, component.keys, component.similarOptions)
-
+        case "tunableInterface":
+            return components.createTunableInterface(component.displayName, component.topic, false)
         }
+        
 }
 

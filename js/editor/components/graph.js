@@ -1,14 +1,61 @@
+// MIT License
+// Copyright (c) 2026 Tigerbots
+// https://github.com/Tigerbots2183
+
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+// 
+
 // import { NT4_Client } from "../../../lib/nt4.js";
 import { pxToCq, clamp, toastMessage} from "../../ui.js";
-import { nt4Client } from "../../coms.js";
+import { compatabilityYear, nt4Client } from "../../coms.js";
 import { WebGPULineGraph } from "../../../lib/gpuDrawer.js"
 import { renderFuncs} from "../../renderer.js";
 
 
 // let canvas = document.getElementById("testMain");
 
-export const CONVERSIONRATE = 1000000.0
+export let CONVERSIONRATE = 1000000.0
+export let startTimeQueue = [];
+export let startTime = 0;
+export let startTimeChanged = false; 
 
+export function setConversionRate(rate){
+    CONVERSIONRATE = rate
+}
+
+export function setStartTime(time){
+    startTime = time/CONVERSIONRATE;
+    startTimeChanged = true
+
+    for(let i = 0; i < startTimeQueue.length; i++){
+        startTimeQueue[i]();
+    }
+}
+
+export function queueForStartTimeIfRequired(func){
+    if(startTimeChanged){
+        func()
+    }else{
+        startTimeQueue.push(func)
+    }
+}
 
 export async function initGraph(graph) {
     let allTopicFuncs = []
@@ -589,13 +636,17 @@ export async function initGraph(graph) {
     }
 
     function drawGraph(graph) {
+        if(compatabilityYear == 2027 && !startTimeChanged){
+            return
+        }
+
         setCanvasesToTicks(graph, renderer)
 
         if(startTimestamp == 0){
-            if(nt4Client.getServerTime_us() / CONVERSIONRATE > 0){
-                graph.find(".bottomTicks").attr("data-absmin", nt4Client.getServerTime_us() / CONVERSIONRATE)
-                graph.find(".bottomSuperSlider").attr("data-absmin", nt4Client.getServerTime_us() / CONVERSIONRATE)
-                startTimestamp = nt4Client.getServerTime_us() / CONVERSIONRATE
+            if(nt4Client.getServerTime_us() / CONVERSIONRATE - startTime > 0){
+                graph.find(".bottomTicks").attr("data-absmin", nt4Client.getServerTime_us() / CONVERSIONRATE - startTime)
+                graph.find(".bottomSuperSlider").attr("data-absmin", nt4Client.getServerTime_us() / CONVERSIONRATE - startTime)
+                startTimestamp = nt4Client.getServerTime_us() / CONVERSIONRATE - startTime
             }
         }
 
@@ -607,14 +658,14 @@ export async function initGraph(graph) {
 
         drawData(graph, renderer, allTopics)
         renderer.render()
-        let absMax = (nt4Client.getServerTime_us() / CONVERSIONRATE)
+        let absMax = (nt4Client.getServerTime_us() / CONVERSIONRATE - startTime)
         graph.find(".bottomTicks").attr("data-absmax", absMax)
         graph.find(".bottomSuperSlider").attr("data-absmax", absMax)
         graph.find(".superSliderBottom").attr("max", absMax)
         graph.find(".superSliderTop").attr("max", absMax)
 
         if (graph.find(".bottomTicks").attr("data-max") == "false" && graph.find(".bottomTicks").attr("data-min") != "false") {
-            let min = (nt4Client.getServerTime_us() / CONVERSIONRATE) - viewableZoomedUnitsX
+            let min = (nt4Client.getServerTime_us() / CONVERSIONRATE - startTime) - viewableZoomedUnitsX
             let absMin = 0
 
             graph.find(".bottomTicks").attr("data-min", min)
@@ -710,7 +761,7 @@ export async function initGraph(graph) {
 
             function sendAmplitude() {
 
-                currentTimestamp = nt4Client.getServerTime_us() / CONVERSIONRATE
+                currentTimestamp = nt4Client.getServerTime_us() / CONVERSIONRATE - startTime
                 songData.push(currentTimestamp, convertToAmplitude())
                 songDataRev.push(currentTimestamp, convertToAmplitude() * -1)
 

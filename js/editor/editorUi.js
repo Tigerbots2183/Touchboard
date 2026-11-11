@@ -1,5 +1,5 @@
 // MIT License
-// Copyright (c) 2025 Tigerbots
+// Copyright (c) 2026 Tigerbots
 // https://github.com/Tigerbots2183
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -55,11 +55,23 @@ let tabDragInfo = {
     margined: false,
 }
 
+let editTouched = false;
 
 // Binders
 
 function bindEditOpener() {
-    $(".editTabs").off("click.editOpener").on("click", () => {
+    $(".editTabs").off("pointerdown.touchcheck").on("pointerdown.touchcheck", (event) => {
+
+        if (event.pointerType !== "mouse") {
+            editTouched = true;
+
+        } else {
+            editTouched = false
+        }
+    })
+
+
+    $(".editTabs").off("click.editOpener").on("click.editOpener", () => {
         $(".tabCreator").removeClass("tabCreatorOpen")
 
         $(".tabCreator").css("overflow-x", "hidden")
@@ -89,6 +101,11 @@ function bindEditOpener() {
 
         setTimeout(() => {
             tabGrid(parseFloat(currentPage$.attr("columns")), parseFloat(currentPage$.attr("rows")), currentPage$)
+
+            if (editTouched) {
+                // toastMessage("caught")
+                $(".gridSquareVisual").css("scale", "97%");
+            }
         }, 300);
 
         setTimeout(() => {
@@ -106,10 +123,9 @@ function bindEditOpener() {
         if ($(".editTabs").hasClass("editingTabs")) {
 
             $("body").off("pointermove.gridReact").on("pointermove.gridReact", (event) => {
+                if ($(".gridSquareVisual").length > 600 || editTouched) {
 
-                if ($(".gridSquareVisual").length > 600) {
-
-                    $(".gridSquareVisual").css("scale", "95%");
+                    $(".gridSquareVisual").css("scale", "97%");
                     return
                 }
 
@@ -154,6 +170,7 @@ function bindEditOpener() {
         }
 
     })
+
 
 }
 
@@ -340,11 +357,19 @@ function bindCoderAdderHandlers() {
 function bindComponentRepositioner() {
     $(".reposistionComponent").on("pointerdown.reposComponent", (event) => {
         $(".sideBar").off("pointerup.setEdit pointermove.setEdit")
+        let currentEditComponent = editComponent.currentTarget
 
+
+        if(currentEditComponent.attr("data-row") == undefined && currentEditComponent.parent().hasClass("tunableInterface")){
+            currentEditComponent = editComponent.currentTarget.parent()
+            toastMessage("paresn")
+            console.log(currentEditComponent)
+        }
+        
         setCornerBorder(0, 0, 0, 0, 0, true)
-        let currentDrag = clientDragHandler(event, editComponent.currentTarget)
+        let currentDrag = clientDragHandler(event, currentEditComponent)
         // console.log(editComponent.currentTarget.attr("data-componentType"))
-        addToCurrentDrag(editComponent.currentTarget, currentDrag.x, currentDrag.y, editComponent.currentTarget.attr("data-componentType"))
+        addToCurrentDrag(currentEditComponent, currentDrag.x, currentDrag.y, currentEditComponent.attr("data-componentType"))
     })
 }
 
@@ -702,6 +727,7 @@ function bindEditMenu(element, valueType, customEdit = false) {
 
 
                 let meter = $comp.find(".numberLineHasValue")
+                let meterHolder = $comp.find(".meterHolder")
                 meter.attr($ct.attr("data-editing"), $ct.val())
 
                 setExampleMeter(meter.attr("min"), meter.attr("max"), meter.attr("low"), meter.attr("high"), meter.attr("optimum"))
@@ -709,6 +735,29 @@ function bindEditMenu(element, valueType, customEdit = false) {
                 if ($ct.val().length == 0) {
                     meter.removeAttr($ct.attr("data-editing"))
                 }
+
+                for (let I = 0; I < meter.length; I++) {
+                    let currentMeter = meter.eq(I)
+
+                    let subticks = meterHolder.eq(I).find(".numberLineTick")
+
+                    let minNumber = 0
+                    if (currentMeter.attr("min")) minNumber = currentMeter.attr("min");
+                    let maxNumber = 0;
+                    if (currentMeter.attr("max")) maxNumber = currentMeter.attr("max");
+                    
+
+                    let step = (maxNumber - minNumber) / (subticks.length - 1)
+                    for (let i = 0; i < subticks.length; i++) {
+                        let subtick = subticks.eq(i);
+
+                        let text = parseFloat(((step * i) + parseFloat(minNumber)).toFixed(3));
+
+                        subtick.text(text)
+                    } 
+                }
+
+
             } else if ($comp.hasClass("radialGauge")) {
                 let gauge = $comp.find(".gauge")
 
@@ -1369,6 +1418,9 @@ export function addEditHandler(element, valueType, specificClass = false, specif
 
             bindEditMenu($ct, valueType, customEdit)
 
+            if(element.parent().hasClass("tunableInterface")){
+                element=element.parent()
+            }
             let gridPoses = findEndOffset(element.attr('data-row'), element.attr('data-column'), element.attr('data-endRow'), element.attr('data-endColumn'))
 
             setCornerBorder(gridPoses.row, gridPoses.column, gridPoses.endRow, gridPoses.endColumn, $(".currentTab").attr("data-page"), true)
@@ -1530,7 +1582,7 @@ export function topicToSidebar(topic, schemasPassed = false) {
             if (i >= split.length - 1 && !topic.type.includes('struct')) {
                 //If last in topic, make the button for it, unless its a struct then it will be treated as a folder
                 if (split[0] == "CameraPublisher" && split[i] == "streams") {
-                    createButton("Stream", i, topic.name, "stream", split[i - 1])
+                    createButton("Stream", i, topic.name, "stream", split[i - 1], true)
                 }
 
                 createButton(split[i].split(":")[0], i, topic.name)
@@ -1540,7 +1592,7 @@ export function topicToSidebar(topic, schemasPassed = false) {
             createFolder(split[i], i)
         }
     }
-    function createButton(split, i, fullpath = "", topictype = topic.type, altDisplayName = false) {
+    function createButton(split, i, fullpath = "", topictype = topic.type, altDisplayName = false, underline = false) {
         let parentDiv
         if (i == 0) parentDiv = $("<div>").addClass("topicPathDiv").appendTo(currentPath["esc-esc-$-esc-esc"])
         else parentDiv = $("<div>").addClass("topicPathDiv").appendTo(currentPath["esc-esc-$-esc-esc"].children(".subPaths"))
@@ -1552,6 +1604,11 @@ export function topicToSidebar(topic, schemasPassed = false) {
 
         let image = $("<img>").addClass("noClick").appendTo(parentDiv)
         let h1 = $("<h1>").addClass("noClick").text(split).appendTo(parentDiv)
+
+        if (underline) {
+            h1.css("text-decoration", 'underline')
+        }
+
         currentPath[split] = topic
         currentPath[split]["esc-esc-$-esc-esc"] = parentDiv
 

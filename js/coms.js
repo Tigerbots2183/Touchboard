@@ -1,5 +1,5 @@
 // MIT License
-// Copyright (c) 2025 Tigerbots
+// Copyright (c) 2026 Tigerbots
 // https://github.com/Tigerbots2183
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,12 +24,15 @@
 
 import { NT4_Client } from "../lib/nt4.js";
 import { topicToSidebar } from "./editor/editorUi.js";
-import { setSelectOpener } from "./ui.js";
+import { setSelectOpener, toastMessage } from "./ui.js";
 import { rebindAllComponents, decodeFMSControlData } from "./editor/components/components.js";
+import { setConversionRate, setStartTime, startTimeQueue } from "./editor/components/graph.js";
 // import { MathUtils } from "../lib/util.js";
 // import { renderFrame, isFrameScheduled } from "./renderer.js";
 
 let sidebaredStructs = []
+
+export let compatabilityYear = 2027;
 
 let queueValueSends = false;
 
@@ -71,6 +74,11 @@ export function getHtmlFileName() {
 function topicAnnounce(topic) {
     topicToSidebar(topic)
 
+
+    if (topic.name == "/DriverStation/ControlWord") {
+        setCompatabilityMode(2027)
+
+    }
     // So most topics are sent to the sidebar when they are created, but we cannot decode structs
     // without their values being sent, so if the topic is a struct, and the array of sidebared structs
     // does not have the topic, then send the topic to the sidebar.
@@ -88,6 +96,15 @@ function doNothing() { }
 
 function handleNewData(topic, timestamp, value) {
     //Protos are not supported, and structschemas show no useful data to user. 
+    console.log(topic, value)
+    if (topic.name == "/Robot/ProgramStartTime") {
+        setStartTime(value / 1000)
+    }
+
+    if (topic.name == "/FMSInfo/FMSControlData") {
+        setCompatabilityMode(2026)
+    }
+
     if (topic.type.includes("proto") || topic.type.includes("structschema")) return
 
 
@@ -123,11 +140,11 @@ function handleNewData(topic, timestamp, value) {
         } else if (queueValueSends && decodeFMSControlData(value).enabled) {
             for (let [key, value] of nt4Client.publishedTopics) {
                 if (value.autoSend) {
-                    if(value.value == undefined) continue
+                    if (value.value == undefined) continue
 
                     nt4Client.addSample(key, value.value)
 
-                }else{
+                } else {
                     // console.log(value)
                 }
             }
@@ -243,7 +260,9 @@ function onConnectCb() {
         nt4Client.subscribe(["/.schema"], true)
 
         // console.log(queuedTopics)
+        nt4Client.subscribe(["/Robot/ProgramStartTime"], false)
         nt4Client.subscribe(queuedTopics, false)
+        
         nt4Client.subscribeTopicsOnly([""], true)
 
         // nt4Client.subscribe([],)
@@ -264,6 +283,7 @@ function onConnectCb() {
         for (let i = 0; i < $uiElements.length; i++) {
             if ($uiElements.eq(i).attr("data-topic")) {
 
+                if($uiElements.eq(i).attr("data-topic") == "esc-UNDEFINED-esc" || $uiElements.eq(i).attr("data-topic") == "esc-UNSET-esc") continue;
 
                 nt4Client.publishTopic("/touchboard/" + $uiElements.eq(i).attr("data-topic"), $uiElements.eq(i).attr("data-type"))
                 // console.log($uiElements.eq(i).attr("data-topic"), $uiElements.eq(i).attr("data-value"), $uiElements.eq(i))
@@ -273,7 +293,7 @@ function onConnectCb() {
                         if ($uiElements.eq(i).attr("data-autoSend") == "false") {
                             continue
                         } else {
-                            nt4Client.publishedTopics.get( "/touchboard/" + $uiElements.eq(i).attr("data-topic")).autoSend = true
+                            nt4Client.publishedTopics.get("/touchboard/" + $uiElements.eq(i).attr("data-topic")).autoSend = true
                         }
                     }
 
@@ -306,6 +326,16 @@ function onConnectCb() {
 
     }, 1000);
 
+}
+
+function setCompatabilityMode(year) {
+    compatabilityYear = year
+
+    if (year == 2026) {
+        for (let i = 0; i < startTimeQueue.length; i++) {
+            startTimeQueue[i]();
+        }
+    }
 }
 
 

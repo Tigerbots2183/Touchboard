@@ -1,5 +1,5 @@
 /* MIT License
-Copyright (c) 2025 Tigerbots
+Copyright (c) 2026 Tigerbots
 https://github.com/Tigerbots2183
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -1434,7 +1434,11 @@ input[type=number] {
 }
 
 
-
+.tunableInterface{
+    background-color: rgb(0, 42, 53);
+    width: 10vh;
+    height: 10vh;
+}
 
 
 
@@ -2910,7 +2914,7 @@ input[type=number] {
         border: solid 0.25cqmin;
         border-radius: 1cqmin;
         padding: 1cqmin;
-        padding-bottom: 0px;
+        padding-bottom: 2cqh;
         /* 
         margin-top: 40vh;
         margin-left: 40vh; */
@@ -2922,18 +2926,60 @@ input[type=number] {
         min-height: 5cqmin;
         width: 100%;
         font-size: 4cqmin;
-        padding-bottom: 1cqmin;
+        /* padding-bottom: .5cqmin; */
         text-align: center;
-        margin-bottom: 1.5cqmin;
         margin-top: 1cqmin;
         overflow-wrap: break-word;
     }
 
+    .numberLineTicks{
+        height: 2cqmin;
+        display: flex;
+        margin-bottom: 1.5cqmin;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+
+    .numberLineTick{
+        /* width: 0%  ; */
+        /* left: calc(25% * sibling-count()); */
+        height: 2cqmin;
+        font-size: 1.75cqmin;
+        position: relative;
+        text-align: center;
+        font-family: monospace;
+        color: rgb(127, 127, 127);
+        --content: "|";
+        /* container-type: inline-size; */
+    }
+
+    .numberLineTick:first-child{
+        text-align: start;
+        --content: "";
+
+    }
+    .numberLineTick:last-child{
+        text-align: end;
+        --content: "";
+
+    }
+    
+    .numberLineTick::after{
+        color: rgba(255, 255, 255, 0.102);
+
+        font-size: 3cqmin;
+        z-index: 3;
+        transform: translateX(-50%);
+        top:3.25cqmin;
+        left: -50%;
+        position: relative;
+        content: var(--content);
+    }
+
+    
 
     .meterHolder {
         --noValueDisplay: none;
-        padding-top: .5cqmin;
-        padding-bottom: .5cqmin;
     }
 
 
@@ -2967,11 +3013,11 @@ input[type=number] {
         background-position-x: 20%;
         background-size: 200%;
         animation: infinite stripes 1s forwards linear;
-        margin-bottom: 0cqmin;
     }
 
     .meterHolder {
         height: 5cqmin;
+        margin-bottom: 1cqmin;
     }
 
     .numberLineHasValue {
@@ -2983,7 +3029,7 @@ input[type=number] {
         height: 3.5cqmin;
     }
 
-    .numberLineHasValue::after {
+    /* .numberLineHasValue::after {
         color: white;
         font-size: 95cqmin;
         text-align: center;
@@ -2995,10 +3041,10 @@ input[type=number] {
         display: block;
         position: absolute;
         z-index: 3;
-        content: "| | |";
-    }
+        content: " | | | ";
+    } */
 
-    .numberLineHasValue::before {
+    /* .numberLineHasValue::before {
         font-family: monospace;
         color: rgb(127, 127, 127);
         display: block;
@@ -3013,9 +3059,10 @@ input[type=number] {
         text-align: center;
         font-size: 30cqmin;
         word-spacing: calc(calc(100cqw/5) - attr(data-avgch ch, 2ch));
-        /* content: attr(min raw-string, "0") " " counter(twentyFive) " " counter(fifty) " " counter(seventyFive) " " attr(max raw-string, "0"); */
+    
         content: counter(min) " " counter(twentyFive) " " counter(fifty) " " counter(seventyFive) " " counter(full);
-    }
+    } 
+    */
 
     .radialGauge {
 
@@ -3984,6 +4031,16 @@ input[type=number] {
         margin-left: auto;
     }
 
+    .tunableInterface{
+        background-color: transparent;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        justify-items: center;
+    }
+
     @media (max-aspect-ratio: 1/1) {
         .connectionHolder {
             height: 7cqh;
@@ -4734,32 +4791,38 @@ meter:not([value]) {
     margin-top: auto;
 }
 
-.fill:not(.currentDrag) {
+:not(.currentDrag) > .fill:not(.currentDrag) {
     width: 100%;
     height: 100%;
 }
 
+:not(.currentDrag) > .fill:not(.currentDrag).basicSubscription {
+    height: min-content;
+    /* max-width: 100%; */
+    width: 100%;
+    flex-wrap: wrap;
+}
 
-
-
-.fill:not(.currentDrag).select {
+:not(.currentDrag) > .fill:not(.currentDrag).select {
     height: 44.5cqmin;
     width: 100%;
 }
 
-.fill:not(.currentDrag).numberComponent {
+
+
+:not(.currentDrag) > .fill:not(.currentDrag).numberComponent {
     width: 100%;
     height: min-content;
 
     grid-template-columns: 10cqmin 1fr 10cqmin;
 }
 
-.fill:not(.currentDrag) .numberTextInput {
+:not(.currentDrag) > .fill:not(.currentDrag) .numberTextInput {
     width: 100%;
     max-width: 100%;
 }
 
-.fill:not(.currentDrag).buttonOptGroup {
+:not(.currentDrag) > .fill:not(.currentDrag).buttonOptGroup {
     display: flex;
     flex-direction: column;
     flex-wrap: wrap;
@@ -4770,7 +4833,7 @@ meter:not([value]) {
     container-name: buttonOptGroup;
 }
 
-.fill:not(.currentDrag).buttonOptGroup .optGroupButton {
+:not(.currentDrag) > .fill:not(.currentDrag).buttonOptGroup .optGroupButton {
     height: calc(75% / sibling-count());
     width: auto;
     aspect-ratio: 1/1;
@@ -4781,7 +4844,7 @@ meter:not([value]) {
 }
 
 @container buttonOptGroup (min-aspect-ratio: 1/1) {
-    .fill:not(.currentDrag).buttonOptGroup .optGroupButton {
+    :not(.currentDrag) > .fill:not(.currentDrag).buttonOptGroup .optGroupButton {
         width: calc(75% / sibling-count());
         height: auto;
         font-size: calc(4vmin / var(--vhDif));
@@ -4793,41 +4856,42 @@ meter:not([value]) {
 
 }
 
-.fill:not(.currentDrag) .axisKnob {
+:not(.currentDrag) > .fill:not(.currentDrag) .axisKnob {
     width: 90%;
 }
 
-.fill:not(.currentDrag) .verticalAxisKnob {
+:not(.currentDrag) > .fill:not(.currentDrag) .verticalAxisKnob {
     height: 80%;
 }
 
 
-.fill:not(.currentDrag) .numberTextInput {
+:not(.currentDrag) > .fill:not(.currentDrag) .numberTextInput {
     width: var(--w);
     --w: 100%;
 }
 
-.fill:not(.currentDrag).basicLogger {
+:not(.currentDrag) > .fill:not(.currentDrag).basicLogger {
     --w: 100%;
 
     width: var(--w);
 }
 
 
-.fill:not(.currentDrag) .basicLoggerTitle {
+:not(.currentDrag) > .fill:not(.currentDrag) .basicLoggerTitle {
 
     width: 100%;
 }
 
 
-.fill:not(.currentDrag).numberLine {
+:not(.currentDrag) > .fill:not(.currentDrag).numberLine {
     --w: calc(100% - 1px);
 
     width: var(--w);
+    height: min-content;
 }
 
 
-.fill:not(.currentDrag) .cameraStream {
+:not(.currentDrag) > .fill:not(.currentDrag) .cameraStream {
     object-fit: cover;
 }
 

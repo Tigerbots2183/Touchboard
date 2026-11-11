@@ -21,6 +21,7 @@ export default [
         localStorage: "readonly",
         sessionStorage: "readonly",
         fetch: "readonly",
+        PointerEvent: "readonly",
         alert: "readonly",
         confirm: "readonly",
         MutationObserver: "readonly",

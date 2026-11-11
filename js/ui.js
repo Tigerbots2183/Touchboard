@@ -6,7 +6,7 @@ import { setGridInput, tabGrid } from "./editor/grid.js";
 import { renderFrame } from "./renderer.js"
 
 // MIT License
-// Copyright (c) 2025 Tigerbots
+// Copyright (c) 2026 Tigerbots
 // https://github.com/Tigerbots2183
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
