@@ -125,8 +125,6 @@ export async function initGraph(graph) {
     addMusicDropHandler(graph)
 
     function resizeHandler() {
-        console.log("Resize Observed")
-
         $(canvas).attr("width", $(canvas).width()).attr("height", $(canvas).height())
 
         let bottomTicks = graph.children(".bottomTicks")
@@ -324,11 +322,17 @@ export async function initGraph(graph) {
         function graphZoomY() {
             event.preventDefault()
 
+
+
             let oldLeftValMax = absAsBackup(leftTicks, "max")
             let oldLeftValMin = absAsBackup(leftTicks, "min")
 
             let absLeftMax = parseFloat(leftTicks.attr("data-absMax"))
             let absLeftMin = parseFloat(leftTicks.attr("data-absMin"))
+
+            if(absLeftMax == 0 && absLeftMin == 0){
+                return;
+            }
 
             let oldRange = oldLeftValMax - oldLeftValMin;
             let absoluteRange = absLeftMax - absLeftMin;

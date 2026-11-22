@@ -23,11 +23,12 @@
 // 
 
 import * as components from "./editor/components/components.js"
-import {tabGrid, setGridInput} from "./editor/grid.js"
-import {createSideTab} from "./ui.js"
+import { tabGrid, setGridInput } from "./editor/grid.js"
+import { createSideTab, toastMessage } from "./ui.js"
 import { subscribeOrQueue } from "./coms.js"
 import { bindEditorResetter } from "./editor/editorUi.js"
 
+export let outputComponentTypes = ["actionButton", "oneShotButton", 'toggleButton', "axis", "verticalAxis", "select", "buttonOptGroup", "numberComponent"]
 //Save
 export function saveLayoutToJSON() {
     let tabs = $(".tab")
@@ -78,12 +79,14 @@ export function saveLayoutToJSON() {
                 similarOptions: JSON.parse(comp$.attr("data-defaultsimilaroptions"))
             }
 
-            if(comp$.attr("data-autoSend")){
-                component.autoSend =  JSON.parse(comp$.attr("data-autoSend"))
+
+
+            if (comp$.attr("data-autoSend")) {
+                component.autoSend = JSON.parse(comp$.attr("data-autoSend"))
 
             }
 
-            if(component.type == "graph"){
+            if (component.type == "graph") {
                 component.topics = comp$.attr("data-topics");
                 component.topic = null
             }
@@ -112,7 +115,7 @@ export function saveLayoutToJSON() {
 }
 
 
-function getComponentSpecificAsObject(comp$) {
+export function getComponentSpecificAsObject(comp$) {
     let componentType = comp$.attr("data-componenttype")
 
     let knob
@@ -146,7 +149,7 @@ function getComponentSpecificAsObject(comp$) {
 
             return returning
         case "axis":
-            knob = comp$.children(".axisKnob");
+            knob = comp$.children(".axisKnob, .verticalAxisKnob");
             return {
                 displayName: comp$.find(".editThisName").text(),
                 color: comp$.attr("data-color"),
@@ -158,18 +161,19 @@ function getComponentSpecificAsObject(comp$) {
             }
             break
         case "verticalAxis":
-            knob = comp$.children(".verticalAxisKnob");
+            knob = comp$.children(".verticalAxisKnob, .axisKnob");
             return {
                 displayName: comp$.find(".editThisName").text(),
                 color: comp$.attr("data-color"),
                 min: knob.attr("min"),
-                max: knob.attr("min"),
-                step: knob.attr("min"),
+                max: knob.attr("max"),
+                step: knob.attr("step"),
                 value: comp$.attr("data-value"),
                 snapBack: comp$.attr("data-snapBack")
             }
         case "select":
             return {
+                displayName: comp$.attr("data-name"),
                 componentOptions: comp$.attr("data-componentoptions"),
                 index: JSON.parse(comp$.attr("data-persist")) ? comp$.attr("data-index") : 0,
                 persist: comp$.attr("data-persist"),
@@ -177,6 +181,7 @@ function getComponentSpecificAsObject(comp$) {
         case "buttonOptGroup":
 
             return {
+                displayName: comp$.attr("data-name"),
                 componentOptions: comp$.attr("data-componentoptions"),
                 index: JSON.parse(comp$.attr("data-persist")) ? comp$.attr("data-index") : 0,
                 persist: comp$.attr("data-persist"),
@@ -231,14 +236,22 @@ function getComponentSpecificAsObject(comp$) {
         case "graph":
             return {
                 displayName: comp$.find(".editThisName").text(),
-                color: comp$.attr("data-color"),
-                width: comp$.attr("data-width")
+                lineProperties: comp$.attr("data-lineProperties")
             }
         case "colorCoder":
             return {
                 displayName: comp$.find(".editThisName").text(),
                 color: comp$.attr("data-color"),
                 keys: JSON.parse(comp$.attr("data-keys"))
+            }
+        case "tunableInterface":
+            let subComp = getComponentSpecificAsObject(comp$.children().eq(0))
+            subComp.type = comp$.children().eq(0).attr("data-componenttype")
+            subComp.autoSend = JSON.parse(comp$.children().eq(0).attr("data-autoSend"))
+            subComp.similarOptions = JSON.parse(comp$.children().eq(0).attr("data-defaultsimilaroptions"))
+            return {
+                subComponent: subComp
+
             }
     }
 }
@@ -280,15 +293,29 @@ export function loadLayoutFromJson(json) {
         if ($(tab).length <= 0) {
             let page$ = $("<div>").addClass("page").addClass(tab.slice(1)).css("display", "grid").attr("rows", json[tab].tabRows).attr("columns", json[tab].tabColumns).insertAfter(".autonomus")
             for (let i = 0; i < components.length; i++) {
-                subscribeOrQueue(components[i].topic || JSON.parse(components[i].topics)[0])
+                
+                if(components[i].topic){
+                    subscribeOrQueue(components[i].topic)
+                } else if (components[i].topics){
+                    let componentTopics = JSON.parse(components[i].topics)
 
-                makeComponentFromJson(components[i])
-                    .attr("data-row", components[i].row)
-                    .attr("data-column", components[i].col)
-                    .attr("data-endrow", components[i].endrow)
-                    .attr("data-endcolumn", components[i].endcol)
-                    .css("grid-area", components[i].area)
-                    .appendTo(page$)
+                    for(let j = 0; j <componentTopics.length; j++){
+                        subscribeOrQueue(componentTopics[j])
+                    }
+                }
+
+                try {
+                    makeComponentFromJson(components[i])
+                        .attr("data-row", components[i].row)
+                        .attr("data-column", components[i].col)
+                        .attr("data-endrow", components[i].endrow)
+                        .attr("data-endcolumn", components[i].endcol)
+                        .css("grid-area", components[i].area)
+                        .appendTo(page$)
+                }catch{
+                    continue
+                }
+                
             }
         } else {
             $(tab).css("display", "grid").attr("rows", json[tab].tabRows).attr("columns", json[tab].tabColumns).insertAfter(".autonomus")
@@ -317,7 +344,12 @@ export function loadLayoutFromJson(json) {
 
 }
 
-function makeComponentFromJson(component) {
+export function makeComponentFromJson(component) {
+    if (outputComponentTypes.includes(component.type)) {
+        if (!(component.topic.includes("/touchboard/") || component.topic.includes("/Tunables/"))) {
+            component.topic = "/touchboard/" + component.topic
+        }
+    }
     // type: componentType,
     // row: comp$.attr("data-row"),
     // col: comp$.attr("data-column"),
@@ -326,40 +358,45 @@ function makeComponentFromJson(component) {
     // area: comp$.css("grid-area"),
     // topic: comp$.attr('data-topic'),
     // similarOptions: comp$.attr("data-defaultsimilaroptions")
-    switch (component.type) {
-        case "actionButton":
-            return components.createActionButton(component.displayName, component.topic, false, component.color, component.similarOptions)
-        case "oneShotButton":
-            return components.createOneShotButton(component.displayName, component.topic, false, component.color, component.similarOptions)
-        case "toggleButton":
-            return components.createToggleButton(component.displayName, component.topic, component.autoSend, false, component.color, component.value, component.similarOptions, component.persist)
-        case "axis":
-            return components.createAxis(component.displayName, component.topic,component.autoSend, false, false, component.color, component.value, component.min, component.max, component.step, component.snapBack, component.similarOptions).div
-        case "verticalAxis":
-            return components.createAxis(component.displayName, component.topic,component.autoSend, false, true, component.color, component.value, component.min, component.max, component.step, component.snapBack, component.similarOptions).div
-        case "select":
-            return components.createDropdown(component.topic, false,component.autoSend, 0, component.index, JSON.parse(component.componentOptions), component.similarOptions, component.persist).div
-        case "buttonOptGroup":
-            return components.createOptGroup(component.topic, false,component.autoSend, 0, component.index, JSON.parse(component.componentOptions), component.similarOptions, component.persist).div
-        case "numberComponent":
-            return components.createNumberComponent(component.displayName, component.topic, component.autoSend, false, 0, component.value, component.min, component.max, component.step, component.persist, component.similarOptions).div
-        case "basicSubscription":
-            return components.createBasicSubscription(component.displayName, component.topic, false, component.color, component.similarOptions)
-        case "basicLogger":
-            return components.createBasicLogger(component.displayName, component.topic, false, component.color, component.similarOptions)
-        case "numberLine":
-            return components.createNumberLine(component.displayName, component.topic, false, component.color, component.max, component.min, component.low, component.high, component.optimum, component.similarOptions)
-        case "radialGauge":
-            return components.createRadialGauge(component.displayName, component.topic, false, component.color, component.maxDeg, 5, component.max, component.min, component.low, component.high, component.optimum, component.offsetDeg, component.similarOptions)
-        case "camera":
-            return components.createCamera(component.displayName, component.topic, false, JSON.parse(component.hideNav), component.videoFormat, JSON.parse(component.recordConditionHandler), component.similarOptions)
-        case "graph":
-            return components.createGraph(component.displayName, JSON.parse(component.topics), false, component.color, component.width, component.similarOptions)
-        case "colorCoder":
-            return components.createColorCoder(component.displayName, component.topic, false, component.color, component.keys, component.similarOptions)
-        case "tunableInterface":
-            return components.createTunableInterface(component.displayName, component.topic, false)
+    try {
+        switch (component.type) {
+            case "actionButton":
+                return components.createActionButton(component.displayName, component.topic, false, component.color, component.similarOptions)
+            case "oneShotButton":
+                return components.createOneShotButton(component.displayName, component.topic, false, component.color, component.similarOptions)
+            case "toggleButton":
+                return components.createToggleButton(component.displayName, component.topic, component.autoSend, false, component.color, component.value, component.similarOptions, component.persist)
+            case "axis":
+                return components.createAxis(component.displayName, component.topic, component.autoSend, false, false, component.color, component.value, component.min, component.max, component.step, component.snapBack == "true", component.similarOptions).div
+            case "verticalAxis":
+                return components.createAxis(component.displayName, component.topic, component.autoSend, false, true, component.color, component.value, component.min, component.max, component.step, component.snapBack == "true", component.similarOptions).div
+            case "select":
+                return components.createDropdown(component.displayName, component.topic, false, component.autoSend, 0, component.index, JSON.parse(component.componentOptions), component.similarOptions, component.persist).div
+            case "buttonOptGroup":
+                return components.createOptGroup(component.displayName, component.topic, false, component.autoSend, 0, component.index, JSON.parse(component.componentOptions), component.similarOptions, component.persist).div
+            case "numberComponent":
+                return components.createNumberComponent(component.displayName, component.topic, component.autoSend, false, 0, component.value, component.min, component.max, component.step, component.persist, component.similarOptions).div
+            case "basicSubscription":
+                return components.createBasicSubscription(component.displayName, component.topic, false, component.color, component.similarOptions)
+            case "basicLogger":
+                return components.createBasicLogger(component.displayName, component.topic, false, component.color, component.similarOptions)
+            case "numberLine":
+                return components.createNumberLine(component.displayName, component.topic, false, component.color, component.max, component.min, component.low, component.high, component.optimum, component.similarOptions)
+            case "radialGauge":
+                return components.createRadialGauge(component.displayName, component.topic, false, component.color, component.maxDeg, 5, component.max, component.min, component.low, component.high, component.optimum, component.offsetDeg, component.similarOptions)
+            case "camera":
+                return components.createCamera(component.displayName, component.topic, false, JSON.parse(component.hideNav), component.videoFormat, JSON.parse(component.recordConditionHandler), component.similarOptions)
+            case "graph":
+                return components.createGraph(component.displayName, JSON.parse(component.topics), false, JSON.parse(component.lineProperties), component.similarOptions)
+            case "colorCoder":
+                return components.createColorCoder(component.displayName, component.topic, false, component.color, component.keys, component.similarOptions)
+            case "tunableInterface":
+                return components.createTunableInterface(component.displayName, component.topic, false, component.subComponent)
         }
-        
+    } catch (err) {
+        toastMessage("Layout Error", "#FF0000")
+
+    }
+
 }
 

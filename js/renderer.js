@@ -50,6 +50,15 @@ export let isFrameScheduled = { "scheduled": false };
 //  "updating": "removeAttribute",
 //  "attrName": ""
 //  }
+//  {
+//  "updating": "css",
+//  "style": ""
+//  "newValue": ""
+//  }
+// {
+//     "updating": "execute"
+//     "function": ()=>{}
+// }
 //]
 
 export function addToRender(element, instruction) {
@@ -88,9 +97,17 @@ export function renderFrame() {
                 case "text":
                     element.text(instruction.newValue)
                     break;
+                case "execute":
+                    instruction["function"]();
+                    break
                 case "attribute":
                     element.attr(instruction.attrName, instruction.newValue)
                     break;
+                case "value":
+                    element.val(instruction.newValue)
+                    break;
+                case "css":
+                    element.css(instruction.style, instruction.newValue)
                 case "rawProperty":
                     element[0].style.setProperty(instruction.propName, instruction.newValue)
                     break;

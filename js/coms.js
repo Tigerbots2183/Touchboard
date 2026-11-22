@@ -60,7 +60,8 @@ export let nt4Client = new NT4_Client(localStorage.getItem(getHtmlFileName() + "
     doNothing,
     handleNewData,
     onConnectCb,
-    onDisconnectCb
+    onDisconnectCb,
+    onDataSent
 );
 
 export function getHtmlFileName() {
@@ -93,10 +94,8 @@ function topicAnnounce(topic) {
 
 function doNothing() { }
 
-
 function handleNewData(topic, timestamp, value) {
     //Protos are not supported, and structschemas show no useful data to user. 
-    console.log(topic, value)
     if (topic.name == "/Robot/ProgramStartTime") {
         setStartTime(value / 1000)
     }
@@ -133,12 +132,13 @@ function handleNewData(topic, timestamp, value) {
     }
 
     if (topic.name.includes("/FMSInfo/FMSControlData")) {
-        console.log("FMSControlData decoded: ", decodeFMSControlData(value));
+        // console.log("FMSControlData decoded: ", decodeFMSControlData(value));
 
         if (!decodeFMSControlData(value).enabled) {
             queueValueSends = true;
         } else if (queueValueSends && decodeFMSControlData(value).enabled) {
             for (let [key, value] of nt4Client.publishedTopics) {
+
                 if (value.autoSend) {
                     if (value.value == undefined) continue
 
@@ -152,9 +152,31 @@ function handleNewData(topic, timestamp, value) {
             queueValueSends = false;
         }
     }
+    else if (topic.name.includes("/DriverStation/ControlWord")) {
+        // toastMessage("caught")
+        if (!value["enabled:1"].value) {
+            queueValueSends = true;
+        } else if (queueValueSends && value["enabled:1"].value) {
+            for (let [key, value] of nt4Client.publishedTopics) {
+                console.log(key, value)
+                toastMessage(key)
+                if (value.autoSend) {
+                    if (value.value == undefined) continue
+
+                    nt4Client.addSample(key, value.value)
+
+                } else {
+                    // console.log(value)
+                }
+            }
+
+            queueValueSends = false;
+        }
+
+    }
 
     //Random data that the user shouldnt see usually has . in it
-    if (topic.name.includes(".")) return
+    // if (topic.name.includes(".") && ! topic.name.includes(".type")) return
 
     //If the value is currently used by a component, send the value to the component handler.
     if (subscribedTopics.hasOwnProperty(topic.name)) {
@@ -218,18 +240,6 @@ function onConnectCb() {
     $(".connectionText").text("Connecting")
 
     setTimeout(() => {
-
-        console.log(subscribedTopics)
-        // setInterval(() => {
-        //     // console.log(nt4Client.serverTopics)
-        //     // console.log(nt4Client.schemas)
-        // }, 1000)
-
-        // setInterval(() => {
-        //     console.log(nt4Client)
-        // }, 1000)
-
-
         isConnected = true;
 
         setSelectOpener()
@@ -245,15 +255,17 @@ function onConnectCb() {
         $(".tabCreator").css("background-color", "rgb(32, 32, 32)")
         $(".page").css("background-color", "")
 
+        $(".tunableInterfaceLocked").removeClass("tunableInterfaceLocked")
+
         $(".tabNav").css("background-color", "rgb(12, 12, 12)")
         $(".currentTab").css("background-color", "rgb(32, 32, 32)")
-        nt4Client.publishTopic("/touchboard/posePlotterFinalString", "string")
+        // nt4Client.publishTopic("/touchboard/posePlotterFinalString", "string")
 
-        nt4Client.addSample("/touchboard/posePlotterFinalString", localStorage.getItem(getHtmlFileName() + "currentPath"))
+        // nt4Client.addSample("/touchboard/posePlotterFinalString", localStorage.getItem(getHtmlFileName() + "currentPath"))
 
-        nt4Client.publishTopic("/touchboard/musicIsFinished", "boolean")
+        // nt4Client.publishTopic("/touchboard/musicIsFinished", "boolean")
 
-        nt4Client.addSample("/touchboard/musicIsFinished", true)
+        // nt4Client.addSample("/touchboard/musicIsFinished", true)
 
         subscribeOrQueue("/FMSInfo/FMSControlData");
 
@@ -262,7 +274,7 @@ function onConnectCb() {
         // console.log(queuedTopics)
         nt4Client.subscribe(["/Robot/ProgramStartTime"], false)
         nt4Client.subscribe(queuedTopics, false)
-        
+
         nt4Client.subscribeTopicsOnly([""], true)
 
         // nt4Client.subscribe([],)
@@ -281,41 +293,52 @@ function onConnectCb() {
         let $uiElements = $(".page").children().add($(".btnHolder").children())
 
         for (let i = 0; i < $uiElements.length; i++) {
-            if ($uiElements.eq(i).attr("data-topic")) {
+            let $currentElement = $uiElements.eq(i)
 
-                if($uiElements.eq(i).attr("data-topic") == "esc-UNDEFINED-esc" || $uiElements.eq(i).attr("data-topic") == "esc-UNSET-esc") continue;
+            if ($currentElement.attr("data-topic")) {
 
-                nt4Client.publishTopic("/touchboard/" + $uiElements.eq(i).attr("data-topic"), $uiElements.eq(i).attr("data-type"))
-                // console.log($uiElements.eq(i).attr("data-topic"), $uiElements.eq(i).attr("data-value"), $uiElements.eq(i))
+                if ($currentElement.attr("data-topic") == "esc-UNDEFINED-esc" || $currentElement.attr("data-topic") == "esc-UNSET-esc") continue;
+                if ($currentElement.attr("data-topic") == "/touchboard/esc-UNDEFINED-esc" || $currentElement.attr("data-topic") == "/touchboard/esc-UNSET-esc") continue;
 
-                if ($uiElements.eq(i).attr("data-value")) {
-                    if ($uiElements.eq(i).attr("data-autoSend")) {
-                        if ($uiElements.eq(i).attr("data-autoSend") == "false") {
+                if ($currentElement.attr("data-type")) {
+                    nt4Client.publishTopic($currentElement.attr("data-topic"), $currentElement.attr("data-type"))
+                } else if ($currentElement.children().attr("data-type")) {
+                    nt4Client.publishTopic($currentElement.attr("data-topic"), $currentElement.children().attr("data-type"))
+                }
+                // console.log($currentElement.attr("data-topic"), $currentElement.attr("data-value"), $currentElement)
+
+                if ($currentElement.attr("data-value")) {
+                    if ($currentElement.attr("data-autoSend")) {
+                        if ($currentElement.attr("data-autoSend") == "false") {
                             continue
                         } else {
-                            nt4Client.publishedTopics.get("/touchboard/" + $uiElements.eq(i).attr("data-topic")).autoSend = true
+                            nt4Client.publishedTopics.get($currentElement.attr("data-topic")).autoSend = true
                         }
                     }
 
-                    if ($uiElements.eq(i).attr("data-type") === "string") {
-                        nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), $uiElements.eq(i).attr("data-value"))
-                        // console.log($uiElements.eq(i).attr("data-value"))
-                    } else if ($uiElements.eq(i).attr("data-type") === "double") {
-                        nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), parseFloat($uiElements.eq(i).attr("data-value")))
-                        // console.log($uiElements.eq(i).attr("data-value"))
+                    if ($currentElement.hasClass("tunableInterface")) {
+
+                    }
+
+                    if ($currentElement.attr("data-type") === "string") {
+                        nt4Client.addSample($currentElement.attr("data-topic"), $currentElement.attr("data-value"))
+                        // console.log($currentElement.attr("data-value"))
+                    } else if ($currentElement.attr("data-type") === "double") {
+                        nt4Client.addSample($currentElement.attr("data-topic"), parseFloat($currentElement.attr("data-value")))
+                        // console.log($currentElement.attr("data-value"))
                     } else {
-                        nt4Client.addSample("/touchboard/" + $uiElements.eq(i).attr("data-topic"), JSON.parse($uiElements.eq(i).attr("data-value")))
+                        nt4Client.addSample($currentElement.attr("data-topic"), JSON.parse($currentElement.attr("data-value")))
 
                     }
                 }
             }
         }
-        let editTabs = $(".editTabs")
-        for (let i = 0; i < $uiElements.length; i++) {
-            if ($uiElements.eq(i).attr("data-topic") == "esc-UNDEFINED-esc" || $uiElements.eq(i).attr("data-topic") == "esc-UNSET-esc") { continue }
+        // let editTabs = $(".editTabs")
+        // for (let i = 0; i < $uiElements.length; i++) {
+        //     if ($uiElements.eq(i).attr("data-topic") == "esc-UNDEFINED-esc" || $uiElements.eq(i).attr("data-topic") == "esc-UNSET-esc") { continue }
 
-            rebindAllComponents();
-        }
+        rebindAllComponents();
+        // }
 
         // console.log(nt4Client.subscriptions)
 
@@ -344,7 +367,6 @@ function onDisconnectCb() {
         $(".fullScreen").css("background-color", "rgb(128, 32, 32)")
 
         $(".connectionText").text("Retrying")
-
         $("html").css("background-color", "rgb(128, 32, 32)")
         $(".tab").css("background-color", "rgb(64, 12, 12)")
         $(".addTab").css("background-color", "rgb(128, 32, 32)")
@@ -360,6 +382,7 @@ function onDisconnectCb() {
 
         // }, 1000);
     }
+    $(".tunableInterface").addClass("tunableInterfaceLocked")
 
     $(".outputTopics").empty()
     topicObject = {
@@ -367,4 +390,27 @@ function onDisconnectCb() {
     }
 
     sidebaredStructs = []
+
+    isConnected = false;
+}
+
+function onDataSent(topic, timestamp, value) {
+
+    if (subscribedTopics.hasOwnProperty(topic.name)) {
+        let foundValue = value;
+
+        for (let i = 0; i < subscribedTopics[topic.name].length; i++) {
+            if (!subscribedTopics[topic.name][i]) continue; //Pass if value is null
+            // console.log(subscribedTopics[topic.name][i])
+            if (value == undefined) return;
+            //To prevent loops for components that can send values, 
+            if (!subscribedTopics[topic.name][i].allowLoopback) continue;
+
+            if (topic.type.includes("struct")) {
+                foundValue = getStructValue(subscribedTopics[topic.name][i].structPath, value)
+            }
+
+            subscribedTopics[topic.name][i].valueHandeler(foundValue, timestamp, topic) // Send value to topic handler
+        }
+    }
 }

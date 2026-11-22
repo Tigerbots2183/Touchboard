@@ -495,7 +495,8 @@ SOFTWARE. -->
             </div>
         </div>
 
-        <div class="boolOutputComponents outputComponents ioComponents" style="user-select: none;">
+        <div class="boolOutputComponents booleanOutputComponents outputComponents ioComponents"
+            style="user-select: none;">
             <div class="basicSubscription" data-topic=""> <!-- must be the full path -->
                 <h1 class="bSTopic">Name:</h1>
                 <h1 class="bSValue">Value</h1>
@@ -536,15 +537,24 @@ SOFTWARE. -->
 
         </div>
 
+
+
         <div class="editSidebar booleanSidebar">
             <div class="sideInputDiv">
                 <p>Name:</p>
-                <input type="text" data-editing="text" class="textInput isEdit" placeholder="Unset">
+                <input type="text " class="textInput isEdit" data-editing="text" placeholder="Unset">
             </div>
 
-            <div class="sideInputDiv">
+            <div class="sideInputDiv hideTunable">
                 <p>Topic:</p>
-                <input type="text" data-editing="data-topic" class="textInput isEdit" placeholder="Unset">
+                <input type="text" class="textInput isEdit topicInput" data-editing="data-topic" placeholder="Unset">
+            </div>
+
+            <div class="sideInputDiv specificHideComponent hidestream hideGraph showTunable">
+                <p>Topic:</p>
+                <p data-editing="data-topic" class="isntEdit topicShower"></p>
+                <input type="button" class="sideBarButton changeSubscriptionTopic isEdit hideTunable"
+                    data-editing="changeTopic" value="Change" placeholder="Unset">
             </div>
 
             <div class="sideInputDiv">
@@ -554,7 +564,7 @@ SOFTWARE. -->
 
 
             <!-- //Toggle Button ONLY -->
-            <div class="sideInputDiv specificComponent toggleSpecific">
+            <div class="sideInputDiv specificComponent toggleSpecific hideTunable">
                 <p>Initial:</p>
                 <div class="multiSwitch isEdit" data-value="false" data-editing="data-value">
                     <div class="multiSlider">
@@ -565,14 +575,15 @@ SOFTWARE. -->
                 </div>
             </div>
             <!-- //Toggle Button ONLY -->
-            <div class="sideInputDiv specificComponent toggleSpecific">
+            <div class="sideInputDiv specificComponent toggleSpecific hideTunable">
                 <p>Persist?</p>
                 <input type="checkbox" class="isEdit checkbox" data-editing="data-persist">
             </div>
 
             <!-- //Toggle Button ONLY -->
-            <div class="sideInputDiv specificComponent toggleSpecific">
-                <p class="needsExplanation" data-explaining="autoTriggerBinder" data-parent="true"><u>Auto Trigger Binder?</u></p>
+            <div class="sideInputDiv specificComponent toggleSpecific hideTunable">
+                <p class="needsExplanation" data-explaining="autoTriggerBinder" data-parent="true"><u>Auto Trigger
+                        Binder?</u></p>
                 <input type="checkbox" class="isEdit checkbox autoSend" data-editing="data-autoSend">
             </div>
         </div>
@@ -589,14 +600,9 @@ SOFTWARE. -->
                     value="Change" placeholder="Unset">
             </div>
 
-            <div class="sideInputDiv specificHideComponent hidestream">
+            <div class="sideInputDiv specificHideComponent hidestream hideGraph">
                 <p>Color:</p>
                 <input type="color" data-editing="color" class="colorInput isEdit" placeholder="Unset">
-            </div>
-
-            <div class="sideInputDiv graphSpecific specificComponent">
-                <p>Width:</p>
-                <input type="number" class="numberTextInput width isEdit" data-editing="width" placeholder="6">
             </div>
 
             <div class="sideInputDiv specificComponent cameraSpecific">
@@ -651,6 +657,34 @@ SOFTWARE. -->
                     <input type="text" class="textInput newCoderValue" placeholder="Value" required>
                     <input type="color" class="newHexCoder hex" style="line-height: 3.5vh; height: 3.5vh; width: 3.5vh;"
                         value="#7300ff">
+
+                    <button class="sideBarEmojiButton plus">✚</button>
+
+                </form>
+            </div>
+
+            <div class="multiAdder isEdit specificComponent graphSpecific" data-editing="graphTopics">
+                <p>Graph Topics:</p>
+
+                <!-- <div class="sidebarOption test1">
+                    <button class="sideBarEmojiButton hamburger">☰</button>
+                    <p>Name: 1</p>
+                    <button class="sideBarEmojiButton editOption">✎</button>
+                </div> -->
+
+                <form class="graphAdder" name="optionAdder">
+                    <input type="color" class="newGraphLineHex hex"
+                        style="line-height: 3.5vh; height: 3.5vh; width: 3.5vh;" value="#7300ff">
+
+                    <input type="text" class="textInput topic psuedoFormInput newGraphLineTopic" id="lockedInput"
+                        placeholder="topic" required>
+
+                    <!-- <button class="graphTopicFinder">Find Topic</button> -->
+                    <div class="graphTopicFinder">
+                        <p class="graphTopicFinderP">Find Topic</p>
+                    </div>
+                    <input type="number" style="width: 25%;" class="numberTextInput newGraphLineWidth"
+                        placeholder="Width" required>
 
                     <button class="sideBarEmojiButton plus">✚</button>
 
@@ -718,9 +752,16 @@ SOFTWARE. -->
                 <input type="text " class="textInput isEdit" data-editing="text" placeholder="Unset">
             </div>
 
-            <div class="sideInputDiv">
+            <div class="sideInputDiv hideTunable">
                 <p>Topic:</p>
-                <input type="text" class="textInput isEdit" data-editing="data-topic" placeholder="Unset">
+                <input type="text" class="textInput isEdit topicInput" data-editing="data-topic" placeholder="Unset">
+            </div>
+
+            <div class="sideInputDiv specificHideComponent hidestream hideGraph showTunable">
+                <p>Topic:</p>
+                <p data-editing="data-topic" class="isntEdit topicShower"></p>
+                <input type="button" class="sideBarButton changeSubscriptionTopic isEdit hideTunable"
+                    data-editing="changeTopic" value="Change" placeholder="Unset">
             </div>
             <!-- // Axis ONLY -->
             <div class="sideInputDiv specificComponent axisSpecific">
@@ -751,8 +792,7 @@ SOFTWARE. -->
 
             <div class="sideInputDiv">
                 <p>Value:</p>
-                <input type="number" class="numberTextInput value isEdit" data-editing="value" placeholder="Unset"
-                    disabled>
+                <input type="number" class="numberTextInput value isEdit" data-editing="value" placeholder="Unset">
             </div>
 
             <div class="sideInputDiv">
@@ -767,30 +807,37 @@ SOFTWARE. -->
             </div>
 
             <!-- // Number Component + Toggle Button ONLY -->
-            <div class="sideInputDiv specificComponent numberComponentSpecific">
+            <div class="sideInputDiv specificComponent numberComponentSpecific hideTunable">
                 <p>Persist?</p>
                 <input type="checkbox" class="isEdit checkbox" data-editing="data-persist">
             </div>
 
-            <div class="sideInputDiv">
-                <p class="needsExplanation" data-explaining="autoTriggerBinder" data-parent="true"><u>Auto Trigger Binder?</u></p>
+            <div class="sideInputDiv hideTunable">
+                <p class="needsExplanation" data-explaining="autoTriggerBinder" data-parent="true"><u>Auto Trigger
+                        Binder?</u></p>
 
                 <input type="checkbox" class="isEdit checkbox autoSend" data-editing="data-autoSend">
             </div>
 
         </div>
         <div class="editSidebar stringSidebar">
-            <!-- <div class="sideInputDiv specificComponent optGroupSpecific">
+            <div class="sideInputDiv">
                 <p>Name:</p>
                 <input type="text" data-editing="text" class="textInput isEdit" placeholder="Unset">
-            </div> -->
-
-            <div class="sideInputDiv">
+            </div>
+            <div class="sideInputDiv hideTunable">
                 <p>Topic:</p>
-                <input type="text" data-editing="data-topic" class="textInput isEdit" placeholder="Unset">
+                <input type="text" class="textInput isEdit topicInput" data-editing="data-topic" placeholder="Unset">
             </div>
 
-            <div class="multiAdder isEdit" data-editing="optionArray">
+            <div class="sideInputDiv specificHideComponent hidestream hideGraph showTunable">
+                <p>Topic:</p>
+                <p data-editing="data-topic" class="isntEdit topicShower"></p>
+                <input type="button" class="sideBarButton changeSubscriptionTopic isEdit hideTunable"
+                    data-editing="changeTopic" value="Change" placeholder="Unset">
+            </div>
+
+            <div class="multiAdder isEdit hideTunable" data-editing="optionArray">
                 <p>Options:</p>
 
                 <!-- <div class="sidebarOption test1">
@@ -803,20 +850,21 @@ SOFTWARE. -->
                     <input type="text" class="textInput newOptionName" placeholder="Name" required>
                     <p>:</p>
                     <input type="text" class="textInput newOptionValue" placeholder="Value" required>
-                    <input type="color" class="hex" style="line-height: 3.5vh; height: 3.5vh; width: 3.5vh;"
+                    <input type="color" class="hex stringHex" style="line-height: 3.5vh; height: 3.5vh; width: 3.5vh;"
                         value="#7300ff">
                     <button class="sideBarEmojiButton plus">✚</button>
 
                 </form>
             </div>
 
-            <div class="sideInputDiv">
+            <div class="sideInputDiv hideTunable">
                 <p>Persist?</p>
                 <input type="checkbox" class="isEdit checkbox" data-editing="data-persist">
             </div>
 
-            <div class="sideInputDiv">
-                <p class="needsExplanation" data-explaining="autoTriggerBinder" data-parent="true"><u>Auto Trigger Binder?</u></p>
+            <div class="sideInputDiv hideTunable">
+                <p class="needsExplanation" data-explaining="autoTriggerBinder" data-parent="true"><u>Auto Trigger
+                        Binder?</u></p>
                 <input type="checkbox" class="isEdit checkbox autoSend" data-editing="data-autoSend">
             </div>
 
@@ -861,7 +909,9 @@ SOFTWARE. -->
     </div>
 
     <div class="explanation">
-        <p class="editThisText">When enabled, the value of this component will be sent to the robot, and any binders will trigger on connection and when the robot is enabled. When disabled, the binders will only activate once the value is changed, and the value will be inaccessable before that.</p>
+        <p class="editThisText">When enabled, the value of this component will be sent to the robot, and any binders
+            will trigger on connection and when the robot is enabled. When disabled, the binders will only activate once
+            the value is changed, and the value will be inaccessable before that.</p>
         <div class="progress"></div>
     </div>
 

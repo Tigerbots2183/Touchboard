@@ -108,7 +108,6 @@ body {
 .ioComponents {
     width: 100%;
 
-    width: max-content;
     /* border-style: */
     padding: 0px;
     margin: 0px;
@@ -373,7 +372,7 @@ foreignObject input[type=range]::-webkit-slider-thumb {
     top: 20vh;
     right: 25vw;
     background-color: rgba(0, 0, 0, 0.952);
-    z-index: 3;
+    z-index: 5;
     border-radius: 3vw;
     outline: 1vh #46009c solid;
     /* display: flex; */
@@ -769,16 +768,17 @@ input[type=number] {
 }
 
 .select {
+    position: relative;
+    z-index: 1;
     background-color: #7300ff6b;
     width: 12.5vmax;
     height: 4.5vmin;
-    overflow: hidden;
-    clip-path: circle(0vmax at 0% 0%);
-    clip-path: xywh(0% 0% 100% 4.5vmin);
+    overflow: visible;
     transition: clip-path 300ms ease;
     will-change: clip-path;
     display: flex;
     flex-direction: column;
+    --name: "Select"
 }
 
 .selectOpen {
@@ -810,6 +810,58 @@ input[type=number] {
     touch-action: scroll;
     padding-left: 0.2vh;
 }
+
+.select::before {
+    content: var(--name);
+    position: absolute;
+    top: -1.25vmin;
+    padding-inline: 1.5vmin;
+    z-index: 3;
+    left: 0px;
+    height: 1.25vmin;
+    color: white;
+    font-size: 1.25vmin;
+
+    width: max-content;
+    background-color: inherit;
+    --angle: 30deg;
+    --offset: calc(1.5vmin * tan(var(--angle)));
+
+    /* /* --closedAmount: 0%; *./ */
+
+    clip-path: polygon(var(--offset) 0%,
+            calc(100% - var(--offset)) 0%,
+            100% 100%,
+            100% 120%,
+            0% 120%,
+            0% 100%);
+}
+
+.select::after {
+    content: var(--name);
+    position: absolute;
+    top: -1.25vmin;
+    padding-inline: 1.5vmin;
+    z-index: 3;
+    left: 0px;
+    font-size: 1.25vmin;
+    width: max-content;
+    height: 1.25vmin;
+    color: white;
+    background-color: rgba(255, 255, 255, 0.123);
+    --offset: calc(1.5vmin * tan(var(--angle)));
+    --angle: 30deg;
+
+    /* /* --closedAmount: 0%; *./ */
+
+    clip-path: polygon(var(--offset) 0%,
+            calc(100% - var(--offset)) 0%,
+            100% 100%,
+            100% 120%,
+            0% 120%,
+            0% 100%);
+}
+
 
 .multiSwitch {
     width: 50%;
@@ -1434,7 +1486,7 @@ input[type=number] {
 }
 
 
-.tunableInterface{
+.tunableInterface {
     background-color: rgb(0, 42, 53);
     width: 10vh;
     height: 10vh;
@@ -2087,23 +2139,81 @@ input[type=number] {
         width: 40cqmin;
         height: 44.5cqmin;
         margin-top: 35cqmin;
-        overflow: hidden;
-        clip-path: circle(0cqmax at 0% 0%);
-        clip-path: xywh(0% 0% 100% 9cqmin);
+        /* overflow: hidden; */
+        overflow: visible;
+        /* clip-path: circle(0cqmax at 0% 0%); */
+        clip-path: xywh(0% -4cqmin 100% 13cqmin);
         transition: clip-path 300ms ease;
+        position: relative;
         will-change: clip-path;
         display: flex;
         flex-direction: column;
+        --name: attr(data-name raw-string);
+    }
+
+    .select::before {
+        content: var(--name);
+        position: absolute;
+        top: -2.5cqmin;
+        padding-inline: 3cqmin;
+        z-index: 3;
+        left: 0px;
+        height: 2.5cqmin;
+        color: white;
+        font-size: 2.5cqmin;
+
+        width: max-content;
+        background-color: inherit;
+        --angle: 30deg;
+        --offset: calc(3cqmin * tan(var(--angle)));
+
+        /* /* --closedAmount: 0%; *./ */
+
+        clip-path: polygon(var(--offset) 0%,
+                calc(100% - var(--offset)) 0%,
+                100% 100%,
+                100% 120%,
+                0% 120%,
+                0% 100%);
+    }
+
+    .select::after {
+        content: var(--name);
+        position: absolute;
+        top: -2.5cqmin;
+        padding-inline: 3cqmin;
+        z-index: 3;
+        left: 0px;
+        font-size: 2.5cqmin;
+        width: max-content;
+        height: 2.5cqmin;
+        color: white;
+        background-color: rgba(255, 255, 255, 0.123);
+        --offset: calc(3cqmin * tan(var(--angle)));
+        --angle: 30deg;
+
+        /* /* --closedAmount: 0%; *./ */
+
+        clip-path: polygon(var(--offset) 0%,
+                calc(100% - var(--offset)) 0%,
+                100% 100%,
+                100% 120%,
+                0% 120%,
+                0% 100%);
     }
 
     .selectOpen {
 
         clip-path: circle(200cqmax at 0% 0%);
+        clip-path: xywh(0% -44.5cqh 100% 89cqh);
+    }
+
+    .selectOpen>.selectOptionHolder {
         overflow-y: scroll;
-        clip-path: xywh(0% -44.5cqh 100% 89cqh)
     }
 
     .selectOption {
+
         background-color: #7300ff;
         font-size: 7cqmin;
         /* padding:0.4cqh; */
@@ -2427,7 +2537,37 @@ input[type=number] {
         min-height: 20cqmin;
         height: min-content;
         width: min-content;
+        position: relative;
         background-color: rgb(24, 24, 24);
+        --name: attr(data-name raw-string);
+    }
+
+    .buttonOptGroup:not(.currentDrag)::after {
+        position: absolute;
+        top: 0px;
+        left: 50%;
+        transform: translateX(-50%);
+        content: var(--name);
+        z-index: 2;
+        top: -2.5cqmin;
+        padding-inline: 3cqmin;
+        z-index: 3;
+        font-size: 2.5cqmin;
+        width: max-content;
+        height: 2.5cqmin;
+        color: white;
+        background-color: inherit;
+        --offset: calc(3cqmin * tan(var(--angle)));
+        --angle: 30deg;
+
+        /* /* --closedAmount: 0%; *./ */
+
+        clip-path: polygon(var(--offset) 0%,
+                calc(100% - var(--offset)) 0%,
+                100% 100%,
+                100% 120%,
+                0% 120%,
+                0% 100%);
     }
 
     .buttonOptGroup .optGroupButton {
@@ -2932,7 +3072,7 @@ input[type=number] {
         overflow-wrap: break-word;
     }
 
-    .numberLineTicks{
+    .numberLineTicks {
         height: 2cqmin;
         display: flex;
         margin-bottom: 1.5cqmin;
@@ -2940,7 +3080,7 @@ input[type=number] {
         justify-content: space-between;
     }
 
-    .numberLineTick{
+    .numberLineTick {
         /* width: 0%  ; */
         /* left: calc(25% * sibling-count()); */
         height: 2cqmin;
@@ -2953,30 +3093,31 @@ input[type=number] {
         /* container-type: inline-size; */
     }
 
-    .numberLineTick:first-child{
+    .numberLineTick:first-child {
         text-align: start;
         --content: "";
 
     }
-    .numberLineTick:last-child{
+
+    .numberLineTick:last-child {
         text-align: end;
         --content: "";
 
     }
-    
-    .numberLineTick::after{
+
+    .numberLineTick::after {
         color: rgba(255, 255, 255, 0.102);
 
         font-size: 3cqmin;
         z-index: 3;
         transform: translateX(-50%);
-        top:3.25cqmin;
+        top: 3.25cqmin;
         left: -50%;
         position: relative;
         content: var(--content);
     }
 
-    
+
 
     .meterHolder {
         --noValueDisplay: none;
@@ -4031,7 +4172,7 @@ input[type=number] {
         margin-left: auto;
     }
 
-    .tunableInterface{
+    .tunableInterface {
         background-color: transparent;
         width: 100%;
         height: 100%;
@@ -4039,6 +4180,29 @@ input[type=number] {
         align-items: center;
         justify-content: center;
         justify-items: center;
+        position: relative;
+    }
+
+
+    .tunableInterfaceLocked:not(.currentDrag)::after {
+        content: "";
+        display: block;
+        position: absolute;
+        z-index: 40;
+        background-color: rgba(0, 0, 0, 0.308);
+        background: repeating-linear-gradient(45deg,
+                #00000000,
+                #00000000 1.5vh,
+                rgba(32, 32, 32, .4) 1.5vh,
+                rgba(32, 32, 32, .4) 3vh);
+        background-position-x: 20%;
+        background-size: 200%;
+        border-radius: 1cqh;
+        pointer-events: none;
+        animation: infinite stripes 1s forwards linear;
+        /* width: 100%; */
+        inset: 0
+            /* height: fit-content; */
     }
 
     @media (max-aspect-ratio: 1/1) {
@@ -4349,11 +4513,14 @@ meter:not([value]) {
     animation-name: tilt-shaking;
 }
 
-.removeShake:hover {
+.removeShake:hover:not(.tunableInterface) {
     animation-duration: 0.15s;
     animation-iteration-count: infinite;
     animation-name: tilt-remove;
 }
+
+
+
 
 @keyframes tilt-shaking {
     0% {
@@ -4509,6 +4676,11 @@ meter:not([value]) {
     padding: 0px;
 }
 
+.textInput:disabled {
+    border: none;
+    background-color: transparent;
+}
+
 .colorInput {
     width: 62.5%;
     height: 4.5vh;
@@ -4533,6 +4705,37 @@ meter:not([value]) {
     margin-top: .05vh;
     margin-bottom: .05vh;
     padding: 0px;
+}
+
+.graphTopicFinder{
+    width: 35%;
+    padding-inline: 3%;
+    height: 4vh;
+    display: flex;
+    border-radius: 1vh;
+    background-color: rgb(11, 11, 11);
+    font-size: 2vh;
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+    border: rgb(47, 47, 47) solid 0.25vh;
+    color: white;
+        overflow-x: scroll;
+    overflow-y: hidden;
+}
+
+.graphTopicFinderP{
+    text-wrap: nowrap;
+    height: 4vh;
+    width: max-content;
+}
+
+.psuedoFormInput{
+    position: absolute;
+    width: 0%;
+    left:20%;
+    opacity:0%;
 }
 
 .sideBar .numberTextInput:disabled {
@@ -4650,6 +4853,21 @@ meter:not([value]) {
     box-sizing: border-box;
 }
 
+.graphAdder {
+    transition: margin-top ease;
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    align-items: center;
+    justify-content: space-evenly;
+    /* padding-top: 1vh; */
+    border: 0.25vh solid rgb(58, 58, 58);
+    width: 95%;
+    box-sizing: border-box;
+}
+
+
 .optionAdder p {
     width: min-content;
 }
@@ -4732,10 +4950,16 @@ meter:not([value]) {
         flex-wrap: nowrap;
         overflow-x: scroll;
         white-space: nowrap;
-        overflow-y: scroll;
+        overflow-y: hidden;
         text-overflow: clip;
     }
 
+}
+
+.sidebarTopics{
+    height: fit-content;
+    align-items: center;
+    justify-content: space-evenly;
 }
 
 .marginedOption {
@@ -4791,38 +5015,38 @@ meter:not([value]) {
     margin-top: auto;
 }
 
-:not(.currentDrag) > .fill:not(.currentDrag) {
+:not(.currentDrag)>.fill:not(.currentDrag) {
     width: 100%;
     height: 100%;
 }
 
-:not(.currentDrag) > .fill:not(.currentDrag).basicSubscription {
+:not(.currentDrag)>.fill:not(.currentDrag).basicSubscription {
     height: min-content;
     /* max-width: 100%; */
     width: 100%;
     flex-wrap: wrap;
 }
 
-:not(.currentDrag) > .fill:not(.currentDrag).select {
+:not(.currentDrag)>.fill:not(.currentDrag).select {
     height: 44.5cqmin;
     width: 100%;
 }
 
 
 
-:not(.currentDrag) > .fill:not(.currentDrag).numberComponent {
+:not(.currentDrag)>.fill:not(.currentDrag).numberComponent {
     width: 100%;
     height: min-content;
 
     grid-template-columns: 10cqmin 1fr 10cqmin;
 }
 
-:not(.currentDrag) > .fill:not(.currentDrag) .numberTextInput {
+:not(.currentDrag)>.fill:not(.currentDrag) .numberTextInput {
     width: 100%;
     max-width: 100%;
 }
 
-:not(.currentDrag) > .fill:not(.currentDrag).buttonOptGroup {
+:not(.currentDrag)>.fill:not(.currentDrag).buttonOptGroup {
     display: flex;
     flex-direction: column;
     flex-wrap: wrap;
@@ -4833,7 +5057,7 @@ meter:not([value]) {
     container-name: buttonOptGroup;
 }
 
-:not(.currentDrag) > .fill:not(.currentDrag).buttonOptGroup .optGroupButton {
+:not(.currentDrag)>.fill:not(.currentDrag).buttonOptGroup .optGroupButton {
     height: calc(75% / sibling-count());
     width: auto;
     aspect-ratio: 1/1;
@@ -4843,8 +5067,39 @@ meter:not([value]) {
 
 }
 
+
+:not(.currentDrag)>.fill:not(.currentDrag).buttonOptGroup::after {
+    position: absolute;
+    top: 0px;
+    left: 50%;
+    transform: translateX(-50%);
+    content: var(--name);
+    z-index: 2;
+    top: calc(-2.5vmin / var(--vhDif));
+
+    padding-inline: calc(3vmin / var(--vhDif));
+    z-index: 3;
+    font-size:calc(2.5vmin / var(--vhDif));
+    width: max-content;
+    height:calc(2.5vmin / var(--vhDif));
+    color: white;
+    background-color: inherit;
+    --offset: calc( (2.5vmin / var(--vhDif)) * tan(var(--angle)));
+    --angle: 30deg;
+
+    /* /* --closedAmount: 0%; *./ */
+
+    clip-path: polygon(var(--offset) 0%,
+            calc(100% - var(--offset)) 0%,
+            100% 100%,
+            100% 120%,
+            0% 120%,
+            0% 100%);
+}
+
+
 @container buttonOptGroup (min-aspect-ratio: 1/1) {
-    :not(.currentDrag) > .fill:not(.currentDrag).buttonOptGroup .optGroupButton {
+    :not(.currentDrag)>.fill:not(.currentDrag).buttonOptGroup .optGroupButton {
         width: calc(75% / sibling-count());
         height: auto;
         font-size: calc(4vmin / var(--vhDif));
@@ -4856,34 +5111,34 @@ meter:not([value]) {
 
 }
 
-:not(.currentDrag) > .fill:not(.currentDrag) .axisKnob {
+:not(.currentDrag)>.fill:not(.currentDrag) .axisKnob {
     width: 90%;
 }
 
-:not(.currentDrag) > .fill:not(.currentDrag) .verticalAxisKnob {
+:not(.currentDrag)>.fill:not(.currentDrag) .verticalAxisKnob {
     height: 80%;
 }
 
 
-:not(.currentDrag) > .fill:not(.currentDrag) .numberTextInput {
+:not(.currentDrag)>.fill:not(.currentDrag) .numberTextInput {
     width: var(--w);
     --w: 100%;
 }
 
-:not(.currentDrag) > .fill:not(.currentDrag).basicLogger {
+:not(.currentDrag)>.fill:not(.currentDrag).basicLogger {
     --w: 100%;
 
     width: var(--w);
 }
 
 
-:not(.currentDrag) > .fill:not(.currentDrag) .basicLoggerTitle {
+:not(.currentDrag)>.fill:not(.currentDrag) .basicLoggerTitle {
 
     width: 100%;
 }
 
 
-:not(.currentDrag) > .fill:not(.currentDrag).numberLine {
+:not(.currentDrag)>.fill:not(.currentDrag).numberLine {
     --w: calc(100% - 1px);
 
     width: var(--w);
@@ -4891,7 +5146,7 @@ meter:not([value]) {
 }
 
 
-:not(.currentDrag) > .fill:not(.currentDrag) .cameraStream {
+:not(.currentDrag)>.fill:not(.currentDrag) .cameraStream {
     object-fit: cover;
 }
 
@@ -5401,7 +5656,6 @@ meter:not([value]) {
 
     .inputComponents {
         width: 100%;
-
         width: max-content;
         /* border-style: */
         padding: 0px;
@@ -5591,4 +5845,59 @@ meter:not([value]) {
         clip-path: xywh(0% 0% 0% 100%);
 
     }
+}
+
+
+
+::-webkit-scrollbar {
+    width: 1cqmin;
+    height: 1cqmin;
+
+
+}
+
+::-webkit-scrollbar-track {
+    background-color: rgba(0, 0, 0, 0.568);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #9a9a9a;
+    border-radius: 10em;
+
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #ffffff;
+}
+
+@keyframes stripes {
+    0% {
+        background-position-x: 0%;
+
+
+    }
+
+    100% {
+        background-position-x: -4.3vh;
+    }
+
+}
+
+
+.select.removeShake:hover>.selectTitle {
+    border-color: red;
+}
+
+
+
+.removeShake>.editableComponent {
+    animation-duration: 0.15s;
+    animation-iteration-count: infinite;
+    animation-name: tilt-shaking;
+}
+
+.removeShake:hover>.editableComponent {
+    animation-duration: 0.15s;
+    animation-iteration-count: infinite;
+    animation-name: tilt-remove;
 }

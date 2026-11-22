@@ -101,17 +101,17 @@ export function cq(container, percent) {
 }
 
 export function v(percent) {
-  const $win = $(window);
-  
-  const calculatedVw = $win.width() * percent;
-  const calculatedVh = $win.height() * percent;
+    const $win = $(window);
 
-  return {
-    vw: calculatedVw,
-    vh: calculatedVh,
-    vmax: Math.max(calculatedVh, calculatedVw),
-    vmin: Math.min(calculatedVh, calculatedVw)
-  };
+    const calculatedVw = $win.width() * percent;
+    const calculatedVh = $win.height() * percent;
+
+    return {
+        vw: calculatedVw,
+        vh: calculatedVh,
+        vmax: Math.max(calculatedVh, calculatedVw),
+        vmin: Math.min(calculatedVh, calculatedVw)
+    };
 }
 
 export function pxToCq(container, pixels) {
@@ -127,7 +127,7 @@ export function pxToCq(container, pixels) {
 }
 
 export function setSelectOpener() {
-    $(".select").not(".sideBarSelect").off("pointerdown.selectOpener").on("pointerdown.selectOpener", (event) => {
+    $(".select").not(".sideBarSelect").off("pointerup.selectOpener").on("pointerup.selectOpener", (event) => {
         if (!$(event.target).hasClass("textInput") && !$(event.target).hasClass("delete") && !$(event.target).hasClass("save") && !$(event.target).hasClass("saveManager")) {
             $(event.currentTarget).toggleClass("selectOpen")
 
@@ -137,7 +137,9 @@ export function setSelectOpener() {
 
 export let outputComponents = {
     topic: "",
+    tunable: false,
     changing: false,
+    finding: false,
     changingValidTypes: ["all"],
     changingSidebar: "",
 }
@@ -493,10 +495,25 @@ function bindFullScreen() {
 
 function bindSelectCloser() {
     $("html").on("click", (event) => {
-        if (!$(event.target).hasClass("selectTitle") && !$(event.target).hasClass("textInput") && !$(event.target).hasClass("delete") && !$(event.target).hasClass("save") && !$(event.target).hasClass("saveManager")) {
+        if (!$(event.target).hasClass("selectTitle") && !$(event.target).hasClass("selectOptionHolder") && !$(event.target).hasClass("selectOption") && !$(event.target).hasClass("textInput") && !$(event.target).hasClass("delete") && !$(event.target).hasClass("save") && !$(event.target).hasClass("saveManager")) {
             $(".select").removeClass("selectOpen").scrollTop(0)
         }
     })
+}
+
+function bindInputBlocker() {
+    const input = document.getElementById('lockedInput');
+
+    input.addEventListener('beforeinput', (e) => {
+        e.preventDefault();
+    });
+
+    input.addEventListener('keydown', (e) => {
+        // Allow Tab so keyboard navigation isn't trapped
+        if (e.key !== 'Tab') {
+            e.preventDefault();
+        }
+    });
 }
 
 init()
@@ -510,7 +527,8 @@ function init() {
     }
 
 
-    //GenUi
+    //General Ui
+    bindInputBlocker()
     bindFullScreen();
     setSelectOpener();
     bindSelectCloser();

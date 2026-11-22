@@ -23,10 +23,12 @@
 // 
 
 import { outputComponents, createSideTab, multiSwitchButtonSet, setSelectOpener, cq, v, toastMessage } from "../ui.js"
-import { createDefaultOf, defaultSimilarOptions, setSimilarOptions, addButtonToAnimate, createDropdown, createOptGroup, globalGraphRef, generateCssIfStatement, rebindAllComponents } from "./components/components.js"
+import { createDefaultOf, defaultSimilarOptions, setSimilarOptions, addButtonToAnimate, createDropdown, createOptGroup, globalGraphRef, generateCssIfStatement, rebindAllComponents, setupNewGraphHandeler } from "./components/components.js"
 import { tabGrid, setGridInput, setCornerBorder, clientDragHandler, addToCurrentDrag, findEndOffset, grid } from "./grid.js"
-import { topicObject, nt4Client, getStructValue, subscribedTopics } from "../coms.js"
-import { vh } from "../../lib/util.js"
+import { topicObject, nt4Client, getStructValue, subscribedTopics, compatabilityYear, subscribeOrQueue } from "../coms.js"
+import { vh, hslToHex } from "../../lib/util.js"
+import { outputComponentTypes } from "../save.js"
+import { CONVERSIONRATE, startTimeChanged } from "./components/graph.js"
 
 
 let nonSupportedTypes = {
@@ -34,6 +36,8 @@ let nonSupportedTypes = {
     "basicLogger": false,
     "numberLine": ["string", "boolean"],
     "radialGauge": ["string", "boolean"],
+    "graph": ["string", "boolean"],
+    "colorCoder": ["number"]
 }
 
 let editComponent = {
@@ -197,6 +201,17 @@ function bindComponentAdders() {
 
         if ($(event.currentTarget).parent().hasClass("outputComponents")) {
             jQueryReference = createDefaultOf(componentType, ".dashboardHolder", outputComponents.fullpath)
+        } else if (outputComponents.tunable) {
+            jQueryReference = createDefaultOf("tunableInterface", ".dashboardHolder", outputComponents.fullpath, componentType)
+
+            let dragRef = createDefaultOf("tunableInterface", ".dashboardHolder", "esc-UNDEFINED-esc").addClass("currentDrag")
+
+            let clientDrag = clientDragHandler(event, dragRef)
+            dragRef.remove()
+
+            addToCurrentDrag(jQueryReference, clientDrag.x, clientDrag.y, componentType)
+
+            return
         } else {
             jQueryReference = createDefaultOf(componentType, ".dashboardHolder", "esc-UNDEFINED-esc")
         }
@@ -247,7 +262,26 @@ function bindTrashCan() {
             if ($(event.currentTarget).hasClass("graph")) {
                 globalGraphRef[$(event.currentTarget).attr("data-graphKey")].renderer.destroy()
             }
-            $(event.currentTarget).remove()
+
+            let $ct = $(event.currentTarget)
+            let index = $ct.attr("data-subscriptionIndex")
+            if ($ct.hasClass("tunableInterface")) {
+                index = $ct.children().eq(0).attr("data-subscriptionIndex")
+            }
+
+            if ($ct.attr('data-topics') !== undefined && $ct.attr("data-subscriptionIndexes") !== undefined) {
+                let topics = JSON.parse($ct.attr('data-topics'))
+                let indexes = JSON.parse($ct.attr("data-subscriptionIndexes"))
+
+                for (let i = 0; i < topics.length; i++) {
+                    subscribedTopics[topics[i].split("|")[0]][indexes[topics[i]]] = false;
+                }
+            } else {
+                subscribedTopics[$ct.attr('data-topic').split("|")[0]][index] = false
+            }
+
+            $ct.remove()
+
         })
     })
 }
@@ -263,9 +297,9 @@ function bindMinMaxHandlers() {
         let val = $currentInput.parent().parent().find(".value")
         $currentInput.parent().parent().find(".step")
         if (min.val() != "" && max.val() != "") {
-            val.removeAttr("disabled")
+            // val.removeAttr("disabled")
         } else {
-            val.attr("disabled", "disabled").val("")
+            // val.attr("disabled", "disabled").val("")
         }
 
         if (parseFloat(val.val()) > parseFloat(max.val())) {
@@ -309,8 +343,9 @@ function bindMinMaxHandlers() {
 }
 
 function bindOptionAdder() {
-    $(".optionAdder").on("submit.addDiv", () => {
-        let $sbO = $("<div>").addClass("sidebarOption").insertBefore(".optionAdder").attr("data-name", $(".newOptionName").val()).attr("data-value", $(".newOptionValue").val()).attr("data-hex", $(".hex").val()).css("border-color", $(".hex").val())
+    $(".optionAdder").on("submit.addDiv", (e) => {
+        let hex = $(e.currentTarget).children(".hex")
+        let $sbO = $("<div>").addClass("sidebarOption").insertBefore(".optionAdder").attr("data-name", $(".newOptionName").val()).attr("data-value", $(".newOptionValue").val()).attr("data-hex", hex.val()).css("border-color", hex.val())
         $("<button>").addClass("sideBarEmojiButton").addClass("hamburger").text("☰").appendTo($sbO)
         $("<p>").text($(".newOptionName").val() + ":" + $(".newOptionValue").val()).appendTo($sbO)
         $("<div>").text("❌").addClass("sideBarEmojiButton").addClass("trashOption").appendTo($sbO).on("pointerdown.remove", (event) => {
@@ -354,18 +389,99 @@ function bindCoderAdderHandlers() {
     })
 }
 
+function bindGraphLineAdderHandlers() {
+    // $(".conditionPlus").on("click.addDiv", () => {
+    //     createConditionSidebarButton()
+
+    // })
+
+    $(".graphAdder").on("submit.addDiv", () => {
+        createGraphTopicSidebarButton();
+
+        $(".newGraphLineHex").val(getNextLineColor(JSON.parse(editComponent.currentTarget.attr("data-lineProperties"))))
+
+        return false;
+    })
+}
+
+// AI function that finds the next color given a object that has existing ones. 
+function getNextLineColor(lineProperties, saturation = 75, lightness = 50) {
+    // 1. Extract valid hex colors from lineProperties
+    const hexColors = Object.values(lineProperties || {})
+        .map(item => item?.color)
+        .filter(color => typeof color === 'string' && /^#?([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(color));
+
+    // If no lines exist yet, return a strong starting color
+    if (hexColors.length === 0) {
+        return hslToHex(210, saturation, lightness); // Vibrant Blue
+    }
+
+    // 2. Convert existing hex colors to hue angles (0 - 360) and sort them
+    const hues = hexColors
+        .map(hex => hexToHue(hex))
+        .sort((a, b) => a - b);
+
+    // 3. Find the largest angular gap between consecutive hues (including wrap-around at 360°)
+    let maxGap = -1;
+    let newHue = 0;
+
+    for (let i = 0; i < hues.length; i++) {
+        const current = hues[i];
+        // For the last item, wrap around the 360° circle to the first item
+        const next = i === hues.length - 1 ? hues[0] + 360 : hues[i + 1];
+        const gap = next - current;
+
+        if (gap > maxGap) {
+            maxGap = gap;
+            newHue = (current + gap / 2) % 360;
+        }
+    }
+
+    return hslToHex(Math.round(newHue), saturation, lightness);
+}
+
+// --- Helper Functions ---
+
+function hexToHue(hex) {
+    hex = hex.replace('#', '');
+    if (hex.length === 3) {
+        hex = hex.split('').map(char => char + char).join('');
+    }
+
+    const r = parseInt(hex.substring(0, 2), 16) / 255;
+    const g = parseInt(hex.substring(2, 4), 16) / 255;
+    const b = parseInt(hex.substring(4, 6), 16) / 255;
+
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const delta = max - min;
+
+    if (delta === 0) return 0; // Neutral gray/black/white
+
+    let hue = 0;
+    if (max === r) {
+        hue = ((g - b) / delta) % 6;
+    } else if (max === g) {
+        hue = (b - r) / delta + 2;
+    } else {
+        hue = (r - g) / delta + 4;
+    }
+
+    hue = Math.round(hue * 60);
+    return hue < 0 ? hue + 360 : hue;
+
+}
+
 function bindComponentRepositioner() {
     $(".reposistionComponent").on("pointerdown.reposComponent", (event) => {
         $(".sideBar").off("pointerup.setEdit pointermove.setEdit")
         let currentEditComponent = editComponent.currentTarget
 
 
-        if(currentEditComponent.attr("data-row") == undefined && currentEditComponent.parent().hasClass("tunableInterface")){
+        if (currentEditComponent.attr("data-row") == undefined && currentEditComponent.parent().hasClass("tunableInterface")) {
             currentEditComponent = editComponent.currentTarget.parent()
-            toastMessage("paresn")
-            console.log(currentEditComponent)
         }
-        
+
         setCornerBorder(0, 0, 0, 0, 0, true)
         let currentDrag = clientDragHandler(event, currentEditComponent)
         // console.log(editComponent.currentTarget.attr("data-componentType"))
@@ -486,9 +602,18 @@ function bindSidebarNav() {
     $(".openInput").on("pointerdown", () => {
         $(".ioComponents").css("display", "none")
         $(".editSidebar").css("display", "none")
-        $(".inputComponents").css("display", "flex")
+        $(".inputComponents").css("display", "flex").children().css("display", "")
         $(".sideBarUnderline").removeClass("sideBarUnderline")
         $(".openInput").addClass("sideBarUnderline")
+
+        outputComponents.topic = ""
+        outputComponents.changing = false
+        outputComponents.changingValidTypes = ["all"]
+        outputComponents.changingSidebar = ""
+        outputComponents.tunable = false
+        outputComponents.finding = false
+
+
     })
 }
 
@@ -536,6 +661,8 @@ function bindEditMenu(element, valueType, customEdit = false) {
             bindHideNav(inputBeingBound)
         } else if (inputBeingBound.attr("data-editing") == "data-recordconditions") {
             bindRecordConditions(inputBeingBound)
+        } else if (inputBeingBound.attr("data-editing") == "graphTopics") {
+            bindGraphTopics(inputBeingBound)
         } else if (inputBeingBound.attr("data-editing") == "data-topic") {
             bindTopic(inputBeingBound)
         } else if (inputBeingBound.attr("data-editing") !== "na") {
@@ -550,9 +677,9 @@ function bindEditMenu(element, valueType, customEdit = false) {
         let val = $(".doubleSidebar").find(".value")
 
         if (min.val() != "" && max.val() != "") {
-            val.removeAttr("disabled")
+            // val.removeAttr("disabled")
         } else {
-            val.attr("disabled", "disabled").val("")
+            // val.attr("disabled", "disabled").val("")
         }
     }
 
@@ -567,7 +694,8 @@ function bindEditMenu(element, valueType, customEdit = false) {
             })
         }
     }
-    6
+
+
     function bindAutoSend(inputBeingBound) {
         if (editComponent.currentTarget.attr("data-autoSend")) {
 
@@ -589,7 +717,7 @@ function bindEditMenu(element, valueType, customEdit = false) {
                     }
                 }
 
-                nt4Client.publishedTopics.get("/touchboard/" + editComponent.currentTarget.attr("data-topic")).autoSend = $ct.prop("checked");
+                nt4Client.publishedTopics.get(editComponent.currentTarget.attr("data-topic")).autoSend = $ct.prop("checked");
                 // editComponent.currentTarget.attr("data-autoSend", JSON.stringify($ct.prop("checked")))
             })
 
@@ -616,6 +744,8 @@ function bindEditMenu(element, valueType, customEdit = false) {
         }
         if (editComponent.currentTarget.children(".editThisName").length > 0) {
             nameInputText = editComponent.currentTarget.children(".editThisName").text()
+        } else {
+            nameInputText = getDataName(editComponent.currentTarget)
         }
 
 
@@ -628,6 +758,8 @@ function bindEditMenu(element, valueType, customEdit = false) {
 
             if ($comp.children(".editThisName").length > 0) {
                 $comp.children(".editThisName").text($ct.val())
+            } else if ($comp.attr("data-componentType") == "buttonOptGroup" || $comp.attr("data-componentType") == "select") {
+                editDataName($ct.val(), $comp);
             } else {
                 $comp.text($ct.val())
             }
@@ -650,6 +782,10 @@ function bindEditMenu(element, valueType, customEdit = false) {
             }
         } else if (editComponent.currentTarget.hasClass("axis") || editComponent.currentTarget.hasClass("verticalAxis")) {
             boundEditing = editComponent.currentTarget.children(".axisKnob, .verticalAxisKnob").attr(inputBeingBound.attr('data-editing'))
+
+            if (inputBeingBound.attr("data-editing") == "value") {
+                boundEditing = editComponent.currentTarget.children(".axisKnob, .verticalAxisKnob").val()
+            }
         } else if (editComponent.currentTarget.hasClass("numberLine")) {
             if (inputBeingBound.hasClass("max")) {
                 if (editComponent.currentTarget.attr("data-deriveAttributes") == "true") {
@@ -745,7 +881,7 @@ function bindEditMenu(element, valueType, customEdit = false) {
                     if (currentMeter.attr("min")) minNumber = currentMeter.attr("min");
                     let maxNumber = 0;
                     if (currentMeter.attr("max")) maxNumber = currentMeter.attr("max");
-                    
+
 
                     let step = (maxNumber - minNumber) / (subticks.length - 1)
                     for (let i = 0; i < subticks.length; i++) {
@@ -754,7 +890,7 @@ function bindEditMenu(element, valueType, customEdit = false) {
                         let text = parseFloat(((step * i) + parseFloat(minNumber)).toFixed(3));
 
                         subtick.text(text)
-                    } 
+                    }
                 }
 
 
@@ -916,6 +1052,21 @@ function bindEditMenu(element, valueType, customEdit = false) {
         }
     }
 
+    function bindGraphTopics() {
+        if (editComponent.currentTarget.hasClass("graph")) {
+            $(".sidebarTopics").remove();
+
+            let topics = JSON.parse(editComponent.currentTarget.attr("data-topics"))
+            let lineProperties = JSON.parse(editComponent.currentTarget.attr("data-lineproperties"))
+            $(".newGraphLineHex").val(getNextLineColor(lineProperties))
+            for (let i = 0; i < topics.length; i++) {
+                createGraphTopicSidebarButton(topics[i], lineProperties[topics[i]].width, lineProperties[topics[i]].color, false)
+            }
+        }
+
+    }
+
+
     function bindToggleMultiSwitch(inputBeingBound) {
         if (editComponent.currentTarget.attr("data-componenttype") != "toggleButton") return
 
@@ -1002,7 +1153,11 @@ function bindEditMenu(element, valueType, customEdit = false) {
         //bind components attribute which is found by the current input being bounds data-editing attribute.
         let boundEditing = editComponent.currentTarget.attr(inputBeingBound.attr("data-editing"))
 
-        if (boundEditing === "esc-UNDEFINED-esc") {
+        if (boundEditing) {
+            boundEditing.replace("/touchboard/", "")
+        }
+
+        if (boundEditing === "esc-UNDEFINED-esc" || boundEditing === "/touchboard/esc-UNDEFINED-esc") {
             boundEditing = ""
         }
 
@@ -1013,16 +1168,19 @@ function bindEditMenu(element, valueType, customEdit = false) {
         //defaults selection to all text for easy deletion
         inputBeingBound.val(boundEditing).on(`focus.selectText`, (event) => setTimeout(() => $(event.currentTarget)[0].setSelectionRange(0, $(event.currentTarget).val().length), 100))
 
-        inputBeingBound.off("input.typing blur.typing").on("input.typing blur.typing", (event) => {
+        inputBeingBound.off("blur.typing").on("blur.typing", (event) => {
             let $ct = $(event.currentTarget)
             let $comp = editComponent.currentTarget
 
-            if (nt4Client.publishedTopics.get("/touchboard/" + $ct.val()) && !(editComponent.currentTarget.attr("data-componenttype") == "oneShotButton" || editComponent.currentTarget.attr("data-componenttype") == "actionButton")) {
+
+            swapSubscriptionTopic("/touchboard/" + $ct.val(), { type: editComponent.currentTarget.attr("data-type") })
+
+            if (nt4Client.publishedTopics.get($ct.val()) && !(editComponent.currentTarget.attr("data-componenttype") == "oneShotButton" || editComponent.currentTarget.attr("data-componenttype") == "actionButton")) {
                 let allComponents = $(".editableComponent")
                 for (let i = 0; i < allComponents.length; i++) {
                     let currentComponent = allComponents.eq(i)
 
-                    if (currentComponent.attr("data-autoSend") == "true") {
+                    if (currentComponent.attr("data-autoSend") == "true" && currentComponent.attr("data-topic") == "/touchboard/" + $ct.val()) {
                         editComponent.currentTarget.attr("data-autoSend", "true")
 
                         inputBeingBound.parent().parent().find(".autoSend").prop("checked", true)
@@ -1031,7 +1189,7 @@ function bindEditMenu(element, valueType, customEdit = false) {
                 }
             }
 
-            $comp.attr($ct.attr('data-editing'), $ct.val())
+            $comp.attr($ct.attr('data-editing'), "/touchboard/" + $ct.val())
         })
     }
 
@@ -1048,7 +1206,8 @@ function bindEditMenu(element, valueType, customEdit = false) {
             inputBeingBound.text(boundEditing)
         }
 
-        //defaults selection to all text for easy deletion
+        //defaults selection to all text 
+        // for easy deletion
         inputBeingBound.val(boundEditing).on(`focus.selectText`, (event) => setTimeout(() => $(event.currentTarget)[0].setSelectionRange(0, $(event.currentTarget).val().length), 100))
 
         inputBeingBound.off("input.typing blur.typing").on("input.typing blur.typing", (event) => {
@@ -1065,16 +1224,17 @@ function bindEditMenu(element, valueType, customEdit = false) {
         let eDCT = editComponent.currentTarget
         let sidebarOptions = inputBeingBound.children(".sidebarOption")
         let componentsOptions = []
-
+        let colors = {}
         for (let j = 0; j < sidebarOptions.length; j++) {
+            colors[j] = {}
+            colors[j].color = sidebarOptions.eq(j).attr("data-hex")
             let newOption = {}
             newOption.name = sidebarOptions.eq(j).attr("data-name")
             newOption.value = sidebarOptions.eq(j).attr("data-value")
             newOption.color = sidebarOptions.eq(j).attr("data-hex")
             componentsOptions.push(newOption)
         }
-
-        // if (componentsOptions.length < 1) return
+        $(".stringHex").val(getNextLineColor(colors))
 
         let newComponent
         // console.log(JSON.parse(eDCT.attr("data-persist")) ? eDCT.attr("data-index") : 0)
@@ -1082,8 +1242,7 @@ function bindEditMenu(element, valueType, customEdit = false) {
         // console.log(eDCT)
 
         if (editComponent.currentTarget.hasClass("buttonOptGroup")) {
-
-            newComponent = createOptGroup(eDCT.attr("data-topic"), $(".currentTab").attr("data-page"), JSON.parse(eDCT.attr("data-autoSend")), eDCT.attr("data-color"), JSON.parse(eDCT.attr("data-persist")) ? eDCT.attr("data-index") : 0, componentsOptions, JSON.parse(eDCT.attr("data-defaultsimilaroptions")), JSON.parse(eDCT.attr("data-persist"))).div
+            newComponent = createOptGroup(getDataName(eDCT), eDCT.attr("data-topic"), $(".currentTab").attr("data-page"), JSON.parse(eDCT.attr("data-autoSend")), eDCT.attr("data-color"), JSON.parse(eDCT.attr("data-persist")) ? eDCT.attr("data-index") : 0, componentsOptions, JSON.parse(eDCT.attr("data-defaultsimilaroptions")), JSON.parse(eDCT.attr("data-persist"))).div
                 .css("grid-area", eDCT.css("grid-area"))
                 .attr("data-row", eDCT.attr("data-row"))
                 .attr("data-column", eDCT.attr("data-column"))
@@ -1092,7 +1251,7 @@ function bindEditMenu(element, valueType, customEdit = false) {
                 .attr("data-componentOptions", JSON.stringify(componentsOptions))
 
         } else {
-            newComponent = createDropdown(eDCT.attr("data-topic"), $(".currentTab").attr("data-page"), JSON.parse(eDCT.attr("data-autoSend")), eDCT.attr("data-color"), JSON.parse(eDCT.attr("data-persist")) ? eDCT.attr("data-index") : 0, componentsOptions, JSON.parse(eDCT.attr("data-defaultsimilaroptions")), JSON.parse(eDCT.attr("data-persist"))).div
+            newComponent = createDropdown(getDataName(eDCT), eDCT.attr("data-topic"), $(".currentTab").attr("data-page"), JSON.parse(eDCT.attr("data-autoSend")), eDCT.attr("data-color"), JSON.parse(eDCT.attr("data-persist")) ? eDCT.attr("data-index") : 0, componentsOptions, JSON.parse(eDCT.attr("data-defaultsimilaroptions")), JSON.parse(eDCT.attr("data-persist"))).div
                 .css("grid-area", eDCT.css("grid-area"))
                 .attr("data-row", eDCT.attr("data-row"))
                 .attr("data-column", eDCT.attr("data-column"))
@@ -1100,7 +1259,6 @@ function bindEditMenu(element, valueType, customEdit = false) {
                 .attr("data-endColumn", eDCT.attr("data-endColumn"))
                 .attr("data-componentOptions", JSON.stringify(componentsOptions))
         }
-
 
 
         editComponent.currentTarget.remove()
@@ -1147,8 +1305,14 @@ export function bindEditorResetter(element) {
         $(".editSidebar").css("display", "none")
         $(".ioComponents").css("display", "none")
         $(".outputComponents").css("display", "none")
+        $(".inputComponents").children().css("display", "")
 
-        outputComponents.changing = false;
+        outputComponents.topic = ""
+        outputComponents.changing = false
+        outputComponents.changingValidTypes = ["all"]
+        outputComponents.changingSidebar = ""
+        outputComponents.tunable = false
+        outputComponents.finding = false
 
         $(".typeHiddenTopic").removeClass("typeHiddenTopic")
 
@@ -1387,11 +1551,15 @@ export function addEditHandler(element, valueType, specificClass = false, specif
 
             changeSimilarInputs(JSON.parse(editComponent.currentTarget.attr("data-defaultSimilarOptions")))
 
+            $(".hideTunable").css("display", "")
             $(".allComponentOptions").css("display", "")
             $(".ioComponents").css("display", "none")
             $(".specificComponent").css("display", "none")
             $(".specificHideComponent").css("display", "")
             $(".editSidebar").css("display", "none")
+            $(".showTunable").css("display", "none")
+
+            $(".topicInput").removeAttr("disabled")
 
             if (specificClass) {
                 $(specificClass).css("display", "")
@@ -1399,6 +1567,14 @@ export function addEditHandler(element, valueType, specificClass = false, specif
 
             if (specificHideClass) {
                 $(specificHideClass).css("display", "none")
+            }
+
+
+            if ($ct.hasClass("tunableInterface") || $ct.hasClass("tunableInterfaced")) {
+                $(".hideTunable").css("display", "none")
+                $(".topicInput").attr("disabled", "disabled")
+                $(".showTunable").css("display", "")
+
             }
 
             $(".sideBarNav").children()
@@ -1418,8 +1594,8 @@ export function addEditHandler(element, valueType, specificClass = false, specif
 
             bindEditMenu($ct, valueType, customEdit)
 
-            if(element.parent().hasClass("tunableInterface")){
-                element=element.parent()
+            if (element.parent().hasClass("tunableInterface")) {
+                element = element.parent()
             }
             let gridPoses = findEndOffset(element.attr('data-row'), element.attr('data-column'), element.attr('data-endRow'), element.attr('data-endColumn'))
 
@@ -1481,6 +1657,7 @@ export function initEditor() {
     bindMinMaxHandlers()
     bindConditionalHandlers()
     bindCoderAdderHandlers()
+    bindGraphLineAdderHandlers()
     bindComponentRepositioner();
     bindComponentFillOption();
     bindSidebarNav();
@@ -1488,6 +1665,7 @@ export function initEditor() {
     handleOptionDrag()
     bindOptionAdder();
     bindTabCreator();
+    bindTopicFinder();
     addExplainers();
     bindEditorResetter($(".editNavBack, .trashCan, .editTabs, .tab, .addTab, .tabCreator")) //Multi use
 
@@ -1506,10 +1684,13 @@ export function changeSimilarInputs(similarOptions) {
 export function topicToSidebar(topic, schemasPassed = false) {
     if (topic.type.includes("proto") || topic.type.includes("structschema")) return
     if (topic.type.includes("struct") && !schemasPassed) return;
-    if (topic.name.split("/")[1].includes("touchboard")) return;
+    // if (topic.name.split("/")[1].includes("to    uchboard")) return;
 
     let split = topic.name.split("/")
-    split.shift();
+
+    if (topic.name[0] == "/") {
+        split.shift();
+    }
 
     let currentPath = topicObject
     // console.log(topicObject)
@@ -1580,15 +1761,25 @@ export function topicToSidebar(topic, schemasPassed = false) {
         } else {
 
             if (i >= split.length - 1 && !topic.type.includes('struct')) {
+                if (currentPath.hasOwnProperty(split[i])) {
+                    continue
+                }
                 //If last in topic, make the button for it, unless its a struct then it will be treated as a folder
                 if (split[0] == "CameraPublisher" && split[i] == "streams") {
                     createButton("Stream", i, topic.name, "stream", split[i - 1], true)
                 }
 
+                if (split[i - 1] == "Tunables") {
+                    createButton(split[i].split(":")[0], i, topic.name, "tunable")
+                    continue
+                }
+
                 createButton(split[i].split(":")[0], i, topic.name)
                 continue
             }
-
+            if (split[i - 1] == "Tunables") {
+                createButton(split[i].split(":")[0], i, topic.name, "chooser", false, true)
+            }
             createFolder(split[i], i)
         }
     }
@@ -1642,6 +1833,12 @@ export function topicToSidebar(topic, schemasPassed = false) {
         else if (topictype.includes('bool')) {
             src = "BoolIcon.png"
             typeString = 'bool'
+        } else if (topictype.includes("tunable")) {
+            src = "TunableIcon.png"
+            typeString = topic.type
+        } else if (topictype.includes("chooser")) {
+            src = "ChooserIcon.png"
+            typeString = topic.type
         }
 
         if (topictype.includes("[]")) {
@@ -1660,66 +1857,11 @@ export function topicToSidebar(topic, schemasPassed = false) {
                 outputComponents.changingSidebar.css("display", "flex")
 
                 // console.log(subscribedTopics[0])
-
-                //If the current topic does not have a subscription handler array, make one
-                if (!subscribedTopics.hasOwnProperty(fullpath.split("|")[0])) {
-                    subscribedTopics[fullpath.split("|")[0]] = []
-                }
-
-                //Javascript nonsense to swap the value without referenceing. 
-                let newSubscriptionReference = subscribedTopics[(editComponent.currentTarget.attr('data-topic').split("|")[0])].slice(editComponent.currentTarget.attr("data-subscriptionIndex"), parseInt(editComponent.currentTarget.attr("data-subscriptionIndex")) + 1)
-
-                //Store the struct path for later decoding when the value is updated
-                if (fullpath != "") {
-                    newSubscriptionReference[0].structPath = fullpath
-                }
-
-                //Move the subsciption clone to the acutal array. 
-                subscribedTopics[fullpath.split("|")[0]].push(newSubscriptionReference[0])
-
-                //Replace old handler with false
-                subscribedTopics[editComponent.currentTarget.attr('data-topic').split("|")[0]][editComponent.currentTarget.attr("data-subscriptionIndex")] = false
-
-                //Set components topic, its subscription index, and its name 
-                editComponent.currentTarget.attr("data-topic", fullpath).attr("data-subscriptionindex", subscribedTopics[editComponent.currentTarget.attr('data-topic').split("|")[0]].length - 1).find(".editThisName").text(split.split(":")[0])
+                swapSubscriptionTopic(fullpath, topic, split.split(":")[0])
 
                 if (altDisplayName) {
                     editComponent.currentTarget.find(".editThisName").text(altDisplayName)
-                }
-
-                //If this topic currently exists on the server,
-                if (nt4Client.serverTopics.get(fullpath.split("|")[0])) {
-                    let val = "null"
-
-                    //If this topic has a value, assign val to it. 
-                    if (nt4Client.serverTopics.get(fullpath.split("|")[0]).value) {
-                        val = nt4Client.serverTopics.get(fullpath.split("|")[0]).value
-                    }
-
-                    if (topic.type.includes("struct")) {
-                        //If it is struct, we must decode the js object that the struct has the value stored in
-                        //This sets the inital value once it changes. 
-                        newSubscriptionReference[0].valueHandeler(getStructValue(fullpath, val))
-
-                        if (newSubscriptionReference[0].topicChangeHandler) {
-                            newSubscriptionReference[0].topicChangeHandler(fullpath.split("|")[0], getStructValue(fullpath, val))
-                        }
-                    } else {
-                        //Else assign inital value. 
-                        newSubscriptionReference[0].valueHandeler(val)
-
-                        if (newSubscriptionReference[0].topicChangeHandler) {
-                            newSubscriptionReference[0].topicChangeHandler(fullpath.split("|")[0], val)
-                        }
-                    }
-
-                } else {
-                    //If it does not exist on the server, put a blank string. 
-                    if (newSubscriptionReference[0].topicChangeHandler) {
-                        newSubscriptionReference[0].topicChangeHandler(fullpath.split("|")[0], "")
-                    }
-
-                    newSubscriptionReference[0].valueHandeler("")
+                    editDataName(editComponent.currentTarget, altDisplayName)
                 }
 
                 //Sets the name and path of the sidebar
@@ -1735,7 +1877,45 @@ export function topicToSidebar(topic, schemasPassed = false) {
                 }, 100);
 
 
+            } else if (outputComponents.finding) {
+                outputComponents.changingSidebar.css("display", "flex")
+
+                $(".newGraphLineTopic").val(fullpath)
+                $(".graphTopicFinderP").text(fullpath)
+
+
+                setTimeout(() => {
+                    outputComponents.finding = false
+                }, 100);
+
             } else {
+                if (topictype == 'tunable' || topictype == 'chooser') {
+                    let inputComp$ = $(".inputComponents").children().css("display", "")
+                    $(".inputComponents").css("display", 'flex')
+
+                    let notDisplayed = 0
+
+                    for (let i = 0; i < inputComp$.length; i++) {
+
+                        if (inputComp$.eq(i).attr("data-type") !== typeString) {
+                            inputComp$.eq(i).css("display", "none")
+                            notDisplayed++
+                        }
+
+                        if (notDisplayed >= inputComp$.length) $(".inputComponents").css("display", "none");
+
+                    }
+
+                    $("." + topic.type + "OutputComponents").css("display", "flex")
+
+                    if (topic.type == "boolean") {
+                        $(".actionButton").css("display", "none")
+                        $(".oneShotButton").css("display", "none")
+                    }
+
+                    outputComponents.tunable = true;
+                }
+
                 $("." + typeString + "OutputComponents").css("display", "flex")
             }
 
@@ -1820,6 +2000,76 @@ export function topicToSidebar(topic, schemasPassed = false) {
 
 }
 
+function swapSubscriptionTopic(fullpath, topic, newName = false) {
+
+    //If the current topic does not have a subscription handler array, make one
+    if (!subscribedTopics.hasOwnProperty(fullpath.split("|")[0])) {
+        subscribedTopics[fullpath.split("|")[0]] = []
+    }
+
+    //Javascript nonsense to swap the value without referenceing. 
+    let newSubscriptionReference = subscribedTopics[(editComponent.currentTarget.attr('data-topic').split("|")[0])].slice(editComponent.currentTarget.attr("data-subscriptionIndex"), parseInt(editComponent.currentTarget.attr("data-subscriptionIndex")) + 1)
+
+    //Store the struct path for later decoding when the value is updated
+    if (fullpath != "") {
+        newSubscriptionReference[0].structPath = fullpath
+    }
+
+    //Move the subsciption clone to the acutal array. 
+    subscribedTopics[fullpath.split("|")[0]].push(newSubscriptionReference[0])
+
+    //Replace old handler with false
+    subscribedTopics[editComponent.currentTarget.attr('data-topic').split("|")[0]][editComponent.currentTarget.attr("data-subscriptionIndex")] = false
+
+    //Set components topic, its subscription index, and its name 
+    editComponent.currentTarget.attr("data-topic", fullpath).attr("data-subscriptionindex", subscribedTopics[editComponent.currentTarget.attr('data-topic').split("|")[0]].length - 1)
+
+    if (newName) {
+        editComponent.currentTarget.find(".editThisName").text(newName)
+        editDataName(newName, editComponent.currentTarget)
+    }
+
+    //If this topic currently exists on the server,
+    if (nt4Client.serverTopics.get(fullpath.split("|")[0])) {
+        let val = "null"
+        nt4Client.subscribe([fullpath.split("|")[0]])
+
+
+        //If this topic has a value, assign val to it. 
+        if (nt4Client.serverTopics.get(fullpath.split("|")[0]).value) {
+            val = nt4Client.serverTopics.get(fullpath.split("|")[0]).value
+        }
+
+        if (topic.type.includes("struct")) {
+            //If it is struct, we must decode the js object that the struct has the value stored in
+            //This sets the inital value once it changes. 
+            newSubscriptionReference[0].valueHandeler(getStructValue(fullpath, val))
+
+            if (newSubscriptionReference[0].topicChangeHandler) {
+                newSubscriptionReference[0].topicChangeHandler(fullpath.split("|")[0], getStructValue(fullpath, val))
+            }
+        } else {
+            //Else assign inital value. 
+            newSubscriptionReference[0].valueHandeler(val)
+
+            if (newSubscriptionReference[0].topicChangeHandler) {
+                newSubscriptionReference[0].topicChangeHandler(fullpath.split("|")[0], val)
+            }
+        }
+
+    } else if (outputComponentTypes.includes(editComponent.currentTarget.attr("data-componenttype"))) {
+        nt4Client.subscribe([fullpath.split("|")[0]])
+    } else {
+        nt4Client.subscribe([fullpath.split("|")[0]])
+        //If it does not exist on the server, put a blank string. 
+        if (newSubscriptionReference[0].topicChangeHandler) {
+            newSubscriptionReference[0].topicChangeHandler(fullpath.split("|")[0], "")
+        }
+
+        newSubscriptionReference[0].valueHandeler("")
+    }
+}
+
 function createConditionSidebarButton(name = document.querySelector(".condition").selectedOptions[0].text, val = $(".condition").val().replaceAll(`'`, `"`), feedback = true) {
     let conditions = $(".sidebarCondition")
 
@@ -1867,6 +2117,131 @@ function createConditionSidebarButton(name = document.querySelector(".condition"
 
         $(event.currentTarget).parent().remove()
     }
+    )
+
+    return false
+}
+
+function bindTopicFinder() {
+    $(".graphTopicFinder").off("pointerdown.changeTopic").on("pointerdown.changeTopic", () => {
+        outputComponents.finding = true
+
+        $(".typeHiddenTopic").removeClass("typeHiddenTopic");
+
+        let currentlyNonAllowedTypes = nonSupportedTypes[editComponent.currentTarget.attr("data-componentType")]
+        // console.log(currentlyNonAllowedTypes)
+        if (currentlyNonAllowedTypes) {
+            for (let i = 0; i < currentlyNonAllowedTypes.length; i++) {
+                $("." + currentlyNonAllowedTypes[i] + "Topic").addClass("typeHiddenTopic")
+            }
+        }
+
+
+        outputComponents.changingSidebar = $("." + editComponent.valueType + "Sidebar")
+        outputComponents.changingSidebar.css("display", "none")
+        $(".outputTopics").css("display", "flex")
+    })
+}
+
+
+function createGraphTopicSidebarButton(topic = $(document.querySelector(".newGraphLineTopic")).val(), width = $(document.querySelector(".newGraphLineWidth")).val(), color = document.querySelector(".newGraphLineHex").value, feedback = true) {
+    let topics = $(".sidebarTopics")
+
+    for (let i = 0; i < topics.length; i++) {
+        if (topic == topics.eq(i).attr("data-topic").replaceAll(`'`, `"`)) {
+            return false
+        }
+    }
+
+    let $sbO = $("<div>").addClass("sidebarOption").addClass("sidebarTopics").insertBefore(".graphAdder").attr("data-topic", topic).attr("data-color", color)
+    let hex = $("<input>").val(color).addClass("hex").attr("type", "color").attr("name", "GraphActiveEdit").appendTo($sbO)
+    $("<p>").text(topic).appendTo($sbO).css("max-width", "calc(95cqw - 0.25vh - 0.25vh - 4vh - 4vh)")
+    let widthPut = $("<input>").addClass("numberTextInput").val(width).attr("placeholder", "width").appendTo($sbO).css("max-width", "5cqw")
+
+
+
+    if (feedback) {
+        let graphManager = globalGraphRef[editComponent.currentTarget.attr("data-graphkey")]
+
+        graphManager.renderer.createLine(topic, color, width)
+
+        setupNewGraphHandeler(graphManager, editComponent.currentTarget, topic)
+
+        let topicArray = JSON.parse(editComponent.currentTarget.attr("data-topics"))
+        topicArray.push(topic)
+        editComponent.currentTarget.attr("data-topics", JSON.stringify(topicArray))
+
+        let lineProperties = JSON.parse(editComponent.currentTarget.attr("data-lineProperties"))
+        lineProperties[topic] = {}
+        lineProperties[topic]["width"] = width
+        lineProperties[topic]["color"] = color
+        editComponent.currentTarget.attr("data-lineProperties", JSON.stringify(lineProperties))
+
+        subscribeOrQueue(topic)
+
+    }
+
+    widthPut.off("input.changeWidth").on("input.changeWidth", (event) => {
+        let $ct = $(event.currentTarget)
+        let eDCT = editComponent.currentTarget
+        let val = $ct.val()
+        let graphManager = globalGraphRef[eDCT.attr("data-graphkey")]
+        let topic = $ct.parent().attr("data-topic")
+        graphManager.renderer.editLineWidth(topic, val)
+
+        let graphLineProperties = JSON.parse(eDCT.attr("data-lineProperties"))
+
+        graphLineProperties[topic].width = val
+
+        eDCT.attr("data-lineProperties", JSON.stringify(graphLineProperties))
+    })
+
+
+    hex.off("input.changeCol").on("input.changeCol", (event) => {
+        let $ct = $(event.currentTarget)
+        let eDCT = editComponent.currentTarget
+        let val = $ct.val()
+        let graphManager = globalGraphRef[eDCT.attr("data-graphkey")]
+        let topic = $ct.parent().attr("data-topic")
+        graphManager.renderer.editLineColor(topic, val)
+
+        let graphLineProperties = JSON.parse(eDCT.attr("data-lineProperties"))
+
+        graphLineProperties[topic].color = val
+
+        eDCT.attr("data-lineProperties", JSON.stringify(graphLineProperties))
+    })
+
+    $("<div>").text("❌").addClass("sideBarEmojiButton").addClass("trashOption").appendTo($sbO).on("pointerdown.remove", (event) => {
+        let graphManager = globalGraphRef[editComponent.currentTarget.attr("data-graphkey")]
+        graphManager.renderer.removeLine(topic)
+
+        let topicArray = JSON.parse(editComponent.currentTarget.attr("data-topics"))
+        let topicArrayIndex = topicArray.indexOf(topic);
+
+        console.log(JSON.stringify(subscribedTopics))
+        let indexes = JSON.parse(editComponent.currentTarget.attr("data-subscriptionIndexes"))
+        if (topicArrayIndex !== -1) {
+            subscribedTopics[topicArray[topicArrayIndex].split("|")[0]][indexes[topicArray[topicArrayIndex]]] = false;
+        }
+
+        delete indexes[topicArray[topicArrayIndex]]
+        editComponent.currentTarget.attr("data-subscriptionIndexes", JSON.stringify(indexes))
+
+        console.log(JSON.stringify(subscribedTopics))
+        topicArray = topicArray.filter(item => item !== topic);
+        editComponent.currentTarget.attr("data-topics", JSON.stringify(topicArray))
+
+        let lineProperties = JSON.parse(editComponent.currentTarget.attr("data-lineProperties"))
+        delete lineProperties[topic]
+        editComponent.currentTarget.attr("data-lineProperties", JSON.stringify(lineProperties))
+
+
+
+
+        $sbO.remove()
+    }
+
     )
 
     return false
@@ -2049,4 +2424,26 @@ function setExampleMeter(min = 0, max = 100, low = "", high = "", optimum = "") 
 
 }
 
+function editDataName(name, component) {
+    let nameEditor = component;
+    if (!component.hasClass("editThisDataName")) {
+        nameEditor = component.find("editThisDataName")
+    }
 
+    if (name !== "") {
+        nameEditor.attr("data-name", name)
+    } else {
+        nameEditor.removeAttr("data-name")
+    }
+
+    return component
+}
+
+function getDataName(component) {
+    let nameGetter = component;
+    if (!component.hasClass("editThisDataName")) {
+        nameGetter = component.find("editThisDataName")
+    }
+
+    return nameGetter.attr("data-name")
+}

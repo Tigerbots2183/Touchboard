@@ -23,12 +23,13 @@
 // 
 
 import { changeSimilarInputs, addEditHandler } from "../editorUi.js"
-import { toastMessage } from "../../ui.js"
+import { setSelectOpener, toastMessage } from "../../ui.js"
 import { connectionDate, subscribedTopics, nt4Client, getStructValue, subscribeOrQueue, isConnected, compatabilityYear } from "../../coms.js"
-import { objectIncludes } from "../../../lib/util.js"
-import { addToRender, renderFrame } from "../../renderer.js"
-import { initGraph, CONVERSIONRATE, startTime, startTimeQueue, startTimeChanged, queueForStartTimeIfRequired } from "./graph.js"
+import { hslToHex, objectIncludes } from "../../../lib/util.js"
+import { addToRender } from "../../renderer.js"
+import { initGraph, CONVERSIONRATE, startTime, startTimeChanged, queueForStartTimeIfRequired } from "./graph.js"
 import { MathUtils } from "../../../lib/util.js"
+import { getComponentSpecificAsObject, makeComponentFromJson, outputComponentTypes } from "../../save.js"
 
 export let defaultSimilarOptions = {
     fill: true,
@@ -56,9 +57,26 @@ export function createActionButton(displayName, topic, append = false, hex = "#2
     }
 
     setSimilarOptions(actionButton, similarOptions)
-    addButtonToAnimate(actionButton)
+    let animation = addButtonToAnimate(actionButton)
     addEditHandler(actionButton, "boolean")
     bindComponent(actionButton, "actionButton")
+
+    let actionHandler = (value) => {
+        if (value) {
+            animation(actionButton.offset().left + (actionButton.width() / 2), actionButton.offset().top + (actionButton.height() / 2), actionButton)
+        }
+    }
+
+    let subscribedReference = {
+        'jQueryReference': false,
+        'parentReference': actionButton,
+        'topic': topic,
+        "allowLoopback": true,
+        'valueHandeler': actionHandler,
+        // 'topicChangeHandler': topicChangeHandler
+    }
+
+    addSubscribedReference(subscribedReference)
 
 
     return actionButton
@@ -84,9 +102,27 @@ export function createOneShotButton(displayName, topic, append = false, hex = "#
     }
 
     setSimilarOptions(oneShotButton, similarOptions)
-    addButtonToAnimate(oneShotButton)
+    let animation = addButtonToAnimate(oneShotButton)
     addEditHandler(oneShotButton, "boolean")
     bindComponent(oneShotButton, "oneShotButton")
+
+    let oneShotHandler = (value) => {
+        if (!value) {
+            animation(oneShotButton.offset().left + (oneShotButton.width() / 2), oneShotButton.offset().top + (oneShotButton.height() / 2), oneShotButton)
+        }
+    }
+
+    let subscribedReference = {
+        'jQueryReference': false,
+        'parentReference': oneShotButton,
+        'topic': topic,
+        "allowLoopback": true,
+        'valueHandeler': oneShotHandler,
+        // 'topicChangeHandler': topicChangeHandler
+    }
+
+    addSubscribedReference(subscribedReference)
+
     return oneShotButton
 }
 
@@ -123,10 +159,41 @@ export function createToggleButton(displayName, topic, autoSend = false, append 
 
 
     setSimilarOptions(toggleButton, similarOptions)
-    addButtonToAnimate(toggleButton)
+    let animation = addButtonToAnimate(toggleButton)
     addEditHandler(toggleButton, "boolean", ".toggleSpecific")
 
     bindComponent(toggleButton, "toggleButton")
+
+    let toggleHandler = (value) => {
+        console.log(value)
+        toggleButton.attr("data-value", JSON.stringify(value))
+
+        if (value) toggleButton.addClass("toggledOn")
+        else toggleButton.removeClass("toggledOn")
+
+        let oldBG = toggleButton.css("background-color").replace(/^([^,]*,[^,]*,[^,]*),.*$/, '$1')
+
+        if (toggleButton.hasClass("toggledOn")) {
+            toggleButton.css("background-color", oldBG + ", 0.6)")
+        } else {
+            toggleButton.css("background-color", oldBG + ", 0)")
+
+        }
+
+        animation(toggleButton.offset().left + (toggleButton.width() / 2), toggleButton.offset().top + (toggleButton.height() / 2), toggleButton)
+    }
+
+    let subscribedReference = {
+        'jQueryReference': false,
+        'parentReference': toggleButton,
+        'topic': topic,
+        "allowLoopback": true,
+        'valueHandeler': toggleHandler,
+        // 'topicChangeHandler': topicChangeHandler
+    }
+
+    addSubscribedReference(subscribedReference)
+
     return toggleButton
 }
 
@@ -174,6 +241,25 @@ export function createAxis(displayName, topic, autoSend = false, append = false,
     setSimilarOptions(axis.div, similarOptions)
     addEditHandler(axis.div, "double", ".axisSpecific")
     bindComponent(axis.div, "axis")
+
+    let axisHandler = (value) => {
+        addToRender(axis.knob[0], { "updating": "value", "newValue": value })
+        addToRender(axis.div[0], { "updating": "attribute", "attrName": "data-value", "newValue": value })
+        // axis.div.attr("data-value", value)
+        // axis.knob.val(value)
+    }
+
+    let subscribedReference = {
+        'jQueryReference': false,
+        'parentReference': axis.div,
+        'topic': topic,
+        "allowLoopback": true,
+        'valueHandeler': axisHandler,
+        // 'topicChangeHandler': topicChangeHandler
+    }
+
+    addSubscribedReference(subscribedReference)
+
     return axis
 }
 
@@ -198,6 +284,25 @@ export function createNumberComponent(title, topic, autoSend = false, append = f
     addEditHandler(numberComponent.div, "double", ".numberComponentSpecific")
 
     bindComponent(numberComponent.div, "numberComponent")
+
+    let numberComponentHandler = (value) => {
+        numberComponent.div.attr("data-value", value).find(".numberTextInput").val(value)
+        addToRender(numberComponent.input[0], { "updating": "attribute", "attrName": "value", "newValue": value })
+        addToRender(numberComponent.div[0], { "updating": "attribute", "attrName": "data-value", "newValue": value })
+
+    }
+
+    let subscribedReference = {
+        'jQueryReference': false,
+        'parentReference': numberComponent.div,
+        'topic': topic,
+        "allowLoopback": true,
+        'valueHandeler': numberComponentHandler,
+        // 'topicChangeHandler': topicChangeHandler
+    }
+
+    addSubscribedReference(subscribedReference)
+
     return numberComponent
 
     //    <button class="numberMinus animatedButton">-</button>
@@ -207,21 +312,22 @@ export function createNumberComponent(title, topic, autoSend = false, append = f
 
 }
 
-export function createDropdown(topic, append = false, autoSend = false, hex = 0, initialOptionIndex = 0, options = [], similarOptions = defaultSimilarOptions, persist = false) {
+export function createDropdown(name, topic, append = false, autoSend = false, hex = 0, initialOptionIndex = 0, options = [], similarOptions = defaultSimilarOptions, persist = false) {
 
 
 
     let dropdown = {
-        div: $("<div>").addClass("editableComponent").attr("data-persist", "false").attr("data-autoSend", JSON.stringify(autoSend)).attr('data-index', initialOptionIndex).addClass("select").attr("data-topic", topic).attr("data-type", "string").attr("data-componentType", "select").attr("data-componentOptions", JSON.stringify(options)).attr("data-defaultSimilarOptions", JSON.stringify(similarOptions)),
-
+        div: $("<div>").attr("data-name", name).addClass("editableComponent").addClass("editThisDataName").attr("data-persist", "false").attr("data-autoSend", JSON.stringify(autoSend)).attr('data-index', initialOptionIndex).addClass("select").attr("data-topic", topic).attr("data-type", "string").attr("data-componentType", "select").attr("data-componentOptions", JSON.stringify(options)).attr("data-defaultSimilarOptions", JSON.stringify(similarOptions)),
     }
 
 
     if (persist) {
         dropdown.div.attr("data-persist", "true")
     }
-
-    if (options.length !== 0) {
+    if (initialOptionIndex == -1) {
+        dropdown.div.attr("data-value", "").css("background-color", "#7777776b")
+        dropdown["title"] = $("<h1>").appendTo(dropdown.div).addClass("selectTitle").text("-Unset-")
+    } else if (options.length !== 0) {
         dropdown.div.attr("data-value", options[initialOptionIndex].value).css("background-color", options[initialOptionIndex].color + "6b")
         dropdown["title"] = $("<h1>").appendTo(dropdown.div).addClass("selectTitle").text(options[initialOptionIndex].name)
     } else {
@@ -229,11 +335,12 @@ export function createDropdown(topic, append = false, autoSend = false, hex = 0,
 
     }
 
+    dropdown.optionHolder = $("<div>").addClass("selectOptionHolder").appendTo(dropdown.div)
 
 
     let $aO = []
     for (let i = 0; i < options.length; i++) {
-        $aO.push($("<h1>").appendTo(dropdown.div).addClass("selectOption").text(options[i].name).attr("data-index", i).attr("data-value", options[i].value).attr("data-hex", options[i].color).css("background-color", options[i].color));
+        $aO.push($("<h1>").appendTo(dropdown.optionHolder).addClass("selectOption").text(options[i].name).attr("data-index", i).attr("data-value", options[i].value).attr("data-hex", options[i].color).css("background-color", options[i].color));
     }
 
     dropdown["options"] = $aO
@@ -246,13 +353,55 @@ export function createDropdown(topic, append = false, autoSend = false, hex = 0,
     addEditHandler(dropdown.div, "string")
     bindComponent(dropdown.div, "select")
 
+    let dropdownHandler = (value) => {
+        let comp = dropdown.div
+
+        let children$ = comp.children();
+        let valueComp;
+
+        let options = JSON.parse(comp.attr('data-componentOptions'))
+
+        if (value == "" && Object.values(options).includes(comp.attr("data-value"))) {
+            setTimeout(() => {
+                nt4Client.addSample(comp.attr("data-topic"), comp.attr("data-value"))
+            }, 100);
+            value = comp.attr("data-value")
+        }
+
+        for (let i = 0; i < children$.length; i++) {
+            if (children$.eq(i).attr("data-value") == value) {
+                valueComp = children$.eq(i)
+                break;
+            }
+        }
+
+        if (valueComp == undefined) {
+            comp.css("background-color", "#7777776b").children(".selectTitle").text("-Undefined-").attr("data-attemptedValue", value)
+            return
+        }
+
+        comp.attr("data-value", value).css("background-color", valueComp.attr("data-hex") + "6b").attr("data-index", valueComp.attr("data-index"))
+        comp.children(".selectTitle").text(valueComp.text())
+    }
+
+    let valueChangeReference = {
+        'jQueryReference': false,
+        'parentReference': dropdown.div,
+        'topic': topic,
+        "allowLoopback": true,
+        'valueHandeler': dropdownHandler,
+        // 'topicChangeHandler': 
+    }
+
+    addSubscribedReference(valueChangeReference)
+
     return dropdown
 }
 
-export function createOptGroup(topic, append, autoSend = false, hex = 0, initialOptionIndex = 0, options = [], similarOptions = defaultSimilarOptions, persist = false) {
+export function createOptGroup(name, topic, append, autoSend = false, hex = 0, initialOptionIndex = 0, options = [], similarOptions = defaultSimilarOptions, persist = false) {
 
 
-    let optDiv = $("<div>").addClass("editableComponent").attr("data-autoSend", JSON.stringify(autoSend)).attr("data-index", initialOptionIndex).addClass("buttonOptGroup").attr("data-topic", topic).attr("data-type", "string").attr("data-componentOptions", JSON.stringify(options)).attr("data-componentType", "buttonOptGroup").attr("data-defaultSimilarOptions", JSON.stringify(similarOptions)).attr("data-persist", "false")
+    let optDiv = $("<div>").attr("data-name", name).addClass("editThisDataName").addClass("editableComponent").addClass("editThisDataName").attr("data-autoSend", JSON.stringify(autoSend)).attr("data-index", initialOptionIndex).addClass("buttonOptGroup").attr("data-topic", topic).attr("data-type", "string").attr("data-componentOptions", JSON.stringify(options)).attr("data-componentType", "buttonOptGroup").attr("data-defaultSimilarOptions", JSON.stringify(similarOptions)).attr("data-persist", "false")
 
     if (persist) {
         optDiv.attr("data-persist", "true")
@@ -299,6 +448,59 @@ export function createOptGroup(topic, append, autoSend = false, hex = 0, initial
     setSimilarOptions(optGroup.div, similarOptions)
     addEditHandler(optDiv, "string")
     bindComponent(optGroup.div, "buttonOptGroup")
+
+    let optGroupHandler = (value) => {
+        // let $ct = $(event.target)
+        let comp = optDiv
+
+        let children$ = comp.children();
+        let valueComp;
+
+        let options = JSON.parse(comp.attr('data-componentOptions'))
+
+        if (value == "" && Object.values(options).includes(comp.attr("data-value"))) {
+            setTimeout(() => {
+                nt4Client.addSample(comp.attr("data-topic"), comp.attr("data-value"))
+            }, 100);
+            value = comp.attr("data-value")
+        }
+
+        for (let i = 0; i < children$.length; i++) {
+            if (children$.eq(i).attr("data-value") == value) {
+                valueComp = children$.eq(i)
+
+                break;
+            }
+        }
+
+
+
+        let cI = comp.children(".optGroupButton")
+        for (let j = 0; j < cI.length; j++) {
+            cI.eq(j).css("background-color", cI.eq(j).css("background-color").replace(/^([^,]*,[^,]*,[^,]*),.*$/, '$1') + ", 0)").removeClass("toggledOn")
+        }
+
+        if (valueComp == undefined) {
+
+            return
+        }
+        let oldBG = valueComp.css("background-color").replace(/^([^,]*,[^,]*,[^,]*),.*$/, '$1')
+        let $ct = valueComp.addClass("toggledOn").css("background-color", oldBG + ", 0.6)")
+
+        comp.attr("data-value", $ct.attr("data-value")).attr("data-index", $ct.attr("data-index"))
+    }
+
+
+
+    let valueChangeReference = {
+        'jQueryReference': false,
+        'parentReference': optDiv,
+        'topic': topic,
+        "allowLoopback": true,
+        'valueHandeler': optGroupHandler,
+    }
+
+    addSubscribedReference(valueChangeReference)
 
     return optGroup
 
@@ -366,6 +568,7 @@ export function createBasicSubscription(displayName, topic, append = false, hex 
         'jQueryReference': topicReference,
         'parentReference': basicSubscription,
         'topic': topic,
+        "allowLoopback": true,
         'valueHandeler': basicSubscriptionHandler,
     }
 
@@ -540,6 +743,7 @@ export function createBasicLogger(displayName, topic, append = false, hex = "#0c
         'parentReference': basicLogger,
         'storedValues': [],
         'topic': topic,
+        "allowLoopback": true,
         'valueHandeler': basicLoggerHandler,
         'topicChangeHandler': topicChangeHandler
     }
@@ -552,8 +756,6 @@ export function createBasicLogger(displayName, topic, append = false, hex = "#0c
 }
 
 export function createNumberLine(displayName, topic, append = false, hex = "#0c0c0c", maxNumber, minNumber, low, high, optimum, similarOptions = defaultSimilarOptions) {
-
-
     let numberLine = $("<div>").addClass("numberLine")
         .attr("data-topic", topic)
         .addClass("editableComponent")
@@ -662,19 +864,11 @@ export function createNumberLine(displayName, topic, append = false, hex = "#0c0
                 if (numberLine.attr("data-deriveAttributes") == "true") {
                     if (Math.round(value) > parseFloat(meter.attr("max"))) {
                         addToRender(meter[0], { "updating": "attribute", "attrName": "max", "newValue": Math.round(value) })
-
-                        let meterTopTextChAvgLength = (("0" + Math.round(value / 4) + "" + Math.round(value / 2) + "" + Math.round(value * 0.75) + "" + Math.round(parseFloat(value))).length) / 5
-
-                        addToRender(meter[0], { "updating": "attribute", "attrName": "data-avgch", "newValue": meterTopTextChAvgLength })
                     }
                 }
                 if (numberLine.attr("data-deriveAttributesMin") == "true") {
                     if (Math.round(value) < parseFloat(meter.attr("min"))) {
                         addToRender(meter[0], { "updating": "attribute", "attrName": "min", "newValue": Math.round(value) })
-
-                        let meterTopTextChAvgLength = (("0" + Math.round(value / 4) + "" + Math.round(value / 2) + "" + Math.round(value * 0.75) + "" + Math.round(parseFloat(value))).length) / 5
-
-                        addToRender(meter[0], { "updating": "attribute", "attrName": "data-avgch", "newValue": meterTopTextChAvgLength })
                     }
                 }
 
@@ -688,8 +882,6 @@ export function createNumberLine(displayName, topic, append = false, hex = "#0c0
                 for (let i = 0; i < subticks.length; i++) {
                     let subtick = subticks.eq(i);
                     let text = parseFloat(((step * i) + parseFloat(min)).toFixed(3));
-                    console.log(text, i)
-
                     // subtick.text(text)
                     addToRender(subtick[0], { "updating": "text", "newValue": text })
                 }
@@ -709,6 +901,7 @@ export function createNumberLine(displayName, topic, append = false, hex = "#0c0
         'jQueryReference': false,
         'parentReference': numberLine,
         'topic': topic,
+        "allowLoopback": true,
         'valueHandeler': numberLineHandler,
         'topicChangeHandler': topicChangeHandler
     }
@@ -820,6 +1013,7 @@ export function createRadialGauge(displayName, topic, append, hex = "#0c0c0c", m
         'jQueryReference': false,
         'parentReference': radialGauge,
         'topic': topic,
+        "allowLoopback": true,
         'valueHandeler': gaugeHandler,
     }
 
@@ -937,12 +1131,14 @@ export function createCamera(displayName, topic, append, hideNav = false, videoF
         'jQueryReference': false,
         'parentReference': camera,
         'topic': topic,
+        "allowLoopback": false,
         'valueHandeler': cameraHandler,
         // 'topicChangeHandler': topicChangeHandler
     }
 
     let fmsReference = {
         'jQueryReference': false,
+        "allowLoopback": false,
         'parentReference': camera,
         'topic': "/FMSInfo/FMSControlData",
         'valueHandeler': recordConditionHandler,
@@ -956,8 +1152,7 @@ export function createCamera(displayName, topic, append, hideNav = false, videoF
 
 }
 
-export function createGraph(displayName, topics, append, hex = "#8400ff", width = 6, similarOptions = defaultSimilarOptions) {
-    let topicData = [];
+export function createGraph(displayName, topics, append, lineProperties, similarOptions = defaultSimilarOptions) {
     let graphKey = "g" + topics[0] + (Math.random() * 1000000)
 
     if (displayName == null) {
@@ -971,6 +1166,17 @@ export function createGraph(displayName, topics, append, hex = "#8400ff", width 
         displayName = displayName.split(":")[0]
     }
 
+    if (lineProperties == null) {
+        lineProperties = {}
+
+        for (let i = 0; i < topics.length; i++) {
+            lineProperties[topics[i]] = {
+                width: 4,
+                color: hslToHex(360 / topics.length * i, 50, 50)
+            }
+        }
+    }
+
     let graph = $("<div>").addClass("graph")
         .attr("data-linkAxis", "false")
         .attr("data-graphKey", graphKey)
@@ -978,8 +1184,7 @@ export function createGraph(displayName, topics, append, hex = "#8400ff", width 
         .attr("draggable", "false")
         .attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
         .attr("data-topics", JSON.stringify(topics))
-        .attr("data-color", hex)
-        .attr("data-width", width)
+        .attr("data-lineProperties", JSON.stringify(lineProperties))
         .addClass("editableComponent")
 
     if (append) {
@@ -1026,9 +1231,9 @@ export function createGraph(displayName, topics, append, hex = "#8400ff", width 
 
     createTicks(11, "Bottom", bottomTicks)
 
-    let bottomDrawer = $("<div>").addClass("bottomDrawer").css("display", "none").appendTo(graph);
+    $("<div>").addClass("bottomDrawer").css("display", "none").appendTo(graph);
 
-    let audio = $("<audio>").attr("id", "audio").appendTo(graph)
+    $("<audio>").attr("id", "audio").appendTo(graph)
 
     let graphHolder = $("<div>").addClass("graphHolder").appendTo(graph);
 
@@ -1052,22 +1257,17 @@ export function createGraph(displayName, topics, append, hex = "#8400ff", width 
 
             globalGraphRef[graphKey] = graphManager;
 
-            await graphManager["renderer"].createLine(topics[0], hex, width)
+            for (let i = 0; i < topics.length; i++) {
+                if (topics[i] == "esc-UNDEFINED-esc" || topics[i] == "esc-UNSET-esc") continue;
 
-            addEditHandler(graph, "subscription", ".graphSpecific", ".hideGraph", { graphManager: graphManager, topics: topics })
+                await graphManager["renderer"].createLine(topics[i], lineProperties[topics[i]].color, lineProperties[topics[i]].width)
 
-            function sendTopicData() {
-                let data = structuredClone(topicData)
-
-                topicData = [];
-
-                return { name: topics[0], dataArray: data, timestamp: nt4Client.getServerTime_us() / CONVERSIONRATE }
+                setupNewGraphHandeler(graphManager, graph, topics[i])
 
             }
 
-            graphManager.allTopicFuncs.push(
-                sendTopicData
-            )
+            addEditHandler(graph, "subscription", ".graphSpecific", ".hideGraph", { graphManager: graphManager, topics: topics })
+
         }
     }
 
@@ -1091,19 +1291,6 @@ export function createGraph(displayName, topics, append, hex = "#8400ff", width 
 
     setSimilarOptions(graph, similarOptions)
 
-    function graphDataHandler(value, timestamp) {
-        topicData.push(timestamp / CONVERSIONRATE - startTime, value)
-    }
-
-    let subscribedReference = {
-        'jQueryReference': false,
-        'parentReference': graph,
-        'topic': topics[0],
-        'valueHandeler': graphDataHandler,
-    }
-
-
-    addSubscribedReference(subscribedReference)
 
     return graph
 }
@@ -1131,9 +1318,9 @@ export function createColorCoder(displayName, topic, append, hex = "#0c0c0c", ke
         .attr("data-keys", JSON.stringify(keys))
         .attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
 
-    let name = $("<h1>").addClass("editThisName").text(displayName).appendTo(colorCoder)
+    $("<h1>").addClass("editThisName").text(displayName).appendTo(colorCoder)
 
-    let value = $("<div>").addClass("colorCoderValue").css("background-color", generateCssIfStatement("--data-value", keys)).appendTo(colorCoder)
+    $("<div>").addClass("colorCoderValue").css("background-color", generateCssIfStatement("--data-value", keys)).appendTo(colorCoder)
 
     if (append) {
         colorCoder.appendTo(append)
@@ -1159,6 +1346,7 @@ export function createColorCoder(displayName, topic, append, hex = "#0c0c0c", ke
     let subscribedReference = {
         'jQueryReference': false,
         'parentReference': colorCoder,
+        "allowLoopback": true,
         'valueHandeler': colorCoderHandler,
         "topic": topic,
         'topicChangeHandler': topicChangeHandler
@@ -1172,7 +1360,7 @@ export function createColorCoder(displayName, topic, append, hex = "#0c0c0c", ke
 
 //Tunable Interface
 
-export function createTunableInterface(displayName, topic, append, similarOptions = defaultSimilarOptions) {
+export function createTunableInterface(displayName, topic, append, subComponent, similarOptions = defaultSimilarOptions) {
     if (displayName == null) {
         let topicSplit = topic.split("/")
         displayName = topicSplit[topicSplit.length - 1]
@@ -1184,6 +1372,7 @@ export function createTunableInterface(displayName, topic, append, similarOption
         displayName = displayName.split(":")[0]
     }
 
+
     let tunableInterface = $("<div>")
         .addClass("tunableInterface")
         .attr("data-topic", topic)
@@ -1191,29 +1380,99 @@ export function createTunableInterface(displayName, topic, append, similarOption
         .attr("data-componentType", "tunableInterface")
         .attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
 
+    if (!isConnected) {
+        tunableInterface.addClass("tunableInterfaceLocked")
+    }
+
     if (append) {
         tunableInterface.appendTo(append)
     }
 
-    if (topic == "esc-UNSET-esc") return tunableInterface
+    if (topic == "esc-UNSET-esc" || topic == "esc-UNDEFINED-esc") return tunableInterface
 
-    let tunableInterfaceHandler = (value) => {
+    let compObj = {
 
+        topic: topic,
+        similarOptions: similarOptions
+    };
+
+    if (typeof subComponent == "string") {
+        compObj.displayName = displayName
+        compObj.type = subComponent
+        compObj.persist = false
+        compObj.autoSend = false
+
+        if (subComponent == 'numberComponent' || subComponent == "axis") {
+            compObj.min = ""
+            compObj.max = ""
+        }
+
+        if (subComponent == "select" || subComponent == "buttonOptGroup") {
+            compObj.topic = topic.replace(/\.type$/, '') + "selected/value"
+            compObj.componentOptions = JSON.stringify([])
+        }
+        if (subComponent == "select") {
+            compObj.componentOptions = JSON.stringify([{ name: topic, value: "" }])
+        }
+
+    } else {
+        compObj = { ...compObj, ...subComponent }
+        compObj.persist = false
+        compObj.autoSend = false
     }
+    makeComponentFromJson(compObj).appendTo(tunableInterface).addClass("tunableInterfaced")
 
-    let topicChangeHandler = (newTopic, val) => {
 
+    if ((subComponent.type == "select" || subComponent.type == "buttonOptGroup" || subComponent == "select" || subComponent == "buttonOptGroup") && topic.includes(".type")) {
+
+
+        let baseTopic = topic.replace(/\.type$/, '');
+
+        let optionAdditionHandler = (value) => {
+            if (value == undefined) return;
+            let comp = tunableInterface.children().eq(0)
+            let subComp = getComponentSpecificAsObject(comp)
+            subComp.type = comp.attr("data-componenttype")
+            subComp.autoSend = JSON.parse(comp.attr("data-autoSend"))
+            subComp.similarOptions = JSON.parse(comp.attr("data-defaultsimilaroptions"))
+            subComp.topic = baseTopic + "selected/value"
+            subComp.index = -1
+            let oldValue = comp.attr("data-value")
+            console.log(oldValue)
+            tunableInterface.empty()
+
+            let options = [];
+            for (let i = 0; i < value.length; i++) {
+                if (oldValue == value[i]) {
+                    subComp.index = i;
+                }
+                options.push(
+                    { name: value[i], value: value[i], color: hslToHex(360 / value.length * i, 50, 50) }
+                )
+            }
+
+
+
+            subComp.componentOptions = JSON.stringify(options)
+
+            makeComponentFromJson(subComp).appendTo(tunableInterface)
+
+            setSelectOpener()
+
+            // console.log(value)
+        }
+
+        let optionAdditionReference = {
+            'jQueryReference': false,
+            'parentReference': tunableInterface,
+            'topic': baseTopic + "options",
+            "allowLoopback": false,
+            'valueHandeler': optionAdditionHandler,
+        }
+
+        subscribeOrQueue(optionAdditionReference.topic)
+        addSubscribedReference(optionAdditionReference)
     }
-
-    let subscribedReference = {
-        'jQueryReference': false,
-        'parentReference': tunableInterface,
-        'topic': topic,
-        'valueHandeler': tunableInterfaceHandler,
-        'topicChangeHandler': topicChangeHandler
-    }
-
-    createActionButton(displayName, "test", tunableInterface)
 
     return tunableInterface
 
@@ -1329,6 +1588,8 @@ export function generateCssIfStatement(variableName, conditions) {
 function addSubscribedReference(subscribedReference, executeFirst = true) {
     let topic = subscribedReference.topic;
 
+    console.log(topic)
+
     if (topic.includes("|")) {
         if (!subscribedTopics.hasOwnProperty(topic.split("|")[0])) {
             subscribedTopics[topic.split("|")[0]] = []
@@ -1347,13 +1608,116 @@ function addSubscribedReference(subscribedReference, executeFirst = true) {
     }
 
     if (!executeFirst) return
-    // console.log(topic, nt4Client.serverTopics.get(topic.split("|")[0]))
+    console.log(topic, nt4Client.serverTopics.get(topic), nt4Client.publishedTopics.get(topic))
     if (nt4Client.serverTopics.get(topic)) {
         subscribedReference.valueHandeler(nt4Client.serverTopics.get(topic).value)
     } else if (nt4Client.serverTopics.get(topic.split("|")[0])) {
         let topicRef = nt4Client.serverTopics.get(topic.split("|")[0]);
         subscribedReference.valueHandeler(getStructValue(topic, topicRef.value))
     }
+
+    if (!subscribedReference.allowLoopback) return;
+
+    if (nt4Client.publishedTopics.get(topic)) {
+        if (!nt4Client.publishedTopics.get(topic).hasOwnProperty("value")) {
+            return
+        }
+        subscribedReference.valueHandeler(nt4Client.publishedTopics.get(topic).value)
+    }
+
+
+}
+
+export function setupNewGraphHandeler(graphManager, graph, topic) {
+    let topicData = [];
+
+    let sendTopicData = () => {
+        let data = structuredClone(topicData)
+
+        topicData = [];
+
+        return { name: topic, dataArray: data, timestamp: nt4Client.getServerTime_us() / CONVERSIONRATE }
+
+    }
+
+    graphManager.allTopicFuncs.push(
+        sendTopicData
+    )
+
+    let graphDataHandler = (value, timestamp) => {
+        if (!startTimeChanged && compatabilityYear == "2027") return;
+        topicData.push(timestamp / CONVERSIONRATE - startTime, value)
+    }
+
+    let subscribedReference = {
+        'jQueryReference': false,
+        'parentReference': graph,
+        "allowLoopback": true,
+        'topic': topic,
+        'valueHandeler': graphDataHandler,
+    }
+
+    addGraphSubscribedReference(subscribedReference)
+}
+
+function addGraphSubscribedReference(subscribedReference, executeFirst = true) {
+    let topic = subscribedReference.topic;
+
+    if (topic.includes("|")) {
+        if (!subscribedTopics.hasOwnProperty(topic.split("|")[0])) {
+            subscribedTopics[topic.split("|")[0]] = []
+        }
+        subscribedReference.structPath = topic
+        subscribedTopics[topic.split("|")[0]].push(subscribedReference)
+        // subscribedReference.parentReference.attr("data-subscriptionIndex", subscribedTopics[topic.split("|")[0]].length - 1)
+        let subTracker
+
+        if (subscribedReference.parentReference.attr("data-subscriptionIndexes") == undefined) {
+            subTracker = {}
+        } else {
+            subTracker = JSON.parse(subscribedReference.parentReference.attr("data-subscriptionIndexes"))
+        }
+
+        subTracker[topic] = subscribedTopics[topic.split("|")[0]].length - 1
+        subscribedReference.parentReference.attr("data-subscriptionIndexes", JSON.stringify(subTracker))
+
+
+    } else {
+        if (!subscribedTopics.hasOwnProperty(topic)) {
+            subscribedTopics[topic] = []
+        }
+        subscribedTopics[topic].push(subscribedReference)
+        // subscribedReference.parentReference.attr("data-subscriptionIndex", subscribedTopics[topic].length - 1)
+        let subTracker
+
+        if (subscribedReference.parentReference.attr("data-subscriptionIndexes") == undefined) {
+            subTracker = {}
+        } else {
+            subTracker = JSON.parse(subscribedReference.parentReference.attr("data-subscriptionIndexes"))
+        }
+
+        subTracker[subscribedReference.topic] = subscribedTopics[topic].length - 1
+        subscribedReference.parentReference.attr("data-subscriptionIndexes", JSON.stringify(subTracker))
+    }
+
+    if (!executeFirst) return
+    if (nt4Client.serverTopics.get(topic)) {
+        subscribedReference.valueHandeler(nt4Client.serverTopics.get(topic).value)
+    } else if (nt4Client.serverTopics.get(topic.split("|")[0])) {
+        let topicRef = nt4Client.serverTopics.get(topic.split("|")[0]);
+        subscribedReference.valueHandeler(getStructValue(topic, topicRef.value))
+    }
+
+    if (!subscribedReference.allowLoopback) return;
+
+    if (nt4Client.publishedTopics.get(topic)) {
+        if (!nt4Client.publishedTopics.get(topic).hasOwnProperty("value")) {
+            return
+        }
+        subscribedReference.valueHandeler(nt4Client.publishedTopics.get(topic).value)
+    }
+
+
 }
 
 function captureMJPEG(cameraComponent, topic = "", videoFormat = "mp4") {
@@ -1586,36 +1950,22 @@ export function addButtonToAnimate(jQueryReference) {
                 $("<p>").text(text[j][I]).addClass('funkyLetter').appendTo($word)
             }
         }
-
-
     }
-    jQueryReference.off("pointerdown.animateButton").on("pointerdown.animateButton", (event) => {
 
+    let animation = (pageX, pageY, $ct) => {
         let $spawnedCircle
-        let $ct = $(event.currentTarget)
-
-
 
         //spawns a circle that represnts the touch
-        if (event.pageX == null) {
-            $spawnedCircle = $("<div>").css("background-color", $ct.css("background-color")).appendTo("body").addClass("spawnedCircle").css("top", event.changedTouches[0].pageY + "px").css("left", event.changedTouches[0].pageX + "px")
-            setTimeout(() => {
-                $($spawnedCircle.remove())
-            }, 3000);
-            $(event.currentTarget).attr("pageX", event.changedTouches[0].pageX).attr("pageY", event.changedTouches[0].pageY)
 
-        } else {
+        $spawnedCircle = $("<div>").css("background-color", $ct.css("background-color")).appendTo("body").addClass("spawnedCircle").css("top", pageY + "px").css("left", pageX + "px")
+        setTimeout(() => {
+            $($spawnedCircle.remove())
+        }, 3000);
+        $ct.attr("pageX", pageX).attr("pageY", pageY)
 
-            $spawnedCircle = $("<div>").css("background-color", $ct.css("background-color")).appendTo("body").addClass("spawnedCircle").css("top", event.pageY + "px").css("left", event.pageX + "px")
-            setTimeout(() => {
-                $($spawnedCircle.remove())
-            }, 3000);
-            $(event.currentTarget).attr("pageX", event.pageX).attr("pageY", event.pageY)
-
-        }
         $spawnedCircle.offset()
         $spawnedCircle.addClass("spawnedBigCircle")
-        let $foundP = $(event.currentTarget).find("p")
+        let $foundP = $ct.find("p")
         // let $parent = $(event.currentTarget).children(".animatedButton")
 
         // text effects
@@ -1657,7 +2007,17 @@ export function addButtonToAnimate(jQueryReference) {
 
 
         }
-    })
+    }
+
+    // jQueryReference.off("pointerdown.animateButton").on("pointerdown.animateButton", (event) => {
+    //     if(event.pageX == null){
+    //         animation(event.changedTouches[0].pageX, event.changedTouches[0].pageY, $(event.currentTarget))
+    //     }else{
+    //         animation(event.pageX, event.pageY, $(event.currentTarget))
+    //     }
+    // })
+
+    return animation
 }
 
 function emulateMeterColors(min = 0, max = 360, low = "", high = "", optimum = "", val) {
@@ -1779,9 +2139,9 @@ function bindComponent(component$) {
     if (!isConnected) return
 
 
-    if (!nt4Client.publishedTopics.get("/touchboard/" + component$.attr("data-topic"))) {
+    if (!nt4Client.publishedTopics.get(component$.attr("data-topic"))) {
         if (component$.attr("data-topic") != "esc-UNDEFINED-esc" && component$.attr("data-topic") != "esc-UNSET-esc") {
-            nt4Client.publishTopic("/touchboard/" + component$.attr("data-topic"), component$.attr("data-type"))
+            nt4Client.publishTopic(component$.attr("data-topic"), component$.attr("data-type"))
         }
     }
 
@@ -1815,20 +2175,20 @@ function bindComponent(component$) {
     function bindActionButton(component$) {
         $(component$).off("pointerdown.sendValue").on("pointerdown.sendValue", () => {
             if (editTabs.hasClass("editingTabs")) return
-            nt4Client.addSample("/touchboard/" + component$.attr("data-topic"), true)
+            nt4Client.addSample(component$.attr("data-topic"), true)
             component$.attr("data-value", "true")
         }).off("pointerup.sendValue mouseleave.sendValue touchcancel.sendValue").on("pointerup.sendValue mouseleave.sendValue touchcancel.sendValue", () => {
-            nt4Client.addSample("/touchboard/" + component$.attr("data-topic"), false)
+            nt4Client.addSample(component$.attr("data-topic"), false)
             component$.attr("data-value", "false");
         })
     }
 
     function bindOneShotButton(component$) {
-        nt4Client.subscribe(["/touchboard/" + component$.attr("data-topic")])
+        nt4Client.subscribe([component$.attr("data-topic")])
         component$.off("pointerdown.sendValue").on("pointerdown.sendValue", () => {
             if (editTabs.hasClass("editingTabs")) return
 
-            nt4Client.addSample("/touchboard/" + component$.attr("data-topic"), true)
+            nt4Client.addSample(component$.attr("data-topic"), true)
         })
     }
 
@@ -1836,8 +2196,14 @@ function bindComponent(component$) {
         component$.off("pointerdown.sendValue").on("pointerdown.sendValue", () => {
             if (editTabs.hasClass("editingTabs")) return
 
-            nt4Client.addSample("/touchboard/" + component$.attr("data-topic"), !(JSON.parse(component$.attr("data-value"))))
-            component$.toggleClass("toggledOn")
+            let value = !(JSON.parse(component$.attr("data-value")))
+
+            nt4Client.addSample(component$.attr("data-topic"), value)
+            // component$.toggleClass("toggledOn")
+
+            if (value) component$.addClass("toggledOn");
+            else component$.removeClass("toggledOn");
+
             // console.log(component$);
             let oldBG = component$.css("background-color").replace(/^([^,]*,[^,]*,[^,]*),.*$/, '$1')
 
@@ -1847,39 +2213,52 @@ function bindComponent(component$) {
                 component$.css("background-color", oldBG + ", 0)")
 
             }
-            component$.attr("data-value", JSON.stringify(!(JSON.parse(component$.attr("data-value")))))
+            component$.attr("data-value", JSON.stringify(value))
         })
     }
 
     function bindAxis(component$) {
-        component$.attr("data-value", 0)
-        component$.children(".axisKnob, .verticalAxisKnob").val(0)
+        // component$.attr("data-value", 0)
+        component$.children(".axisKnob, .verticalAxisKnob").val(parseFloat(component$.attr("data-value")))
 
         component$.children(".axisKnob, .verticalAxisKnob").off("input.sendValue").on("input.sendValue", (event) => {
             if (editTabs.hasClass("editingTabs")) return
 
             let $ct = $(event.target)
             component$.attr("data-value", $ct.val())
-            nt4Client.addSample("/touchboard/" + $ct.parent().attr("data-topic"), parseFloat($ct.parent().attr("data-value")))
+            nt4Client.addSample($ct.parent().attr("data-topic"), parseFloat($ct.parent().attr("data-value")))
 
         }).off("pointerup.sendValue").on("pointerup.sendValue", (event) => {
             if (JSON.parse(component$.attr("data-snapBack"))) {
                 let $ct = $(event.target)
-                component$.attr("data-value", 0)
-                $(event.currentTarget).val(0)
-                nt4Client.addSample("/touchboard/" + $ct.parent().attr("data-topic"), parseFloat($ct.parent().attr("data-value")))
+
+                let min = parseFloat($ct.attr("min"))
+                let max = parseFloat($ct.attr("max"))
+
+                let newVal = 0;
+                if (0 < min) {
+                    newVal = min
+                }
+                if (0 > max) {
+                    newVal = max
+                }
+
+                component$.attr("data-value", newVal)
+
+                $(event.currentTarget).val(newVal)
+                nt4Client.addSample($ct.parent().attr("data-topic"), parseFloat($ct.parent().attr("data-value")))
             }
         })
     }
 
     function bindSelect(component$) {
-        component$.children(".selectOption").off("pointerdown.sendValue").on("pointerdown.sendValue", (event) => {
+        component$.children(".selectOption").off("pointerup.sendValue").on("pointerup.sendValue", (event) => {
             if (editTabs.hasClass("editingTabs")) return
 
             let $ct = $(event.target)
             component$.attr("data-value", $ct.attr("data-value")).css("background-color", $ct.attr("data-hex") + "6b").attr("data-index", $ct.attr("data-index"))
             component$.children(".selectTitle").text($ct.text())
-            nt4Client.addSample("/touchboard/" + component$.attr("data-topic"), component$.attr("data-value"))
+            nt4Client.addSample(component$.attr("data-topic"), component$.attr("data-value"))
 
         })
     }
@@ -1896,7 +2275,7 @@ function bindComponent(component$) {
             let $ct = $(event.target).addClass("toggledOn").css("background-color", oldBG + ", 0.6)")
 
             component$.attr("data-value", $ct.attr("data-value")).attr("data-index", $ct.attr("data-index"))
-            nt4Client.addSample("/touchboard/" + component$.attr("data-topic"), component$.attr("data-value"))
+            nt4Client.addSample(component$.attr("data-topic"), component$.attr("data-value"))
 
         })
 
@@ -1910,6 +2289,7 @@ function bindComponent(component$) {
     }
 
     function bindNumberComponent(component$) {
+
         component$.children(".numberPlus").off("pointerdown.sendValue").on("pointerdown.sendValue", (event) => {
             if (editTabs.hasClass("editingTabs")) return
 
@@ -1918,10 +2298,12 @@ function bindComponent(component$) {
             let step = parseFloat($ct.parent().attr("data-step"))
             let $numberTarget = $ct.parent().children(".numberTextInput")
             let currentVal = MathUtils.add($numberTarget.val(), step)
-            if (currentVal <= max) {
+
+
+            if (currentVal <= max || isNaN(max)) {
                 $numberTarget.val(currentVal)
                 $ct.parent().attr("data-value", $numberTarget.val())
-                nt4Client.addSample("/touchboard/" + $ct.parent().attr("data-topic"), parseFloat($ct.parent().attr("data-value")))
+                nt4Client.addSample($ct.parent().attr("data-topic"), parseFloat($ct.parent().attr("data-value")))
                 // if ($ct.parent().attr('data-persist') == "true") {
                 //     localStorage.setItem(getHtmlFileName() + $ct.parent().attr("data-topic"), $numberTarget.val())
                 // }
@@ -1935,29 +2317,29 @@ function bindComponent(component$) {
             let step = parseFloat($ct.parent().attr("data-step"))
             let $numberTarget = $ct.parent().children(".numberTextInput")
             let currentVal = MathUtils.subtract($numberTarget.val(), step)
-            if (currentVal >= min) {
+            if (currentVal >= min || isNaN(min)) {
                 $numberTarget.val(currentVal)
                 $ct.parent().attr("data-value", $numberTarget.val())
-                nt4Client.addSample("/touchboard/" + $ct.parent().attr("data-topic"), parseFloat($ct.parent().attr("data-value")))
+                nt4Client.addSample($ct.parent().attr("data-topic"), parseFloat($ct.parent().attr("data-value")))
                 // if ($ct.parent().attr('data-persist') == "true") {
                 //     localStorage.setItem(getHtmlFileName() + $ct.parent().attr("data-topic"), $numberTarget.val())
                 // }
             }
         })
-        component$.children(".numberTextInput").off("blur.sendValue").on("blur.sendValue", (event) => {
+        component$.children(".numberTextInput").val(parseFloat(component$.attr("data-value"))).off("blur.sendValue").on("blur.sendValue", (event) => {
             if (editTabs.hasClass("editingTabs")) return
 
             let $ct = $(event.currentTarget)
             let max = parseFloat($ct.parent().attr("data-max"))
             let min = parseFloat($ct.parent().attr("data-min"))
 
-            if ($ct.val() > max) {
+            if ($ct.val() > max && !isNaN(max)) {
                 $ct.val(max)
-            } else if ($ct.val() < min) {
+            } else if ($ct.val() < min && !isNaN(min)) {
                 $ct.val(min)
             }
             $ct.parent().attr("data-value", $ct.val())
-            nt4Client.addSample("/touchboard/" + $ct.parent().attr("data-topic"), parseFloat($ct.parent().attr("data-value")))
+            nt4Client.addSample($ct.parent().attr("data-topic"), parseFloat($ct.parent().attr("data-value")))
             // if ($ct.parent().attr('data-persist') == "true") {
             //     localStorage.setItem(getHtmlFileName() + $ct.parent().attr("data-topic"), $ct.val())
             // }
@@ -1968,20 +2350,17 @@ function bindComponent(component$) {
 export function rebindAllComponents() {
     let allComponents = $(".editableComponent")
     for (let i = 0; i < allComponents.length; i++) {
-        bindComponent(allComponents.eq(i))
+        if (outputComponentTypes.includes(allComponents.eq(i).attr("data-componentType")))
+            bindComponent(allComponents.eq(i))
     }
 }
 
-export function createDefaultOf(component, append, topic = "esc-UNSET-esc") {
+export function createDefaultOf(component, append, topic = "esc-UNSET-esc", subComponent) {
 
     let forceAutosend = false;
 
     if (topic != "esc-UNSET-esc" && topic != "esc-UNDEFINED-esc") {
         subscribeOrQueue(topic)
-
-        // window.requestAnimationFrame(renderFrame);
-
-
     }
 
     switch (component) {
@@ -1996,9 +2375,9 @@ export function createDefaultOf(component, append, topic = "esc-UNSET-esc") {
         case "verticalAxis":
             return createAxis("Y-Axis", topic, forceAutosend, append, true).div
         case "select":
-            return createDropdown(topic, append, forceAutosend, 0, 0, [{ name: "Dropdown", value: "" }]).div
+            return createDropdown("Select", topic, append, forceAutosend, 0, 0, [{ name: "Dropdown", value: "" }]).div
         case "buttonOptGroup":
-            return createOptGroup(topic, append, forceAutosend, 0, 0, []).div
+            return createOptGroup(null, topic, append, forceAutosend, 0, 0, []).div
         case "numberComponent":
             return createNumberComponent("Number", topic, forceAutosend, append).div
         case "basicSubscription":
@@ -2016,7 +2395,7 @@ export function createDefaultOf(component, append, topic = "esc-UNSET-esc") {
         case "colorCoder":
             return createColorCoder(undefined, topic, append)
         case "tunableInterface":
-            return createTunableInterface(undefined, topic, append)
+            return createTunableInterface(undefined, topic, append, subComponent)
     }
 }
 
