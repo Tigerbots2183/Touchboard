@@ -130,7 +130,6 @@ export function setSelectOpener() {
     $(".select").not(".sideBarSelect").off("pointerup.selectOpener").on("pointerup.selectOpener", (event) => {
         if (!$(event.target).hasClass("textInput") && !$(event.target).hasClass("delete") && !$(event.target).hasClass("save") && !$(event.target).hasClass("saveManager")) {
             $(event.currentTarget).toggleClass("selectOpen")
-
         }
     })
 }
@@ -187,7 +186,6 @@ function bindTabChanger() {
         $(".manager").removeClass("managerOpen")
         $(".pTAB" + $ct.attr("data-page").slice(1)).addClass("currentTab").css("background-color", "rgb(32, 32, 32)")
 
-        console.log(".pTAB" + $ct.attr("data-page").slice(1))
 
         if ($ct.attr("data-displaytype") == null) {
             $($ct.attr("data-page")).css("display", "grid")
@@ -208,17 +206,40 @@ function bindTabChanger() {
     $(".manager").on("pointerdown.removeTab", (event) => {
         let t$ = $(event.target)
 
-        console.log(t$)
 
         if (!t$.hasClass("removeTab")) return
 
         $(t$.parent().attr("data-page")).remove()
         $(".pTAB" + t$.parent().attr("data-page").slice(1)).remove()
         $(".gridUnderlay").empty()
-        $(".setGridRow").addClass("hiddenClickless")
-        $(".setGridColumn").addClass("hiddenClickless")
 
         t$.parent().remove()
+
+        let tabs = $(".userTab")
+
+        if (tabs.length > 0) {
+            tabs.eq(0).addClass("currentTab").css("background-color", "rgb(32, 32, 32)")
+            let currentPage$ = $(tabs.eq(0).attr("data-page"))
+
+            if (tabs.eq(0).attr("data-displaytype") == null) {
+                currentPage$.css("display", "grid")
+            } else {
+                currentPage$.attr("data-page").css("display", tabs.eq(0).attr("data-displaytype"))
+
+            }
+
+
+            setGridInput(currentPage$)
+
+            if (!currentPage$.hasClass("pageF")) {
+                tabGrid(parseFloat(currentPage$.attr("columns")), parseFloat(currentPage$.attr("rows")), currentPage$)
+            }
+        } else {
+            $(".gridSquareVisual").remove()
+            $(".setGridRow").addClass("hiddenClickless")
+            $(".setGridColumn").addClass("hiddenClickless")
+        }
+
     })
 }
 
@@ -301,7 +322,6 @@ export function createSideTab(name, page, state = "") {
         div.insertBefore(".titleMinimized")
     }
     else {
-        console.log(".insert" + state.slice(3))
         div.insertBefore(".insert" + state.slice(3))
     }
 

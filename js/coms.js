@@ -120,7 +120,6 @@ function handleNewData(topic, timestamp, value) {
             try {
                 currentPath[topicSplit[i]]["value"] = value
             } catch {
-                console.log(topic)
             }
 
             continue
@@ -130,6 +129,7 @@ function handleNewData(topic, timestamp, value) {
             currentPath = currentPath[topicSplit[i]]
         }
     }
+
 
     if (topic.name.includes("/FMSInfo/FMSControlData")) {
         // console.log("FMSControlData decoded: ", decodeFMSControlData(value));
@@ -153,13 +153,10 @@ function handleNewData(topic, timestamp, value) {
         }
     }
     else if (topic.name.includes("/DriverStation/ControlWord")) {
-        // toastMessage("caught")
         if (!value["enabled:1"].value) {
             queueValueSends = true;
         } else if (queueValueSends && value["enabled:1"].value) {
             for (let [key, value] of nt4Client.publishedTopics) {
-                console.log(key, value)
-                toastMessage(key)
                 if (value.autoSend) {
                     if (value.value == undefined) continue
 
@@ -268,6 +265,7 @@ function onConnectCb() {
         // nt4Client.addSample("/touchboard/musicIsFinished", true)
 
         subscribeOrQueue("/FMSInfo/FMSControlData");
+        subscribeOrQueue("/DriverStation/ControlWord")
 
         nt4Client.subscribe(["/.schema"], true)
 
@@ -395,7 +393,7 @@ function onDisconnectCb() {
 }
 
 function onDataSent(topic, timestamp, value) {
-
+    // console.log(subscribedTopics[topic.name], value)
     if (subscribedTopics.hasOwnProperty(topic.name)) {
         let foundValue = value;
 
@@ -414,3 +412,4 @@ function onDataSent(topic, timestamp, value) {
         }
     }
 }
+

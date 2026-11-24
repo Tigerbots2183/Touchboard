@@ -63,6 +63,7 @@
 
 - Fixed an issue where the dropdown component would select a value when trying to open it
 
+- Various bug fixes to output components not saving or applying changed values
 # 2.1.0
 
 - Added Camera Stream Component

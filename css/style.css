@@ -965,6 +965,8 @@ input[type=number] {
 
 .numberLine {
     --noValueDisplay: none;
+    --tickDisplay: flex;
+
     width: 20cqh;
     background-color: rgb(24, 24, 24);
     border-color: rgb(12, 12, 12);
@@ -984,6 +986,8 @@ input[type=number] {
 
 .numberLine:has(meter:not([value])) {
     --noValueDisplay: block;
+    --tickDisplay: none;
+
 }
 
 
@@ -2142,7 +2146,7 @@ input[type=number] {
         /* overflow: hidden; */
         overflow: visible;
         /* clip-path: circle(0cqmax at 0% 0%); */
-        clip-path: xywh(0% -4cqmin 100% 13cqmin);
+        clip-path: xywh(0% -4cqmin 100% 12.8cqmin);
         transition: clip-path 300ms ease;
         position: relative;
         will-change: clip-path;
@@ -2210,6 +2214,7 @@ input[type=number] {
 
     .selectOpen>.selectOptionHolder {
         overflow-y: scroll;
+        overflow-x: hidden;
     }
 
     .selectOption {
@@ -3074,10 +3079,11 @@ input[type=number] {
 
     .numberLineTicks {
         height: 2cqmin;
-        display: flex;
+        display: var(--tickDisplay);
         margin-bottom: 1.5cqmin;
         flex-direction: row;
         justify-content: space-between;
+        
     }
 
     .numberLineTick {
@@ -3140,7 +3146,7 @@ input[type=number] {
         width: 100%;
         padding: 0px;
         margin: 0px;
-        height: 3cqmin;
+        height: 3.5cqmin;
         accent-color: blue;
         border-radius: 10cqh;
         border-color: rgb(12, 12, 12);
@@ -3154,6 +3160,8 @@ input[type=number] {
         background-position-x: 20%;
         background-size: 200%;
         animation: infinite stripes 1s forwards linear;
+        position: relative;
+        top:3.5cqmin
     }
 
     .meterHolder {
@@ -4424,7 +4432,7 @@ meter:not([value]) {
     height: 100%;
     animation-duration: 1.5s;
     animation-iteration-count: 1;
-
+z-index: 3;
 
     --b: 0.75vmin;
     /* thickness of the border */

@@ -50,7 +50,7 @@ export function setStartTime(time){
 }
 
 export function queueForStartTimeIfRequired(func){
-    if(startTimeChanged){
+    if(startTimeChanged || compatabilityYear == 2026){
         func()
     }else{
         startTimeQueue.push(func)

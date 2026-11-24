@@ -399,7 +399,6 @@ $(".send").on("click", () => {
     finalString = finalString.slice(0, -1)
     localStorage.setItem(getHtmlFileName() + "currentPath", finalString)
 
-    console.log(finalString)
     if ($("#connect")[0].checked) {
         nt4Client.publishTopic("/touchboard/posePlotterFinalString", "string")
         nt4Client.addSample("/touchboard/posePlotterFinalString", finalString);

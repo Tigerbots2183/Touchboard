@@ -165,7 +165,6 @@ export function createToggleButton(displayName, topic, autoSend = false, append 
     bindComponent(toggleButton, "toggleButton")
 
     let toggleHandler = (value) => {
-        console.log(value)
         toggleButton.attr("data-value", JSON.stringify(value))
 
         if (value) toggleButton.addClass("toggledOn")
@@ -221,7 +220,7 @@ export function createAxis(displayName, topic, autoSend = false, append = false,
     }
 
     axis.div.attr("data-topic", topic)
-        .attr("data-value", 0)
+        .attr("data-value", value)
         .attr('data-type', "double")
         .attr('data-color', hex)
 
@@ -356,20 +355,41 @@ export function createDropdown(name, topic, append = false, autoSend = false, he
     let dropdownHandler = (value) => {
         let comp = dropdown.div
 
-        let children$ = comp.children();
+        toastMessage(value + "val " + comp.attr("data-value") + " objval")
+
+
+
+        let children$ = comp.find(".selectOption");
         let valueComp;
 
         let options = JSON.parse(comp.attr('data-componentOptions'))
 
-        if (value == "" && Object.values(options).includes(comp.attr("data-value"))) {
-            setTimeout(() => {
-                nt4Client.addSample(comp.attr("data-topic"), comp.attr("data-value"))
-            }, 100);
-            value = comp.attr("data-value")
+        if (value == "") {
+            let exists = false;
+            for (let i = 0; i < options.length; i++) {
+                console.log(options[i].value, comp.attr("data-value"), options[i].value == comp.attr("data-value"))
+
+                if (options[i].value == comp.attr("data-value")) {
+                    exists = true
+                }
+            }
+            console.log(options)
+
+            if (exists) {
+                setTimeout(() => {
+                    nt4Client.addSampleLoopless(comp.attr("data-topic"), comp.attr("data-value"))
+                }, 100);
+                value = comp.attr("data-value")
+            } else {
+                setTimeout(() => {
+                    nt4Client.addSampleLoopless(comp.attr("data-topic"), "")
+                }, 100);
+            }
         }
 
         for (let i = 0; i < children$.length; i++) {
-            if (children$.eq(i).attr("data-value") == value) {
+            if (children$.eq(i).attr("data-value") == value + "") {
+
                 valueComp = children$.eq(i)
                 break;
             }
@@ -399,8 +419,6 @@ export function createDropdown(name, topic, append = false, autoSend = false, he
 }
 
 export function createOptGroup(name, topic, append, autoSend = false, hex = 0, initialOptionIndex = 0, options = [], similarOptions = defaultSimilarOptions, persist = false) {
-
-
     let optDiv = $("<div>").attr("data-name", name).addClass("editThisDataName").addClass("editableComponent").addClass("editThisDataName").attr("data-autoSend", JSON.stringify(autoSend)).attr("data-index", initialOptionIndex).addClass("buttonOptGroup").attr("data-topic", topic).attr("data-type", "string").attr("data-componentOptions", JSON.stringify(options)).attr("data-componentType", "buttonOptGroup").attr("data-defaultSimilarOptions", JSON.stringify(similarOptions)).attr("data-persist", "false")
 
     if (persist) {
@@ -449,6 +467,7 @@ export function createOptGroup(name, topic, append, autoSend = false, hex = 0, i
     addEditHandler(optDiv, "string")
     bindComponent(optGroup.div, "buttonOptGroup")
 
+
     let optGroupHandler = (value) => {
         // let $ct = $(event.target)
         let comp = optDiv
@@ -458,11 +477,26 @@ export function createOptGroup(name, topic, append, autoSend = false, hex = 0, i
 
         let options = JSON.parse(comp.attr('data-componentOptions'))
 
-        if (value == "" && Object.values(options).includes(comp.attr("data-value"))) {
-            setTimeout(() => {
-                nt4Client.addSample(comp.attr("data-topic"), comp.attr("data-value"))
-            }, 100);
-            value = comp.attr("data-value")
+        if (value == "") {
+            let exists = false;
+            for (let i = 0; i < options.length; i++) {
+                console.log(options[i].value, comp.attr("data-value"), options[i].value == comp.attr("data-value"))
+
+                if (options[i].value == comp.attr("data-value")) {
+                    exists = true
+                }
+            }
+
+            if (exists) {
+                setTimeout(() => {
+                    nt4Client.addSampleLoopless(comp.attr("data-topic"), comp.attr("data-value"))
+                }, 100);
+                value = comp.attr("data-value")
+            } else {
+                setTimeout(() => {
+                    nt4Client.addSampleLoopless(comp.attr("data-topic"), "")
+                }, 100);
+            }
         }
 
         for (let i = 0; i < children$.length; i++) {
@@ -762,12 +796,15 @@ export function createNumberLine(displayName, topic, append = false, hex = "#0c0
         .attr("data-componentType", "numberLine")
         .css("border-color", hex)
         .attr("data-color", hex)
-        .attr("data-deriveAttributes", 'true')
-        .attr("data-deriveAttributesMin", 'true')
         .attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
 
     if (append) {
         numberLine.appendTo(append)
+    }
+
+    if (hex != "#0c0c0c") {
+        numberLine[0].style.setProperty("--accent", hex);
+
     }
 
     if (displayName == null) {
@@ -798,24 +835,31 @@ export function createNumberLine(displayName, topic, append = false, hex = "#0c0
 
 
         if (maxNumber) {
-            newMeter.attr("data-maxNumber", maxNumber)
+            console.log(maxNumber)
+            maxNumber = parseFloat(maxNumber)
+            numberLine.attr("data-maxNumber", maxNumber)
             meterLine.attr("max", maxNumber)
         }
         if (minNumber) {
-            newMeter.attr("data-minNumber", minNumber)
-            meterLine.attr("min", maxNumber)
+            console.log(minNumber)
+            minNumber = parseFloat(minNumber)
+            numberLine.attr("data-minNumber", minNumber)
+            meterLine.attr("min", minNumber)
         }
         if (low) {
+            low = parseFloat(low)
             newMeter.attr("data-low", low)
             meterLine.attr("low", low)
 
         }
         if (high) {
+            high = parseFloat(high)
             newMeter.attr("data-high", high)
             meterLine.attr("high", high)
 
         }
         if (optimum) {
+            optimum = parseFloat(optimum)
             newMeter.attr("data-optimum", optimum)
             meterLine.attr("optimum", optimum)
         }
@@ -860,15 +904,15 @@ export function createNumberLine(displayName, topic, append = false, hex = "#0c0
             //Supports arrays
             for (let i = 0; i < meters.length; i++) {
                 let meter = meters.eq(i)
-
-                if (numberLine.attr("data-deriveAttributes") == "true") {
-                    if (Math.round(value) > parseFloat(meter.attr("max"))) {
-                        addToRender(meter[0], { "updating": "attribute", "attrName": "max", "newValue": Math.round(value) })
+                let fixedVal = parseFloat(value.toFixed(3))
+                if (numberLine.attr("data-maxNumber") == undefined) {
+                    if (fixedVal > parseFloat(meter.attr("max"))) {
+                        addToRender(meter[0], { "updating": "attribute", "attrName": "max", "newValue": fixedVal })
                     }
                 }
-                if (numberLine.attr("data-deriveAttributesMin") == "true") {
-                    if (Math.round(value) < parseFloat(meter.attr("min"))) {
-                        addToRender(meter[0], { "updating": "attribute", "attrName": "min", "newValue": Math.round(value) })
+                if (numberLine.attr("data-minNumber") == undefined) {
+                    if (fixedVal < parseFloat(meter.attr("min"))) {
+                        addToRender(meter[0], { "updating": "attribute", "attrName": "min", "newValue": fixedVal })
                     }
                 }
 
@@ -932,6 +976,7 @@ export function createRadialGauge(displayName, topic, append, hex = "#0c0c0c", m
         .css("border-color", hex)
         .attr("data-color", hex)
         .attr("data-defaultSimilarOptions", JSON.stringify(similarOptions))
+
 
 
     if (append) {
@@ -1067,15 +1112,12 @@ export function createCamera(displayName, topic, append, hideNav = false, videoF
     let cameraHandler = (value) => {
         let i = 0;
 
-        console.log(value)
-        // console.log(value[0])
         setSrc()
 
         function setSrc() {
 
             if (i > value.length - 1) {
                 let str = value[i - 1].replace("mjpg:", "")
-                console.log(str.substring(str.lastIndexOf(":") + 1))
                 img.attr("src", "localhost:" + str.substring(str.lastIndexOf(":") + 1))
                 return
             }
@@ -1397,7 +1439,7 @@ export function createTunableInterface(displayName, topic, append, subComponent,
     };
 
     if (typeof subComponent == "string") {
-        compObj.displayName = displayName
+        compObj.displayName = topic.replace(/\.type$/, '').replace("/Tunables/", "").replace("/", "")
         compObj.type = subComponent
         compObj.persist = false
         compObj.autoSend = false
@@ -1419,9 +1461,15 @@ export function createTunableInterface(displayName, topic, append, subComponent,
         compObj = { ...compObj, ...subComponent }
         compObj.persist = false
         compObj.autoSend = false
-    }
-    makeComponentFromJson(compObj).appendTo(tunableInterface).addClass("tunableInterfaced")
 
+        if (subComponent.type == "select" || subComponent.type == "buttonOptGroup") {
+            compObj.topic = topic.replace(/\.type$/, '') + "selected/value"
+            subscribeOrQueue(compObj.topic)
+        }
+    }
+
+    console.log(compObj.topic)
+    makeComponentFromJson(compObj).appendTo(tunableInterface).addClass("tunableInterfaced").removeClass("editableComponent")
 
     if ((subComponent.type == "select" || subComponent.type == "buttonOptGroup" || subComponent == "select" || subComponent == "buttonOptGroup") && topic.includes(".type")) {
 
@@ -1438,7 +1486,6 @@ export function createTunableInterface(displayName, topic, append, subComponent,
             subComp.topic = baseTopic + "selected/value"
             subComp.index = -1
             let oldValue = comp.attr("data-value")
-            console.log(oldValue)
             tunableInterface.empty()
 
             let options = [];
@@ -1454,8 +1501,7 @@ export function createTunableInterface(displayName, topic, append, subComponent,
 
 
             subComp.componentOptions = JSON.stringify(options)
-
-            makeComponentFromJson(subComp).appendTo(tunableInterface)
+            console.log(makeComponentFromJson(subComp).appendTo(tunableInterface).addClass("tunableInterfaced").removeClass("editableComponent"))
 
             setSelectOpener()
 
@@ -1588,8 +1634,6 @@ export function generateCssIfStatement(variableName, conditions) {
 function addSubscribedReference(subscribedReference, executeFirst = true) {
     let topic = subscribedReference.topic;
 
-    console.log(topic)
-
     if (topic.includes("|")) {
         if (!subscribedTopics.hasOwnProperty(topic.split("|")[0])) {
             subscribedTopics[topic.split("|")[0]] = []
@@ -1608,7 +1652,6 @@ function addSubscribedReference(subscribedReference, executeFirst = true) {
     }
 
     if (!executeFirst) return
-    console.log(topic, nt4Client.serverTopics.get(topic), nt4Client.publishedTopics.get(topic))
     if (nt4Client.serverTopics.get(topic)) {
         subscribedReference.valueHandeler(nt4Client.serverTopics.get(topic).value)
     } else if (nt4Client.serverTopics.get(topic.split("|")[0])) {
@@ -2044,7 +2087,8 @@ function emulateMeterColors(min = 0, max = 360, low = "", high = "", optimum = "
     if (optimum != "") {
         optimum = parseFloat(optimum)
     } else {
-        optimum = max / 2
+        optimum = ((max - min) / 2) + min
+
     }
 
 
@@ -2252,9 +2296,8 @@ function bindComponent(component$) {
     }
 
     function bindSelect(component$) {
-        component$.children(".selectOption").off("pointerup.sendValue").on("pointerup.sendValue", (event) => {
+        component$.find(".selectOption").off("pointerup.sendValue").on("pointerup.sendValue", (event) => {
             if (editTabs.hasClass("editingTabs")) return
-
             let $ct = $(event.target)
             component$.attr("data-value", $ct.attr("data-value")).css("background-color", $ct.attr("data-hex") + "6b").attr("data-index", $ct.attr("data-index"))
             component$.children(".selectTitle").text($ct.text())
@@ -2348,7 +2391,7 @@ function bindComponent(component$) {
 }
 
 export function rebindAllComponents() {
-    let allComponents = $(".editableComponent")
+    let allComponents = $(".editableComponent, .tunableInterfaced")
     for (let i = 0; i < allComponents.length; i++) {
         if (outputComponentTypes.includes(allComponents.eq(i).attr("data-componentType")))
             bindComponent(allComponents.eq(i))
@@ -2401,28 +2444,35 @@ export function createDefaultOf(component, append, topic = "esc-UNSET-esc", subC
 
 function addFeedbackCheck(topic) {
     // console.log("feedback check added for: " + "/touchboard/Feedback/" + topic)
-    let feedbackHandler = (value, timestamp, topic) => {
+    topic = topic.replace("/touchboard/", "")
+    let timeout;
 
-        if (!nt4Client.publishedTopics.get("/touchboard/" + topic.name.split("/")[3])) {
+    let feedbackHandler = (value, timestamp, topic) => {
+        if (!nt4Client.publishedTopics.get(topic.name)) {
             return
         }
 
-        checkFeedback();
+        checkFeedback()
         function checkFeedback() {
-            if (nt4Client.serverTopics.get(topic.name) == undefined) {
+            let baseTopic = topic.name.replace("/touchboard/", "")
+
+            if (nt4Client.serverTopics.get("/touchboard/Feedback/" + baseTopic) == undefined) {
                 return
             }
-            if (!nt4Client.serverTopics.get(topic.name).hasOwnProperty("value")) {
+            if (!nt4Client.serverTopics.get("/touchboard/Feedback/" + baseTopic).hasOwnProperty("value")) {
                 return
             }
 
-            let feedbackValue = nt4Client.serverTopics.get(topic.name).value
-            let expectedValue = nt4Client.publishedTopics.get("/touchboard/" + topic.name.split("/")[3]).value
+            let feedbackValue = nt4Client.serverTopics.get("/touchboard/Feedback/" + baseTopic).value
+            let expectedValue = value
 
+            console.log(feedbackValue, expectedValue)
 
             if (feedbackValue != expectedValue) {
-                if (topic.type !== typeof expectedValue) return
-                setTimeout(checkFeedback, 100)
+                if (topic.type == undefined) return
+                nt4Client.addSampleLoopless("/touchboard/" + baseTopic, value)
+                clearTimeout(timeout)
+                timeout = setTimeout(checkFeedback, 100)
             }
         }
 
@@ -2434,13 +2484,15 @@ function addFeedbackCheck(topic) {
         'jQueryReference': false,
         'parentReference': undefined,
         'valueHandeler': feedbackHandler,
+        "allowLoopback": true
         // 'topicChangeHandler': topicChangeHandler
     }
 
-    if (!subscribedTopics.hasOwnProperty("/touchboard/Feedback/" + topic)) {
-        subscribedTopics["/touchboard/Feedback/" + topic] = []
+    if (!subscribedTopics.hasOwnProperty("/touchboard/" + topic)) {
+        subscribedTopics["/touchboard/" + topic] = []
     }
 
-    nt4Client.subscribe(["/touchboard/Feedback/" + topic])
-    subscribedTopics["/touchboard/Feedback/" + topic].push(subscribedReference);
+    subscribeOrQueue("/touchboard/Feedback/" + topic)
+
+    subscribedTopics["/touchboard/" + topic].push(subscribedReference);
 }

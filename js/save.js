@@ -133,7 +133,7 @@ export function getComponentSpecificAsObject(comp$) {
                 color: comp$.attr("data-color"),
                 //if persist
                 value: comp$.attr("data-value"),
-                initialValue: comp$.attr("data-initalValue")
+                initialValue: comp$.attr("data-initialValue")
                 //else use initial value which needa be added
             }
             let persist = "false"
@@ -220,8 +220,8 @@ export function getComponentSpecificAsObject(comp$) {
             return {
                 displayName: comp$.find(".editThisName").text(),
                 color: comp$.attr("data-color"),
-                min: meter.attr("min"),
-                max: meter.attr("max"),
+                min: comp$.attr("data-minNumber"),
+                max: comp$.attr("data-maxNumber"),
                 low: meter.attr("low"),
                 high: meter.attr("high"),
                 optimum: meter.attr("optimum")
@@ -365,7 +365,7 @@ export function makeComponentFromJson(component) {
             case "oneShotButton":
                 return components.createOneShotButton(component.displayName, component.topic, false, component.color, component.similarOptions)
             case "toggleButton":
-                return components.createToggleButton(component.displayName, component.topic, component.autoSend, false, component.color, component.value, component.similarOptions, component.persist)
+                return components.createToggleButton(component.displayName, component.topic, component.autoSend, false, component.color, component.value, component.similarOptions, JSON.parse(component.persist))
             case "axis":
                 return components.createAxis(component.displayName, component.topic, component.autoSend, false, false, component.color, component.value, component.min, component.max, component.step, component.snapBack == "true", component.similarOptions).div
             case "verticalAxis":
@@ -375,7 +375,7 @@ export function makeComponentFromJson(component) {
             case "buttonOptGroup":
                 return components.createOptGroup(component.displayName, component.topic, false, component.autoSend, 0, component.index, JSON.parse(component.componentOptions), component.similarOptions, component.persist).div
             case "numberComponent":
-                return components.createNumberComponent(component.displayName, component.topic, component.autoSend, false, 0, component.value, component.min, component.max, component.step, component.persist, component.similarOptions).div
+                return components.createNumberComponent(component.displayName, component.topic, component.autoSend, false, 0, component.value, component.min, component.max, component.step, JSON.parse(component.persist), component.similarOptions).div
             case "basicSubscription":
                 return components.createBasicSubscription(component.displayName, component.topic, false, component.color, component.similarOptions)
             case "basicLogger":

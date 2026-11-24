@@ -25,7 +25,7 @@
 import { outputComponents, createSideTab, multiSwitchButtonSet, setSelectOpener, cq, v, toastMessage } from "../ui.js"
 import { createDefaultOf, defaultSimilarOptions, setSimilarOptions, addButtonToAnimate, createDropdown, createOptGroup, globalGraphRef, generateCssIfStatement, rebindAllComponents, setupNewGraphHandeler } from "./components/components.js"
 import { tabGrid, setGridInput, setCornerBorder, clientDragHandler, addToCurrentDrag, findEndOffset, grid } from "./grid.js"
-import { topicObject, nt4Client, getStructValue, subscribedTopics, compatabilityYear, subscribeOrQueue } from "../coms.js"
+import { topicObject, nt4Client, getStructValue, subscribedTopics, compatabilityYear, subscribeOrQueue, isConnected } from "../coms.js"
 import { vh, hslToHex } from "../../lib/util.js"
 import { outputComponentTypes } from "../save.js"
 import { CONVERSIONRATE, startTimeChanged } from "./components/graph.js"
@@ -243,7 +243,7 @@ function bindTrashCan() {
 
         setCornerBorder(0, 0, 0, 0, 0, true)
 
-        let elements = $($(".currentTab").attr("data-page")).children()
+        let elements = $($(".currentTab").attr("data-page")).children().add($(".tunableInterface").children())
 
         for (let i = 0; i < elements.length; i++) {
             let $eq = elements.eq(i)
@@ -278,6 +278,10 @@ function bindTrashCan() {
                 }
             } else {
                 subscribedTopics[$ct.attr('data-topic').split("|")[0]][index] = false
+            }
+
+            if($ct.parent().hasClass("tunableInterface")){
+               $ct.parent().remove() 
             }
 
             $ct.remove()
@@ -344,6 +348,8 @@ function bindMinMaxHandlers() {
 
 function bindOptionAdder() {
     $(".optionAdder").on("submit.addDiv", (e) => {
+
+
         let hex = $(e.currentTarget).children(".hex")
         let $sbO = $("<div>").addClass("sidebarOption").insertBefore(".optionAdder").attr("data-name", $(".newOptionName").val()).attr("data-value", $(".newOptionValue").val()).attr("data-hex", hex.val()).css("border-color", hex.val())
         $("<button>").addClass("sideBarEmojiButton").addClass("hamburger").text("☰").appendTo($sbO)
@@ -357,6 +363,10 @@ function bindOptionAdder() {
         $(".newOptionName").val("")
         $(".newOptionValue").val("")
         addOptionDragHandler($sbO)
+
+        let colors = JSON.parse(editComponent.currentTarget.attr("data-componentoptions"))
+
+        $(".stringHex").val(getNextLineColor(colors))
 
         return false
     })
@@ -700,9 +710,6 @@ function bindEditMenu(element, valueType, customEdit = false) {
         if (editComponent.currentTarget.attr("data-autoSend")) {
 
             inputBeingBound.prop("checked", JSON.parse(editComponent.currentTarget.attr("data-autoSend")))
-            console.log(inputBeingBound, JSON.parse(editComponent.currentTarget.attr("data-autoSend")))
-
-
 
             inputBeingBound.off("input.autoSend").on("input.autoSend", (event) => {
                 let $ct = $(event.currentTarget)
@@ -741,13 +748,11 @@ function bindEditMenu(element, valueType, customEdit = false) {
         let nameInputText = editComponent.currentTarget.text()
         if (editComponent.currentTarget.hasClass("animatedButton")) {
             nameInputText = editComponent.currentTarget.clone().children().remove().end().text()
-        }
-        if (editComponent.currentTarget.children(".editThisName").length > 0) {
+        } else if (editComponent.currentTarget.children(".editThisName").length > 0) {
             nameInputText = editComponent.currentTarget.children(".editThisName").text()
         } else {
             nameInputText = getDataName(editComponent.currentTarget)
         }
-
 
         inputBeingBound.val(nameInputText).off(`focus.selectText`).on(`focus.selectText`, (event) => setTimeout(() => $(event.currentTarget)[0].setSelectionRange(0, $(event.currentTarget).val().length), 100))
 
@@ -776,6 +781,10 @@ function bindEditMenu(element, valueType, customEdit = false) {
         let boundEditing
         if (editComponent.currentTarget.hasClass("numberComponent")) {
             boundEditing = editComponent.currentTarget.attr("data-" + inputBeingBound.attr("data-editing"))
+
+            if (inputBeingBound.attr("data-editing") == "value") {
+                boundEditing = editComponent.currentTarget.attr("data-initialValue" + inputBeingBound.attr("data-editing"))
+            }
         } else if (editComponent.currentTarget.hasClass("graph")) {
             if (inputBeingBound.attr("data-editing") == "width") {
                 boundEditing = editComponent.currentTarget.attr("data-width")
@@ -788,21 +797,14 @@ function bindEditMenu(element, valueType, customEdit = false) {
             }
         } else if (editComponent.currentTarget.hasClass("numberLine")) {
             if (inputBeingBound.hasClass("max")) {
-                if (editComponent.currentTarget.attr("data-deriveAttributes") == "true") {
 
-                } else {
-                    boundEditing = editComponent.currentTarget.find(".numberLineHasValue").eq(0).attr(inputBeingBound.attr("data-editing"))
-                    let meter = editComponent.currentTarget.find(".numberLineHasValue").eq(0)
-                    setExampleMeter(meter.attr("min"), meter.attr("max"), meter.attr("low"), meter.attr("high"), meter.attr("optimum"))
-                }
+                boundEditing = editComponent.currentTarget.attr("data-maxNumber")
+                let meter = editComponent.currentTarget.find(".numberLineHasValue").eq(0)
+                setExampleMeter(meter.attr("min"), meter.attr("max"), meter.attr("low"), meter.attr("high"), meter.attr("optimum"))
             } else if (inputBeingBound.hasClass("min")) {
-                if (editComponent.currentTarget.attr("data-deriveAttributesMin") == "true") {
-
-                } else {
-                    boundEditing = editComponent.currentTarget.find(".numberLineHasValue").eq(0).attr(inputBeingBound.attr("data-editing"))
-                    let meter = editComponent.currentTarget.find(".numberLineHasValue").eq(0)
-                    setExampleMeter(meter.attr("min"), meter.attr("max"), meter.attr("low"), meter.attr("high"), meter.attr("optimum"))
-                }
+                boundEditing = editComponent.currentTarget.attr("data-minNumber")
+                let meter = editComponent.currentTarget.find(".numberLineHasValue").eq(0)
+                setExampleMeter(meter.attr("min"), meter.attr("max"), meter.attr("low"), meter.attr("high"), meter.attr("optimum"))
             } else {
                 boundEditing = editComponent.currentTarget.find(".numberLineHasValue").eq(0).attr(inputBeingBound.attr("data-editing"))
                 let meter = editComponent.currentTarget.find(".numberLineHasValue").eq(0)
@@ -831,6 +833,9 @@ function bindEditMenu(element, valueType, customEdit = false) {
             let $comp = editComponent.currentTarget
 
             if (editComponent.currentTarget.hasClass("numberComponent")) {
+                if ($ct.attr('data-editing') == "value") {
+                    $comp.attr("data-initial" + $ct.attr('data-editing'), $ct.val())
+                }
                 $comp.attr("data-" + $ct.attr('data-editing'), $ct.val())
             } else if ($comp.hasClass("graph")) {
                 $comp.attr("data-" + $ct.attr('data-editing'), $ct.val())
@@ -838,25 +843,39 @@ function bindEditMenu(element, valueType, customEdit = false) {
                     customEdit.graphManager.renderer.editLineWidth(customEdit.topics[0], $ct.val())
                 }
             } else if (editComponent.currentTarget.hasClass("axis") || editComponent.currentTarget.hasClass("verticalAxis")) {
-
+                if ($ct.attr("data-editing") == "value") {
+                    $comp.attr("data-value", $ct.val()).children(".axisKnob, .verticalAxisKnob").val($ct.val())
+                    return
+                }
                 $comp.children(".axisKnob, .verticalAxisKnob").attr($ct.attr('data-editing'), $ct.val())
             } else if ($comp.hasClass("numberLine")) {
+                let subticks = editComponent.currentTarget.find(".numberLineTick");
+                let max = editComponent.currentTarget.attr("max")
+                let min = editComponent.currentTarget.attr("min")
+                let step = (max - min) / (subticks.length - 1)
+
+                for (let i = 0; i < subticks.length; i++) {
+                    let subtick = subticks.eq(i);
+                    let text = parseFloat(((step * i) + parseFloat(min)).toFixed(3));
+                    // subtick.text(text)
+                    subtick.text(text)
+                }
                 if (inputBeingBound.attr("data-editing") == "max") {
                     if ($ct.val().length == 0) {
-                        $comp.attr("data-deriveAttributes", "true")
+                        $comp.removeAttr("data-maxNumber")
                         $comp.find(".numberLineHasValue").attr("max", "0")
                         return
                     } else {
-                        $comp.attr("data-deriveAttributes", "false")
+                        $comp.attr("data-maxNumber", $ct.val())
                     }
                 }
                 if (inputBeingBound.attr("data-editing") == "min") {
                     if ($ct.val().length == 0) {
-                        $comp.attr("data-deriveAttributesMin", "true")
+                        $comp.removeAttr("data-minNumber")
                         $comp.find(".numberLineHasValue").attr("min", "0")
                         return
                     } else {
-                        $comp.attr("data-deriveAttributesMin", "false")
+                        $comp.attr("data-minNumber", $ct.val())
                     }
                 }
 
@@ -964,7 +983,11 @@ function bindEditMenu(element, valueType, customEdit = false) {
 
             inputBeingBound.off("input.persitant").on("input.persitant", (event) => {
                 let $ct = $(event.currentTarget)
-
+                if ($ct.prop("checked") && editComponent.currentTarget.hasClass("toggleButton")) {
+                    $(".initalToggleEdit").css("display", "none")
+                } else {
+                    $(".initalToggleEdit").css("display", "")
+                }
                 editComponent.currentTarget.attr("data-persist", JSON.stringify($ct.prop("checked")))
             })
         }
@@ -1039,8 +1062,6 @@ function bindEditMenu(element, valueType, customEdit = false) {
             let conditions = JSON.parse(editComponent.currentTarget.attr("data-keys"));
             $(".sidebarCondition").remove();
 
-            console.log(conditions, "conditions")
-
             for (let key of Object.keys(conditions)) {
                 if (key == "else") continue;
                 createColorCoderSidebarButton(key, conditions[key], false)
@@ -1077,20 +1098,22 @@ function bindEditMenu(element, valueType, customEdit = false) {
             }
 
             if (persist) {
-                if (JSON.parse(editComponent.currentTarget.attr("data-value"))) {
-                    multiSwitchButtonSet(inputBeingBound, "True")
-                    editComponent.currentTarget.attr("data-initialvalue", "true")
-                } else {
-                    multiSwitchButtonSet(inputBeingBound, "False")
-                    editComponent.currentTarget.attr("data-initialvalue", "false")
+                // if (JSON.parse(editComponent.currentTarget.attr("data-value"))) {
+                //     multiSwitchButtonSet(inputBeingBound, "True")
+                //     editComponent.currentTarget.attr("data-initialvalue", "true")
+                // } else {
+                //     multiSwitchButtonSet(inputBeingBound, "False")
+                //     editComponent.currentTarget.attr("data-initialvalue", "false")
 
-                }
+                // }
+                inputBeingBound.parent().css("display", "none")
             } else {
                 if (JSON.parse(editComponent.currentTarget.attr("data-initialvalue"))) {
                     multiSwitchButtonSet(inputBeingBound, "True")
                 } else {
                     multiSwitchButtonSet(inputBeingBound, "False")
                 }
+                inputBeingBound.parent().css("display", "")
             }
         }, 1);
 
@@ -1098,12 +1121,18 @@ function bindEditMenu(element, valueType, customEdit = false) {
             let oldBG = editComponent.currentTarget.css("background-color").replace(/^([^,]*,[^,]*,[^,]*),.*$/, '$1')
 
             if ($(event.target).val() == "False") {
-                editComponent.currentTarget.css("background-color", oldBG + ", 0)").removeClass("toggledOn").attr("data-value", "false").attr("data-initialvalue", "false")
+                editComponent.currentTarget.attr("data-initialvalue", "false")
+                if (!isConnected) {
+                    editComponent.currentTarget.attr("data-value", "false").css("background-color", oldBG + ", 0)").removeClass("toggledOn")
+                }
                 multiSwitchButtonSet(inputBeingBound, "False")
 
 
             } else if ($(event.target).val() == "True") {
-                editComponent.currentTarget.css("background-color", oldBG + ", 0.6)").addClass("toggledOn").attr("data-value", "true").attr("data-initialvalue", "true")
+                editComponent.currentTarget.attr("data-initialvalue", "true")
+                if (!isConnected) {
+                    editComponent.currentTarget.attr("data-value", "true").css("background-color", oldBG + ", 0.6)").addClass("toggledOn")
+                }
                 multiSwitchButtonSet(inputBeingBound, "True")
 
             }
@@ -1153,8 +1182,8 @@ function bindEditMenu(element, valueType, customEdit = false) {
         //bind components attribute which is found by the current input being bounds data-editing attribute.
         let boundEditing = editComponent.currentTarget.attr(inputBeingBound.attr("data-editing"))
 
-        if (boundEditing) {
-            boundEditing.replace("/touchboard/", "")
+        if (boundEditing !== undefined) {
+            boundEditing = boundEditing.replace("/touchboard/", "")
         }
 
         if (boundEditing === "esc-UNDEFINED-esc" || boundEditing === "/touchboard/esc-UNDEFINED-esc") {
@@ -1171,6 +1200,11 @@ function bindEditMenu(element, valueType, customEdit = false) {
         inputBeingBound.off("blur.typing").on("blur.typing", (event) => {
             let $ct = $(event.currentTarget)
             let $comp = editComponent.currentTarget
+
+            if ($ct.val() == "" || $ct.val() == "/touchboard/") {
+                $comp.attr('data-topic', "esc-UNDEFINED-esc")
+                return
+            }
 
 
             swapSubscriptionTopic("/touchboard/" + $ct.val(), { type: editComponent.currentTarget.attr("data-type") })
@@ -1218,6 +1252,21 @@ function bindEditMenu(element, valueType, customEdit = false) {
         })
     }
 
+    // function bindValue(inputBeingBound){
+    //             //bind components attribute which is found by the current input being bounds data-editing attribute.
+    //     let boundEditing = editComponent.currentTarget.val()
+
+    //     //defaults selection to all text 
+    //     // for easy deletion
+    //     inputBeingBound.val(boundEditing).on(`focus.selectText`, (event) => setTimeout(() => $(event.currentTarget)[0].setSelectionRange(0, $(event.currentTarget).val().length), 100))
+
+    //     inputBeingBound.off("input.typing blur.typing").on("input.typing blur.typing", (event) => {
+    //         let $ct = $(event.currentTarget)
+    //         let $comp = editComponent.currentTarget
+
+    //         $comp.val($ct.val())
+    //     })
+    // }
 
 
     function bindStrings(inputBeingBound) {
@@ -1234,7 +1283,6 @@ function bindEditMenu(element, valueType, customEdit = false) {
             newOption.color = sidebarOptions.eq(j).attr("data-hex")
             componentsOptions.push(newOption)
         }
-        $(".stringHex").val(getNextLineColor(colors))
 
         let newComponent
         // console.log(JSON.parse(eDCT.attr("data-persist")) ? eDCT.attr("data-index") : 0)
@@ -1242,7 +1290,7 @@ function bindEditMenu(element, valueType, customEdit = false) {
         // console.log(eDCT)
 
         if (editComponent.currentTarget.hasClass("buttonOptGroup")) {
-            newComponent = createOptGroup(getDataName(eDCT), eDCT.attr("data-topic"), $(".currentTab").attr("data-page"), JSON.parse(eDCT.attr("data-autoSend")), eDCT.attr("data-color"), JSON.parse(eDCT.attr("data-persist")) ? eDCT.attr("data-index") : 0, componentsOptions, JSON.parse(eDCT.attr("data-defaultsimilaroptions")), JSON.parse(eDCT.attr("data-persist"))).div
+            newComponent = createOptGroup(getDataName(eDCT), eDCT.attr("data-topic"), false, JSON.parse(eDCT.attr("data-autoSend")), eDCT.attr("data-color"), JSON.parse(eDCT.attr("data-persist")) ? eDCT.attr("data-index") : 0, componentsOptions, JSON.parse(eDCT.attr("data-defaultsimilaroptions")), JSON.parse(eDCT.attr("data-persist"))).div
                 .css("grid-area", eDCT.css("grid-area"))
                 .attr("data-row", eDCT.attr("data-row"))
                 .attr("data-column", eDCT.attr("data-column"))
@@ -1251,13 +1299,19 @@ function bindEditMenu(element, valueType, customEdit = false) {
                 .attr("data-componentOptions", JSON.stringify(componentsOptions))
 
         } else {
-            newComponent = createDropdown(getDataName(eDCT), eDCT.attr("data-topic"), $(".currentTab").attr("data-page"), JSON.parse(eDCT.attr("data-autoSend")), eDCT.attr("data-color"), JSON.parse(eDCT.attr("data-persist")) ? eDCT.attr("data-index") : 0, componentsOptions, JSON.parse(eDCT.attr("data-defaultsimilaroptions")), JSON.parse(eDCT.attr("data-persist"))).div
+            newComponent = createDropdown(getDataName(eDCT), eDCT.attr("data-topic"), false, JSON.parse(eDCT.attr("data-autoSend")), eDCT.attr("data-color"), JSON.parse(eDCT.attr("data-persist")) ? eDCT.attr("data-index") : 0, componentsOptions, JSON.parse(eDCT.attr("data-defaultsimilaroptions")), JSON.parse(eDCT.attr("data-persist"))).div
                 .css("grid-area", eDCT.css("grid-area"))
                 .attr("data-row", eDCT.attr("data-row"))
                 .attr("data-column", eDCT.attr("data-column"))
                 .attr("data-endRow", eDCT.attr("data-endRow"))
                 .attr("data-endColumn", eDCT.attr("data-endColumn"))
                 .attr("data-componentOptions", JSON.stringify(componentsOptions))
+        }
+
+        if(editComponent.currentTarget.hasClass("tunableInterfaced")){
+            newComponent.appendTo(editComponent.currentTarget.parent()).addClass("tunableInterfaced").removeClass("editableComponent")
+        }else{
+            newComponent.appendTo($(".currentTab").attr("data-page"))
         }
 
 
@@ -1629,8 +1683,6 @@ function addExplainers() {
         currentComp$.on("pointerdown.explain", (event) => {
             let explanation$ = $(".explanation");
             // let determinantWidth = currentComp$.attr("data-parent") == "true" ? currentComp$.parent().width() : currentComp$.width();
-            console.log(currentComp$.attr("data-parent") == "true", currentComp$.attr("data-parent"))
-
             explanation$.children(".editThisText").text(currentExplanation)
             explanation$.css("display", "block").css("left", currentComp$.offset().left).css("top", currentComp$.offset().top + currentComp$.height())
 
@@ -2219,7 +2271,6 @@ function createGraphTopicSidebarButton(topic = $(document.querySelector(".newGra
         let topicArray = JSON.parse(editComponent.currentTarget.attr("data-topics"))
         let topicArrayIndex = topicArray.indexOf(topic);
 
-        console.log(JSON.stringify(subscribedTopics))
         let indexes = JSON.parse(editComponent.currentTarget.attr("data-subscriptionIndexes"))
         if (topicArrayIndex !== -1) {
             subscribedTopics[topicArray[topicArrayIndex].split("|")[0]][indexes[topicArray[topicArrayIndex]]] = false;
@@ -2228,7 +2279,6 @@ function createGraphTopicSidebarButton(topic = $(document.querySelector(".newGra
         delete indexes[topicArray[topicArrayIndex]]
         editComponent.currentTarget.attr("data-subscriptionIndexes", JSON.stringify(indexes))
 
-        console.log(JSON.stringify(subscribedTopics))
         topicArray = topicArray.filter(item => item !== topic);
         editComponent.currentTarget.attr("data-topics", JSON.stringify(topicArray))
 
@@ -2275,8 +2325,6 @@ function createColorCoderSidebarButton(value = $(document.querySelector(".newCod
         }
 
         currentConditions["else"] = "#000000"
-
-        console.log(currentConditions);
 
         $(editComponent.currentTarget).attr("data-keys", JSON.stringify(currentConditions))
 
@@ -2339,7 +2387,7 @@ function setExampleMeter(min = 0, max = 100, low = "", high = "", optimum = "") 
     if (optimum != "") {
         optimum = parseFloat(optimum)
     } else {
-        optimum = max / 2
+        optimum = ((max - min) / 2) + min
     }
 
     // console.log(min, max, range)
