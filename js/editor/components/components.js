@@ -1140,12 +1140,9 @@ export function createCamera(displayName, topic, append, hideNav = false, videoF
     let disableDownloadCooldown = setTimeout(() => { }, 0);
 
     let recordConditionHandler = (value) => {
-        console.log(value)
         let robotState
         if(typeof value === 'object' && value !== null){
             robotState = decodeRobotState(value)
-            console.log(robotState)
-
         }else{
             robotState = decodeFMSControlData(value)
         }

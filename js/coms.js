@@ -177,16 +177,19 @@ function handleNewData(topic, timestamp, value) {
 
     //If the value is currently used by a component, send the value to the component handler.
     if (subscribedTopics.hasOwnProperty(topic.name)) {
-        let foundValue = value;
 
         for (let i = 0; i < subscribedTopics[topic.name].length; i++) {
+            let foundValue = value;
+
             if (!subscribedTopics[topic.name][i]) continue; //Pass if value is null
             // console.log(subscribedTopics[topic.name][i])
             if (value == undefined) return;
 
-            if (topic.type.includes("struct") && subscribedTopics[topic.name][i].structPath != undefined) {
-                foundValue = getStructValue(subscribedTopics[topic.name][i].structPath, value)
-            }
+            if (topic.type.includes("struct") && (subscribedTopics[topic.name][i].structPath != undefined)) {
+                if(subscribedTopics[topic.name][i].structPath.split("|")[1].length > 0){
+                    foundValue = getStructValue(subscribedTopics[topic.name][i].structPath, value)
+                }
+            } 
 
             subscribedTopics[topic.name][i].valueHandeler(foundValue, timestamp, topic) // Send value to topic handler
         }

@@ -1736,7 +1736,6 @@ export function changeSimilarInputs(similarOptions) {
 export function topicToSidebar(topic, schemasPassed = false) {
     if (topic.type.includes("proto") || topic.type.includes("structschema")) return
     if (topic.type.includes("struct") && !schemasPassed) {
-        toastMessage(topic.name)
         return
     };
     // if (topic.name.split("/")[1].includes("to    uchboard")) return;

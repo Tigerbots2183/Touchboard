@@ -341,3 +341,6 @@ The graph is able to pan in all directions, zoom in all directions, and auto siz
 
 The color coder takes in a given value and assigns it to a color that you define. To assign a color, put the desired color in the box on the sidebar, then enter a value and press the + icon. To remove default assignments or ones you've created, press the ❌ icon. 
 
+## Debugging
+
+If there is some error devtools can be opened by opening the import menu and typing in `devtools` and pressing import. 
