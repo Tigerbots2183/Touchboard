@@ -355,7 +355,7 @@ export function createDropdown(name, topic, append = false, autoSend = false, he
     let dropdownHandler = (value) => {
         let comp = dropdown.div
 
-        toastMessage(value + "val " + comp.attr("data-value") + " objval")
+        // toastMessage(value + "val " + comp.attr("data-value") + " objval")
 
 
 
@@ -367,13 +367,13 @@ export function createDropdown(name, topic, append = false, autoSend = false, he
         if (value == "") {
             let exists = false;
             for (let i = 0; i < options.length; i++) {
-                console.log(options[i].value, comp.attr("data-value"), options[i].value == comp.attr("data-value"))
+                // console.log(options[i].value, comp.attr("data-value"), options[i].value == comp.attr("data-value"))
 
                 if (options[i].value == comp.attr("data-value")) {
                     exists = true
                 }
             }
-            console.log(options)
+            // console.log(options)
 
             if (exists) {
                 setTimeout(() => {
@@ -480,7 +480,7 @@ export function createOptGroup(name, topic, append, autoSend = false, hex = 0, i
         if (value == "") {
             let exists = false;
             for (let i = 0; i < options.length; i++) {
-                console.log(options[i].value, comp.attr("data-value"), options[i].value == comp.attr("data-value"))
+                // console.log(options[i].value, comp.attr("data-value"), options[i].value == comp.attr("data-value"))
 
                 if (options[i].value == comp.attr("data-value")) {
                     exists = true
@@ -835,13 +835,13 @@ export function createNumberLine(displayName, topic, append = false, hex = "#0c0
 
 
         if (maxNumber) {
-            console.log(maxNumber)
+            // console.log(maxNumber)
             maxNumber = parseFloat(maxNumber)
             numberLine.attr("data-maxNumber", maxNumber)
             meterLine.attr("max", maxNumber)
         }
         if (minNumber) {
-            console.log(minNumber)
+            // console.log(minNumber)
             minNumber = parseFloat(minNumber)
             numberLine.attr("data-minNumber", minNumber)
             meterLine.attr("min", minNumber)
@@ -1451,6 +1451,7 @@ export function createTunableInterface(displayName, topic, append, subComponent,
 
         if (subComponent == "select" || subComponent == "buttonOptGroup") {
             compObj.topic = topic.replace(/\.type$/, '') + "selected/value"
+            subscribeOrQueue(compObj.topic)
             compObj.componentOptions = JSON.stringify([])
         }
         if (subComponent == "select") {
@@ -1468,7 +1469,7 @@ export function createTunableInterface(displayName, topic, append, subComponent,
         }
     }
 
-    console.log(compObj.topic)
+    // console.log(compObj.topic)
     makeComponentFromJson(compObj).appendTo(tunableInterface).addClass("tunableInterfaced").removeClass("editableComponent")
 
     if ((subComponent.type == "select" || subComponent.type == "buttonOptGroup" || subComponent == "select" || subComponent == "buttonOptGroup") && topic.includes(".type")) {
@@ -1501,7 +1502,7 @@ export function createTunableInterface(displayName, topic, append, subComponent,
 
 
             subComp.componentOptions = JSON.stringify(options)
-            console.log(makeComponentFromJson(subComp).appendTo(tunableInterface).addClass("tunableInterfaced").removeClass("editableComponent"))
+            makeComponentFromJson(subComp).appendTo(tunableInterface).addClass("tunableInterfaced").removeClass("editableComponent")
 
             setSelectOpener()
 
@@ -2466,7 +2467,7 @@ function addFeedbackCheck(topic) {
             let feedbackValue = nt4Client.serverTopics.get("/touchboard/Feedback/" + baseTopic).value
             let expectedValue = value
 
-            console.log(feedbackValue, expectedValue)
+            // console.log(feedbackValue, expectedValue)
 
             if (feedbackValue != expectedValue) {
                 if (topic.type == undefined) return

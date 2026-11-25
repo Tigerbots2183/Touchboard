@@ -10,7 +10,16 @@ module.exports = {
   makers: [
     {
       name: '@electron-forge/maker-squirrel',
-      config: {},
+      config: {
+        // 1. Icon for the Setup.exe installer file itself (must be a local .ico path)
+        setupIcon: './TouchBoardLOGO.ico',
+
+        // 2. Logo/animation shown inside the Squirrel install window (must be a .gif)
+        loadingGif: './install.gif',
+
+        // Optional: Icon shown in Windows Settings > Apps & Features (must be a public HTTP/HTTPS URL to an .ico)
+        // iconUrl: 'https://example.com/TouchBoardLOGO.ico',
+      },
     },
     {
       name: '@electron-forge/maker-zip',

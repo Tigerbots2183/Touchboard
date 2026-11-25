@@ -41,6 +41,9 @@ import { renderFrame } from "./renderer.js"
 //Multiple topics may be bound to one component, but as of now they will NOT update each other.
 //So usage of multiple is not recommnded besides action and one shot buttons. 
 
+// renderer.js
+
+
 
 
 let toastOpen = false
@@ -275,6 +278,14 @@ function bindImportExport() {
 
     $(".doImport").on("click", () => {
         let json = $(".importBox").val()
+
+        if (json == "devtools") {
+            if (window.electronAPI?.buttonClicked) {
+                window.electronAPI.buttonClicked();
+            }
+            return;
+        }
+
 
         localStorage.setItem("layout", json);
         clear = true;

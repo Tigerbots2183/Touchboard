@@ -4593,7 +4593,7 @@ z-index: 3;
     height: 10%;
     color: white;
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     flex-direction: row;
     align-items: center;
     justify-content: space-evenly;
