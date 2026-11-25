@@ -78,6 +78,7 @@ function topicAnnounce(topic) {
 
     if (topic.name == "/DriverStation/ControlWord") {
         setCompatabilityMode(2027)
+        subscribeOrQueue("/DriverStation/ControlWord")
 
     }
     // So most topics are sent to the sidebar when they are created, but we cannot decode structs
@@ -85,7 +86,6 @@ function topicAnnounce(topic) {
     // does not have the topic, then send the topic to the sidebar.
     if (topic.type.includes("struct") && !sidebaredStructs.includes(topic.name.split("|")[0])) {
         if (topic.type.includes("[]")) return;
-
         topicToSidebar(topic, true)
         sidebaredStructs.push(topic.name.split("|")[0])
     }
@@ -184,7 +184,7 @@ function handleNewData(topic, timestamp, value) {
             // console.log(subscribedTopics[topic.name][i])
             if (value == undefined) return;
 
-            if (topic.type.includes("struct")) {
+            if (topic.type.includes("struct") && subscribedTopics[topic.name][i].structPath != undefined) {
                 foundValue = getStructValue(subscribedTopics[topic.name][i].structPath, value)
             }
 
@@ -265,7 +265,6 @@ function onConnectCb() {
         // nt4Client.addSample("/touchboard/musicIsFinished", true)
 
         subscribeOrQueue("/FMSInfo/FMSControlData");
-        subscribeOrQueue("/DriverStation/ControlWord")
 
         nt4Client.subscribe(["/.schema"], true)
 

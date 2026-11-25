@@ -1,1 +1,0 @@
-Simply move the touchboard folder thats in this folder into your robot project

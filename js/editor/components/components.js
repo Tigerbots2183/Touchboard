@@ -1140,7 +1140,15 @@ export function createCamera(displayName, topic, append, hideNav = false, videoF
     let disableDownloadCooldown = setTimeout(() => { }, 0);
 
     let recordConditionHandler = (value) => {
-        let robotState = decodeFMSControlData(value)
+        console.log(value)
+        let robotState
+        if(typeof value === 'object' && value !== null){
+            robotState = decodeRobotState(value)
+            console.log(robotState)
+
+        }else{
+            robotState = decodeFMSControlData(value)
+        }
         let conditions = JSON.parse(camera.attr("data-recordConditions"))
 
         for (let i in conditions) {
@@ -1178,17 +1186,26 @@ export function createCamera(displayName, topic, append, hideNav = false, videoF
         // 'topicChangeHandler': topicChangeHandler
     }
 
+    // let fmsReference = {
+    //     'jQueryReference': false,
+    //     "allowLoopback": false,
+    //     'parentReference': camera,
+    //     'topic': "/FMSInfo/FMSControlData",
+    //     'valueHandeler': recordConditionHandler,
+    //     // 'topicChangeHandler': topicChangeHandler
+    // }
+
     let fmsReference = {
         'jQueryReference': false,
         "allowLoopback": false,
         'parentReference': camera,
-        'topic': "/FMSInfo/FMSControlData",
+        'topic': compatabilityYear == 2026 ? "/FMSInfo/FMSControlData" : "/DriverStation/ControlWord",
         'valueHandeler': recordConditionHandler,
         // 'topicChangeHandler': topicChangeHandler
     }
 
-    subscribedReference(subscribedReference)
-    subscribedReference(fmsReference)
+    addSubscribedReference(subscribedReference)
+    addSubscribedReference(fmsReference)
 
     return camera
 
@@ -1961,6 +1978,29 @@ export function decodeFMSControlData(state) {
         dsAttached: (state & DS_ATTACHED_FLAG) !== 0,
         eStopped: (state & EMERGENCY_STOP_FLAG) !== 0
     }
+}
+
+export function decodeRobotState(data) {
+    // Map the numeric robotMode enum to the expected string names
+    const modeMap = {
+        1: "auto",
+        2: "teleop",
+        3: "test" // Assuming "utility" maps to "test"
+    };
+
+    const isEnabled = Boolean(data["enabled:1"]?.value);
+    const rawMode = data["robotMode:2"]?.value;
+
+    // Default to "disabled" unless enabled is true and the mode is recognized
+    const mode = isEnabled ? (modeMap[rawMode] || "disabled") : "disabled";
+
+    return {
+        mode: mode,
+        enabled: isEnabled,
+        fmsAttached: Boolean(data["fmsAttached:1"]?.value),
+        dsAttached: Boolean(data["dsAttached:1"]?.value),
+        eStopped: Boolean(data["eStop:1"]?.value)
+    };
 }
 
 export function setSimilarOptions(element, similarOptions = JSON.parse($(element).attr("data-defaultSimilarOptions"))) {
