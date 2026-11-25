@@ -196,7 +196,7 @@ Runnables are also supported, the code will run when there is a new value:
 To pass in the axis value once it is moved you must pass the value into the command. For example:
 
 ```java
-  Command example = new exampleCommand(Touchboard.getDoubleValue("*Topic"))
+  Command example = new exampleCommand(()-> Touchboard.getDoubleValue("*Topic"))
 
   Touchboard.bindAxis("*Topic", example);
 ```
